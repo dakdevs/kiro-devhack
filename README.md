@@ -31,11 +31,20 @@ Copy the example environment file and configure it:
 cp .env.local.example .env.local
 ```
 
+Generate a secure secret for Better Auth:
+
+```bash
+# Generate a random 32-character base64 secret
+openssl rand -base64 32
+```
+
+Copy the output and use it as your `BETTER_AUTH_SECRET` value.
+
 Edit `.env.local` with your actual values:
 
 ```bash
 # Better Auth Configuration
-BETTER_AUTH_SECRET="your-super-secret-key-here"  # Generate a random 32+ character string
+BETTER_AUTH_SECRET="your-super-secret-key-here"  # Generate using: openssl rand -base64 32
 BETTER_AUTH_URL="http://localhost:3000"
 
 # Google OAuth (REQUIRED - see setup instructions below)
