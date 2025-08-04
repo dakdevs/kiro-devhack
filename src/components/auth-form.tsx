@@ -1,6 +1,6 @@
 "use client"
 
-import { signIn, signOut, useSession } from "@/lib/auth-client"
+import { signIn, signOut, useSession } from "~/lib/auth-client"
 import { useState } from "react"
 
 export function AuthForm() {

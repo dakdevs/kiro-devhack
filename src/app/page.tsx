@@ -1,17 +1,17 @@
-import { AuthForm } from "@/components/auth-form";
+import { AuthForm } from "~/components/auth-form";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Background Pattern */}
-      <div 
-        className="absolute inset-0 opacity-30 dark:opacity-20"
+      <div
+        className="absolute inset-0 opacity-30 dark:opacity-20 animate-move-up"
         style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, rgb(148 163 184) 1px, transparent 0)`,
           backgroundSize: '20px 20px'
         }}
       ></div>
-      
+
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12">
         {/* Header */}
         <div className="mb-12 text-center">
@@ -35,9 +35,9 @@ export default function Home() {
         <div className="mt-12 text-center">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Powered by{" "}
-            <a 
-              href="https://better-auth.com" 
-              target="_blank" 
+            <a
+              href="https://better-auth.com"
+              target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
             >
