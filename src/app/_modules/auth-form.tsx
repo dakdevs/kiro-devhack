@@ -1,17 +1,34 @@
 "use client"
 
-import { signIn, signOut, useSession } from "~/lib/auth-client"
-import { useState } from "react"
+import { authClient } from "~/lib/auth-client"
+import { useState, useEffect } from "react"
 
 export function AuthForm() {
-  const { data: session, isPending } = useSession()
+  const [session, setSession] = useState<any>(null)
+  const [isPending, setIsPending] = useState(true)
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+
+  useEffect(() => {
+    const getSession = async () => {
+      try {
+        const sessionData = await authClient.getSession()
+        setSession(sessionData)
+      } catch (error) {
+        console.error("Session error:", error)
+      } finally {
+        setIsPending(false)
+      }
+    }
+    
+    getSession()
+  }, [])
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
     try {
-      await signOut()
+      await authClient.signOut()
+      setSession(null)
     } catch (error) {
       console.error("Sign out error:", error)
     } finally {
@@ -22,7 +39,7 @@ export function AuthForm() {
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true)
     try {
-      await signIn.social({ provider: "google" })
+      await authClient.signIn.social({ provider: "google" })
     } catch (error) {
       console.error("Google sign in error:", error)
       setIsSigningIn(false)
@@ -91,7 +108,7 @@ export function AuthForm() {
                 ) : (
                   <>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
                     </svg>
                     <span>Sign Out</span>
                   </>

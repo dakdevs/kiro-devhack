@@ -108,6 +108,8 @@ pnpm run db:migrate
 pnpm run db:push
 ```
 
+**⚠️ Important**: Always use `pnpm run db:generate` to create migrations. Never create manual SQL migration files. All schema changes should be made in `src/db/schema.ts` and then generate migrations using drizzle-kit.
+
 ### 6. Access the Application
 
 - **Application**: http://localhost:3000
