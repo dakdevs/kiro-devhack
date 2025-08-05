@@ -57,7 +57,7 @@ const MessageBubble: FC<{ message: Message }> = ({ message }) => {
 // --- MAIN CHAT COMPONENT ---
 const SimpleChat: FC = () => {
     const [messages, setMessages] = useState<Message[]>([
-        { sender: 'ai', text: "Hello! I'm your AI assistant. How can I help you today?" }
+        { sender: 'ai', text: "Congratulations, you are about to build a better profile! Let's get started- tell me about a recent project you worked on." }
     ]);
     const [newMessage, setNewMessage] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
