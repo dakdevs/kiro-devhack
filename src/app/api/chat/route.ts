@@ -3,7 +3,6 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { NextRequest, NextResponse } from 'next/server';
 
 // --- Configuration Constants ---
-// The API key is now read directly by the OpenAI client from process.env.OPENROUTER_API_KEY
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 const SITE_NAME = process.env.SITE_NAME || 'AI Interviewer';
 
@@ -18,7 +17,6 @@ const openrouter = createOpenAI({
 });
 
 // --- System Prompt for the Interviewer Model ---
-// This remains the same. It will be prepended to the message history.
 const INTERVIEW_SYSTEM_PROMPT = [
     { role: 'system', content: "You are a minimal, open-ended interviewer for a technical job." },
     { role: 'system', content: "Do NOT provide technology names, tools, frameworks, or buzzwords in your questions or responses." },
@@ -41,27 +39,21 @@ Respond ONLY with the numerical score and nothing else. Example: 1.7
 const INTERVIEW_MODEL = 'liquid/lfm-3b';
 const GRADING_MODEL = 'liquid/lfm-3b';
 
-/**
- * Asynchronously grades a conversation history in the background.
- * This function uses a separate, non-streaming fetch call.
- * @param history The chat history to analyze.
- */
+// --- Conversation Grading ---
 async function gradeConversation(history: any[]) {
-    console.log('Starting background conversation grading...');
-    const apiKey = process.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-        console.error('Grading failed: API key is not configured.');
-        return;
-    }
-
     try {
+        const apiKey = process.env.OPENROUTER_API_KEY;
+
+        if (!apiKey) {
+            console.error('Grading failed: API key is not configured.');
+            return;
+        }
+
         const messagesToGrade = [
             { role: 'system', content: GRADING_SYSTEM_PROMPT },
             ...history
         ];
 
-        // We use a standard fetch call here because this is a non-streaming, background task.
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -94,53 +86,49 @@ async function gradeConversation(history: any[]) {
     }
 }
 
-// --- Main POST Handler for Streaming Chat ---
+// --- Main handler ---
 export async function POST(req: NextRequest) {
-    try {
-        // The `useChat` hook from the `ai` package sends the entire message history.
-        const { messages } = await req.json();
+  try {
+      // Accept either { messages: [...] } (recommended) or { message: string } (fallback for single-turn)
+      const body = await req.json();
+      let messages = Array.isArray(body.messages) ? body.messages : [];
+      if (!messages.length && typeof body.message === "string") {
+          messages = [{ role: "user", content: body.message }];
+      }
 
-        // API Key validation check
-        if (!process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY.includes('your-actual-openrouter-api-key-here')) {
-            return NextResponse.json(
-                { error: 'Please configure your OpenRouter API key in your environment variables.' },
-                { status: 500 }
-            );
-        }
+      // Flatten system prompts into a single system message
+      const systemMessage = {
+          role: 'system',
+          content: INTERVIEW_SYSTEM_PROMPT.map(msg => msg.content).join(' ')
+      };
+      const fullMessages = [systemMessage, ...messages];
 
-        // Convert system prompt array to a single system message
-        const systemMessage = INTERVIEW_SYSTEM_PROMPT.map(msg => msg.content).join(' ');
+      // Call the LLM (non-streaming)
+      const result = await streamText({
+          model: openrouter(INTERVIEW_MODEL),
+          messages: fullMessages,
+          temperature: 0.7,
+      });
 
-        // Use the modern AI SDK streamText function
-        const result = streamText({
-            model: openrouter(INTERVIEW_MODEL),
-            system: systemMessage,
-            messages,
-            temperature: 0.7,
-            onFinish: async ({ text }) => {
-                // This callback runs AFTER the full response has been streamed to the client.
-                // It's the perfect place for our non-blocking background task.
+      // Extract reply text safely
+      let reply: string = '';
+      if (typeof result.text === 'function') {
+          reply = await result.text();
+      } else if (typeof result.text === 'string') {
+          reply = result.text;
+      } else if (result.data) {
+          reply = String(result.data);
+      } else {
+          reply = String(result);
+      }
 
-                // 1. Construct the final, complete chat history
-                const finalHistory = [
-                    ...messages,
-                    { role: 'assistant', content: text }
-                ];
-
-                // 2. "Fire-and-forget" the grading call. We don't `await` it.
-                gradeConversation(finalHistory);
-            },
-        });
-
-        // Return the streaming response
-        return result.toTextStreamResponse();
-
-    } catch (error: any) {
-        // Handle potential errors, such as API failures or invalid requests.
-        console.error('API Route Error:', error);
-        return NextResponse.json(
-            { error: `Error processing your request: ${error.message || 'An unknown error occurred.'}` },
-            { status: 500 }
-        );
-    }
+      return NextResponse.json({ reply });
+  } catch (error: any) {
+      console.error('API Route Error:', error); // Log error for debugging
+      return NextResponse.json(
+          { reply: `Error: ${error?.message ?? 'Unknown error occurred.'}` },
+          { status: 500 }
+      );
+  }
 }
+

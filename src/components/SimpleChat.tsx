@@ -77,40 +77,50 @@ const SimpleChat: FC = () => {
         e.preventDefault();
         const userMessage = newMessage.trim();
         if (userMessage === '' || isLoading) return;
-
-        // Add user's message to the UI immediately
+    
         setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
         setNewMessage('');
         setIsLoading(true);
-
+    
         try {
-            // Call the backend API
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({
+                    messages: [
+                        ...messages.map(msg => ({
+                            role: msg.sender === 'user' ? 'user' : 'assistant',
+                            content: msg.text,
+                        })),
+                        { role: 'user', content: userMessage }
+                    ]
+                }),
             });
-
+    
             if (!response.ok) {
                 throw new Error(`API error: ${response.statusText}`);
             }
-
+    
             const data: ApiResponseData = await response.json();
-
+    
             if (data.reply) {
+                //debuggging
+                console.log('API data:', data);
+                console.log('API reply:', data.reply);
+
                 setMessages(prev => [...prev, { sender: 'ai', text: data.reply as string }]);
             } else {
                 throw new Error('Invalid response from server');
             }
-
+    
         } catch (error) {
             console.error("Failed to send message:", error);
-            // Display an error message in the chat
             setMessages(prev => [...prev, { sender: 'ai', text: "Sorry, I'm having trouble connecting. Please try again later." }]);
         } finally {
             setIsLoading(false);
         }
     };
+    
 
     return (
         <div className="h-screen w-full flex flex-col bg-white dark:bg-gray-900 font-sans">
