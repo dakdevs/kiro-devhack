@@ -102,6 +102,8 @@ const SimpleChat: FC = () => {
             }
     
             const data: ApiResponseData = await response.json();
+            console.log("API response:", data);
+            console.log("API reply:", data.reply);
     
             if (data.reply) {
                 //debuggging

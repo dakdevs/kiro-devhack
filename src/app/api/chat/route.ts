@@ -64,7 +64,7 @@ async function gradeConversation(history: any[]) {
                 model: GRADING_MODEL,
                 messages: messagesToGrade,
             }),
-        });
+        }); 
 
         if (!response.ok) {
             console.error(`Grading API Error: ${response.status} ${response.statusText}`);
@@ -105,30 +105,33 @@ export async function POST(req: NextRequest) {
 
       // Call the LLM (non-streaming)
       const result = await streamText({
-          model: openrouter(INTERVIEW_MODEL),
-          messages: fullMessages,
-          temperature: 0.7,
+        model: openrouter(INTERVIEW_MODEL),
+        messages: fullMessages,
+        temperature: 0.7,
       });
-
-      // Extract reply text safely
-      let reply: string = '';
-      if (typeof result.text === 'function') {
-          reply = await result.text();
-      } else if (typeof result.text === 'string') {
-          reply = result.text;
-      } else if (result.data) {
-          reply = String(result.data);
-      } else {
-          reply = String(result);
+      // PRINT EVERYTHING ABOUT RESULT!
+      console.log("DEBUG result:", result);
+      console.log("DEBUG result.text:", result.text);
+      if (typeof result.text === "function") {
+        const txt = await result.text();
+        console.log("DEBUG result.text() output:", txt);
+        return NextResponse.json({ reply: txt });
       }
-
-      return NextResponse.json({ reply });
-  } catch (error: any) {
-      console.error('API Route Error:', error); // Log error for debugging
+      if (typeof result.text === "string") {
+        console.log("DEBUG result.text value:", result.text);
+        return NextResponse.json({ reply: result.text });
+      }
+      if (typeof result.data === "string") {
+        console.log("DEBUG result.data value:", result.data);
+        return NextResponse.json({ reply: result.data });
+      }
+      // Fallback for debugging
+      return NextResponse.json({ reply: JSON.stringify(result) });
+    } catch (error: any) {
       return NextResponse.json(
-          { reply: `Error: ${error?.message ?? 'Unknown error occurred.'}` },
-          { status: 500 }
+        { reply: `Error: ${error?.message ?? 'Unknown error occurred.'}` },
+        { status: 500 }
       );
+    }
   }
-}
 
