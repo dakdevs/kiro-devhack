@@ -1,6 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef, FC, FormEvent } from 'react';
+import VoiceInputButton, { VoiceInputState } from './VoiceInputButton';
+import VoiceDebugInfo from './VoiceDebugInfo';
+import ChatDebugTest from './ChatDebugTest';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { getBrowserCompatibility, logCompatibilityInfo } from '../utils/browserCompatibility';
 
 // --- TYPES & INTERFACES ---
 interface Message {
@@ -63,6 +68,70 @@ const SimpleChat: FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Voice input functionality
+    const {
+        isListening,
+        transcript,
+        interimTranscript,
+        error: speechError,
+        isSupported: isSpeechSupported,
+        canRetry,
+        permissionState,
+        isProcessing,
+        hasCompletedTranscription,
+        startListening,
+        stopListening,
+        resetTranscript,
+        retryListening,
+    } = useSpeechRecognition();
+
+    // Track the base message (user typed text) separately from speech transcript
+    const [baseMessage, setBaseMessage] = useState<string>('');
+    const [speechTranscript, setSpeechTranscript] = useState<string>('');
+    
+    // Browser compatibility information
+    const [browserInfo] = useState(() => getBrowserCompatibility());
+
+    // Update speech transcript when final results come in
+    useEffect(() => {
+        if (transcript) {
+            setSpeechTranscript(prev => prev + (prev ? ' ' : '') + transcript);
+            resetTranscript(); // Clear the transcript after adding to speech transcript
+        }
+    }, [transcript, resetTranscript]);
+
+    // Combine base message with speech transcript for display
+    useEffect(() => {
+        const combinedMessage = baseMessage + (speechTranscript ? (baseMessage ? ' ' : '') + speechTranscript : '');
+        setNewMessage(combinedMessage);
+    }, [baseMessage, speechTranscript]);
+
+    // Determine voice button state
+    const getVoiceButtonState = (): VoiceInputState => {
+        if (speechError) return 'error';
+        if (hasCompletedTranscription) return 'completed';
+        if (isProcessing) return 'processing';
+        if (isListening) return 'listening';
+        return 'idle';
+    };
+
+    // Handle voice button click
+    const handleVoiceButtonClick = () => {
+        if (isListening) {
+            stopListening();
+        } else {
+            // Reset speech transcript when starting new recording
+            setSpeechTranscript('');
+            startListening();
+        }
+    };
+
+    // Handle retry functionality
+    const handleVoiceRetry = () => {
+        setSpeechTranscript('');
+        retryListening();
+    };
+
     // Function to scroll to the latest message
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,6 +141,13 @@ const SimpleChat: FC = () => {
         scrollToBottom();
     }, [messages]);
 
+    // Log browser compatibility information on component mount
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            logCompatibilityInfo();
+        }
+    }, []);
+
     // Function to handle form submission
     const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -80,6 +156,8 @@ const SimpleChat: FC = () => {
     
         setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
         setNewMessage('');
+        setBaseMessage('');
+        setSpeechTranscript('');
         setIsLoading(true);
     
         try {
@@ -126,6 +204,8 @@ const SimpleChat: FC = () => {
 
     return (
         <div className="h-screen w-full flex flex-col bg-white dark:bg-gray-900 font-sans">
+            <VoiceDebugInfo />
+            <ChatDebugTest />
             <header className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                 <BotIcon className="w-6 h-6 text-blue-500" />
                 <h1 className="ml-3 text-xl font-bold text-gray-900 dark:text-white">AI Assistant</h1>
@@ -152,14 +232,84 @@ const SimpleChat: FC = () => {
 
             <footer className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
                 <form onSubmit={handleSendMessage} className="flex items-center space-x-4">
-                    <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type a message to the AI..."
-                        className="flex-1 bg-gray-100 dark:bg-gray-800 border border-transparent rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200"
-                        disabled={isLoading}
-                    />
+                    <div className="flex-1 relative">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={newMessage}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setNewMessage(value);
+                                    // Update base message by removing any speech transcript
+                                    if (speechTranscript) {
+                                        const speechPart = (baseMessage ? ' ' : '') + speechTranscript;
+                                        if (value.endsWith(speechPart)) {
+                                            setBaseMessage(value.slice(0, -speechPart.length));
+                                        } else {
+                                            // User is editing, reset speech transcript
+                                            setSpeechTranscript('');
+                                            setBaseMessage(value);
+                                        }
+                                    } else {
+                                        setBaseMessage(value);
+                                    }
+                                }}
+                                placeholder="Type a message to the AI..."
+                                className="w-full bg-gray-100 dark:bg-gray-800 border border-transparent rounded-full px-6 py-3 pr-14 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200"
+                                disabled={isLoading}
+                            />
+                            {/* Interim transcript overlay for visual indication */}
+                            {interimTranscript && (
+                                <div className="absolute inset-0 px-6 py-3 pr-14 pointer-events-none flex items-center">
+                                    <span className="invisible">{newMessage}</span>
+                                    <span className="text-gray-400 dark:text-gray-500 italic">
+                                        {newMessage ? ' ' : ''}{interimTranscript}
+                                    </span>
+                                </div>
+                            )}
+                            
+                            {/* Processing indicator overlay */}
+                            {isProcessing && (
+                                <div className="absolute inset-0 px-6 py-3 pr-14 pointer-events-none flex items-center justify-end">
+                                    <div className="flex items-center space-x-2 text-blue-500 text-sm">
+                                        <div className="flex space-x-1">
+                                            <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+                                            <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+                                            <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
+                                        </div>
+                                        <span className="text-xs">Processing...</span>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Completion confirmation overlay */}
+                            {hasCompletedTranscription && !isProcessing && (
+                                <div className="absolute inset-0 px-6 py-3 pr-14 pointer-events-none flex items-center justify-end">
+                                    <div className="flex items-center space-x-2 text-green-500 text-sm animate-fade-in">
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                        <span className="text-xs">Transcribed!</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        {/* Voice input button positioned inside the input field */}
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                            <VoiceInputButton
+                                state={getVoiceButtonState()}
+                                onClick={handleVoiceButtonClick}
+                                onRetry={handleVoiceRetry}
+                                disabled={isLoading || !browserInfo.isSupported}
+                                error={speechError || undefined}
+                                canRetry={canRetry}
+                                permissionState={permissionState}
+                                isSupported={browserInfo.isSupported}
+                                browserInfo={browserInfo}
+                                className="!p-2"
+                            />
+                        </div>
+                    </div>
                     <button
                         type="submit"
                         className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 flex-shrink-0 disabled:bg-blue-300 disabled:cursor-not-allowed"
