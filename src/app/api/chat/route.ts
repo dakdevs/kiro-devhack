@@ -60,7 +60,7 @@ async function gradeConversation(history: any[]) {
                 model: GRADING_MODEL,
                 messages: messagesToGrade,
             }),
-        }); 
+        });
 
         if (!response.ok) {
             console.error(`Grading API Error: ${response.status} ${response.statusText}`);
@@ -108,5 +108,5 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-  }
+}
 
