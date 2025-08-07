@@ -1,4 +1,4 @@
-import { streamText } from 'ai';
+import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -64,7 +64,7 @@ async function gradeConversation(history: any[]) {
                 model: GRADING_MODEL,
                 messages: messagesToGrade,
             }),
-        }); 
+        });
 
         if (!response.ok) {
             console.error(`Grading API Error: ${response.status} ${response.statusText}`);
@@ -88,50 +88,34 @@ async function gradeConversation(history: any[]) {
 
 // --- Main handler ---
 export async function POST(req: NextRequest) {
-  try {
-      // Accept either { messages: [...] } (recommended) or { message: string } (fallback for single-turn)
-      const body = await req.json();
-      let messages = Array.isArray(body.messages) ? body.messages : [];
-      if (!messages.length && typeof body.message === "string") {
-          messages = [{ role: "user", content: body.message }];
-      }
+    try {
+        // Accept either { messages: [...] } (recommended) or { message: string } (fallback for single-turn)
+        const body = await req.json();
+        let messages = Array.isArray(body.messages) ? body.messages : [];
+        if (!messages.length && typeof body.message === "string") {
+            messages = [{ role: "user", content: body.message }];
+        }
 
-      // Flatten system prompts into a single system message
-      const systemMessage = {
-          role: 'system',
-          content: INTERVIEW_SYSTEM_PROMPT.map(msg => msg.content).join(' ')
-      };
-      const fullMessages = [systemMessage, ...messages];
+        // Flatten system prompts into a single system message
+        const systemMessage = {
+            role: 'system',
+            content: INTERVIEW_SYSTEM_PROMPT.map(msg => msg.content).join(' ')
+        };
+        const fullMessages = [systemMessage, ...messages];
 
-      // Call the LLM (non-streaming)
-      const result = await streamText({
-        model: openrouter(INTERVIEW_MODEL),
-        messages: fullMessages,
-        temperature: 0.7,
-      });
-      // PRINT EVERYTHING ABOUT RESULT!
-      console.log("DEBUG result:", result);
-      console.log("DEBUG result.text:", result.text);
-      if (typeof result.text === "function") {
-        const txt = await result.text();
-        console.log("DEBUG result.text() output:", txt);
-        return NextResponse.json({ reply: txt });
-      }
-      if (typeof result.text === "string") {
-        console.log("DEBUG result.text value:", result.text);
+        // Call the LLM (non-streaming)
+        const result = await generateText({
+            model: openrouter(INTERVIEW_MODEL),
+            messages: fullMessages,
+            temperature: 0.7,
+        });
+
         return NextResponse.json({ reply: result.text });
-      }
-      if (typeof result.data === "string") {
-        console.log("DEBUG result.data value:", result.data);
-        return NextResponse.json({ reply: result.data });
-      }
-      // Fallback for debugging
-      return NextResponse.json({ reply: JSON.stringify(result) });
     } catch (error: any) {
-      return NextResponse.json(
-        { reply: `Error: ${error?.message ?? 'Unknown error occurred.'}` },
-        { status: 500 }
-      );
+        return NextResponse.json(
+            { reply: `Error: ${error?.message ?? 'Unknown error occurred.'}` },
+            { status: 500 }
+        );
     }
-  }
+}
 
