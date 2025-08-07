@@ -1,20 +1,16 @@
-import { streamText } from 'ai';
+import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { NextRequest, NextResponse } from 'next/server';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 // --- Configuration Constants ---
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 const SITE_NAME = process.env.SITE_NAME || 'AI Interviewer';
 
-// Configure OpenAI client to use OpenRouter
-const openrouter = createOpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY,
-    headers: {
-        'HTTP-Referer': SITE_URL,
-        'X-Title': SITE_NAME,
-    },
-});
 
 // --- System Prompt for the Interviewer Model ---
 const INTERVIEW_SYSTEM_PROMPT = [
@@ -95,39 +91,18 @@ export async function POST(req: NextRequest) {
       if (!messages.length && typeof body.message === "string") {
           messages = [{ role: "user", content: body.message }];
       }
+      console.log(messages);
 
-      // Flatten system prompts into a single system message
-      const systemMessage = {
-          role: 'system',
-          content: INTERVIEW_SYSTEM_PROMPT.map(msg => msg.content).join(' ')
-      };
-      const fullMessages = [systemMessage, ...messages];
-
-      // Call the LLM (non-streaming)
-      const result = await streamText({
-        model: openrouter(INTERVIEW_MODEL),
-        messages: fullMessages,
+      const result = await generateText({
+        system: INTERVIEW_SYSTEM_PROMPT.map(msg => msg.content).join(' '),
+        messages,
+        model: openrouter.chat(INTERVIEW_MODEL),
         temperature: 0.7,
       });
-      // PRINT EVERYTHING ABOUT RESULT!
-      console.log("DEBUG result:", result);
-      console.log("DEBUG result.text:", result.text);
-      if (typeof result.text === "function") {
-        const txt = await result.text();
-        console.log("DEBUG result.text() output:", txt);
-        return NextResponse.json({ reply: txt });
-      }
-      if (typeof result.text === "string") {
-        console.log("DEBUG result.text value:", result.text);
-        return NextResponse.json({ reply: result.text });
-      }
-      if (typeof result.data === "string") {
-        console.log("DEBUG result.data value:", result.data);
-        return NextResponse.json({ reply: result.data });
-      }
-      // Fallback for debugging
-      return NextResponse.json({ reply: JSON.stringify(result) });
+
+      return NextResponse.json({ reply: result.text });
     } catch (error: any) {
+      console.trace();
       return NextResponse.json(
         { reply: `Error: ${error?.message ?? 'Unknown error occurred.'}` },
         { status: 500 }
