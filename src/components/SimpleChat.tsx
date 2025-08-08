@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef, FC, FormEvent } from 'react';
 import VoiceInputButton, { VoiceInputState } from './VoiceInputButton';
 import VoiceDebugInfo from './VoiceDebugInfo';
 import ChatDebugTest from './ChatDebugTest';
+import BraveCompatibilityFix from './BraveCompatibilityFix';
+import MicrophoneTest from './MicrophoneTest';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { getBrowserCompatibility, logCompatibilityInfo } from '../utils/browserCompatibility';
 
@@ -89,8 +91,16 @@ const SimpleChat: FC = () => {
     const [baseMessage, setBaseMessage] = useState<string>('');
     const [speechTranscript, setSpeechTranscript] = useState<string>('');
     
-    // Browser compatibility information
-    const [browserInfo] = useState(() => getBrowserCompatibility());
+    // Browser compatibility information (initialize on client side only)
+    const [browserInfo, setBrowserInfo] = useState(() => ({
+        name: 'Unknown',
+        version: 'unknown',
+        isSupported: false,
+        supportLevel: 'none' as const,
+        recommendedBrowsers: ['Chrome', 'Edge', 'Safari'],
+        limitations: [],
+        guidance: ''
+    }));
 
     // Update speech transcript when final results come in
     useEffect(() => {
@@ -141,10 +151,15 @@ const SimpleChat: FC = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Log browser compatibility information on component mount
+    // Initialize browser compatibility information on client side
     useEffect(() => {
-        if (process.env.NODE_ENV === 'development') {
-            logCompatibilityInfo();
+        // Only run on client side
+        if (typeof window !== 'undefined') {
+            setBrowserInfo(getBrowserCompatibility());
+            
+            if (process.env.NODE_ENV === 'development') {
+                logCompatibilityInfo();
+            }
         }
     }, []);
 
@@ -204,8 +219,10 @@ const SimpleChat: FC = () => {
 
     return (
         <div className="h-screen w-full flex flex-col bg-white dark:bg-gray-900 font-sans">
+            <BraveCompatibilityFix />
             <VoiceDebugInfo />
             <ChatDebugTest />
+            <MicrophoneTest />
             <header className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                 <BotIcon className="w-6 h-6 text-blue-500" />
                 <h1 className="ml-3 text-xl font-bold text-gray-900 dark:text-white">AI Assistant</h1>

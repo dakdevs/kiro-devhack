@@ -184,7 +184,18 @@ export const useSpeechRecognition = (): SpeechRecognitionState & SpeechRecogniti
 
     // Handle speech recognition errors
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error('Speech recognition error:', event.error);
+      console.error('Speech recognition error:', event.error, event);
+      
+      // Log additional debugging info for network errors
+      if (event.error === 'network') {
+        console.log('Network error details:', {
+          userAgent: navigator.userAgent,
+          protocol: window.location.protocol,
+          hostname: window.location.hostname,
+          isSecureContext: window.isSecureContext,
+          permissionState: permissionState
+        });
+      }
       
       let errorMessage = '';
       let canRetryError = false;
@@ -204,7 +215,13 @@ export const useSpeechRecognition = (): SpeechRecognitionState & SpeechRecogniti
           canRetryError = true;
           break;
         case 'network':
-          errorMessage = 'Network error occurred. Please check your internet connection and try again.';
+          // Check if this is Brave browser
+          const isBrave = (navigator as any).brave && (navigator as any).brave.isBrave;
+          if (isBrave) {
+            errorMessage = 'Brave browser is blocking speech recognition. Click the Brave Shields icon (🦁) in your address bar and set "Block fingerprinting" to "Allow all fingerprinting", then refresh the page.';
+          } else {
+            errorMessage = 'Network error occurred. This might be due to browser security settings or internet connectivity. Please check your connection and try again.';
+          }
           canRetryError = true;
           break;
         case 'service-not-allowed':
@@ -234,17 +251,18 @@ export const useSpeechRecognition = (): SpeechRecognitionState & SpeechRecogniti
       setIsProcessing(false);
       setHasCompletedTranscription(false);
       
-      // Auto-retry for certain recoverable errors after a delay
-      if (canRetryError && (event.error === 'no-speech' || event.error === 'network')) {
+      // Don't auto-retry network errors as they often indicate permission or configuration issues
+      // Only auto-retry no-speech errors, and only once
+      if (canRetryError && event.error === 'no-speech') {
         if (retryTimeoutRef.current) {
           clearTimeout(retryTimeoutRef.current);
         }
         retryTimeoutRef.current = setTimeout(() => {
           if (!isListening && canRetryError) {
-            console.log('Auto-retrying speech recognition...');
+            console.log('Auto-retrying speech recognition for no-speech...');
             startListening();
           }
-        }, 2000);
+        }, 1500);
       }
     };
 

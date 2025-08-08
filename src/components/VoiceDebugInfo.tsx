@@ -14,8 +14,11 @@ const VoiceDebugInfo: React.FC = () => {
   const [features, setFeatures] = useState<any>(null);
 
   useEffect(() => {
-    setBrowserInfo(getBrowserCompatibility());
-    setFeatures(checkBrowserFeatures());
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      setBrowserInfo(getBrowserCompatibility());
+      setFeatures(checkBrowserFeatures());
+    }
   }, []);
 
   if (!browserInfo || !features) {

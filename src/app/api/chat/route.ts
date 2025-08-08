@@ -407,11 +407,28 @@ function generateSummaryTree(sessionId: string) {
 // --- Main Handler ---
 export async function POST(req: NextRequest) {
     try {
+        console.log('🚀 API Route called');
+        
+        // Check if API key is available
+        if (!process.env.OPENROUTER_API_KEY) {
+            console.error('❌ OPENROUTER_API_KEY is not set');
+            return NextResponse.json(
+                { reply: 'Server configuration error: API key not found' },
+                { status: 500 }
+            );
+        }
+        
+        console.log('✅ API key is available');
+        
         const body = await req.json();
+        console.log('📝 Request body:', JSON.stringify(body, null, 2));
+        
         let messages = Array.isArray(body.messages) ? body.messages : [];
         if (!messages.length && typeof body.message === "string") {
             messages = [{ role: "user", content: body.message }];
         }
+        
+        console.log('💬 Processed messages:', JSON.stringify(messages, null, 2));
 
         const sessionId = body.sessionId || 'default-session';
         const latestUserMessage = messages.filter(m => m.role === 'user').pop();

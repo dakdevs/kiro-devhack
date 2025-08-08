@@ -24,12 +24,17 @@ export interface CompatibilityFeatures {
  * Detect current browser and version
  */
 export function detectBrowser(): { name: string; version: string } {
+  // Return default if running on server side
+  if (typeof navigator === 'undefined') {
+    return { name: 'Unknown', version: 'unknown' };
+  }
+  
   const userAgent = navigator.userAgent;
   
   // Brave (appears as Chrome but has different behavior)
   if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
-    // Check if it's Brave browser
-    const isBrave = (navigator as any).brave && (navigator as any).brave.isBrave;
+    // Check if it's Brave browser (only available in browser context)
+    const isBrave = typeof window !== 'undefined' && (navigator as any).brave && (navigator as any).brave.isBrave;
     if (isBrave) {
       const match = userAgent.match(/Chrome\/(\d+)/);
       return { name: 'Brave', version: match ? match[1] : 'unknown' };
@@ -71,6 +76,11 @@ export function detectBrowser(): { name: string; version: string } {
  * Check if device is mobile
  */
 export function isMobileDevice(): boolean {
+  // Return false if running on server side
+  if (typeof navigator === 'undefined') {
+    return false;
+  }
+  
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
@@ -78,6 +88,16 @@ export function isMobileDevice(): boolean {
  * Check available browser features
  */
 export function checkBrowserFeatures(): CompatibilityFeatures {
+  // Return default values if running on server side
+  if (typeof window === 'undefined') {
+    return {
+      speechRecognition: false,
+      mediaDevices: false,
+      permissions: false,
+      secureContext: false
+    };
+  }
+
   return {
     speechRecognition: !!(
       window.SpeechRecognition || 
@@ -230,6 +250,11 @@ export function getUnsupportedBrowserMessage(browserInfo?: BrowserInfo): string 
  * Check if current environment supports voice input
  */
 export function isVoiceInputSupported(): boolean {
+  // Return false if running on server side
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
   const features = checkBrowserFeatures();
   return features.speechRecognition && features.mediaDevices && features.secureContext;
 }
