@@ -40,6 +40,7 @@ body {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
 
 @keyframes moveUp {
   0% {
@@ -52,5 +53,4 @@ body {
 
 .animate-move-up {
   animation: moveUp 20s linear infinite;
-
 }

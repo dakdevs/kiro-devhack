@@ -58,14 +58,14 @@ export function AuthForm() {
     )
   }
 
-  if (session) {
+  if (session && session.user) {
     return (
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 shadow-xl backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/80">
           {/* Profile Section */}
           <div className="mb-8 text-center">
             <div className="relative mb-4 inline-block">
-              {session.user.image ? (
+              {session.user?.image ? (
                 <img
                   src={session.user.image}
                   alt="Profile"
@@ -74,7 +74,7 @@ export function AuthForm() {
               ) : (
                 <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg dark:border-slate-700">
                   <span className="text-2xl font-bold text-white">
-                    {session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
+                    {session.user?.name?.charAt(0) || session.user?.email?.charAt(0) || "U"}
                   </span>
                 </div>
               )}
@@ -84,10 +84,10 @@ export function AuthForm() {
               Welcome back!
             </h2>
             <p className="mb-1 text-lg font-medium text-slate-700 dark:text-slate-200">
-              {session.user.name}
+              {session.user?.name || "User"}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {session.user.email}
+              {session.user?.email || "No email"}
             </p>
           </div>
 
