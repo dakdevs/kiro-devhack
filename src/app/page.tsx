@@ -1,3 +1,4 @@
+
 import { AuthForm } from "./_modules/auth-form";
 
 export default function Home() {
@@ -47,5 +48,6 @@ export default function Home() {
         </div>
       </div>
     </div>
+
   );
 }
