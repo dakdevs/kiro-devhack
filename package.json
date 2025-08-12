@@ -3,15 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:https": "node scripts/dev-https.js",
+    "dev": "docker-compose up -d && next dev --turbopack",
+    "dev:db": "docker-compose up -d",
+    "dev:app": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "db:stop": "docker-compose down",
+    "db:generate": "dotenvx run -f .env.local -- drizzle-kit generate",
+    "db:migrate": "dotenvx run -f .env.local -- drizzle-kit migrate",
+    "db:push": "dotenvx run -f .env.local -- drizzle-kit push",
+    "db:studio": "dotenvx run -f .env.local -- drizzle-kit studio",
     "test": "vitest",
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@t3-oss/env-nextjs": "^0.13.8",
+    "better-auth": "^1.3.4",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.44.4",
+    "lucide-react": "^0.536.0",
+    "pg": "^8.16.3",
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.0.14",
     "@ai-sdk/openai": "^2.0.3",
     "@openrouter/ai-sdk-provider": "^1.0.0",
     "ai": "^5.0.4",
@@ -21,20 +35,20 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.48.4",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@testing-library/jest-dom": "^6.6.4",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/react-hooks": "^8.0.1",
     "@types/node": "^20",
-    "@types/react": "19.1.9",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
-    "jsdom": "^26.1.0",
-    "node-forge": "^1.3.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
+
   },
   "pnpm": {
     "onlyBuiltDependencies": [
