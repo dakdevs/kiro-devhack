@@ -1,12 +1,14 @@
 const CHUNK_PUBLIC_PATH = "server/app/api/chat/route.js";
 const runtime = require("../../../chunks/[turbopack]_runtime.js");
+runtime.loadChunk("server/chunks/[root-of-the-server]__f0530c77._.js");
 runtime.loadChunk("server/chunks/7b9a0_next_8c70ca28._.js");
 runtime.loadChunk("server/chunks/8e59f_@opentelemetry_api_build_esm_fa2266d7._.js");
 runtime.loadChunk("server/chunks/7fbd0_zod_v4_687d1589._.js");
 runtime.loadChunk("server/chunks/ca1b4_zod-to-json-schema_dist_esm_4166d6e1._.js");
 runtime.loadChunk("server/chunks/d4ed2_ai_dist_index_mjs_e2eae0c1._.js");
-runtime.loadChunk("server/chunks/node_modules__pnpm_75ad0b8f._.js");
-runtime.loadChunk("server/chunks/[root-of-the-server]__d1ad302a._.js");
+runtime.loadChunk("server/chunks/dfb44_drizzle-orm_cd82bb5f._.js");
+runtime.loadChunk("server/chunks/a12c7_openai_9d7b9306._.js");
+runtime.loadChunk("server/chunks/node_modules__pnpm_6c866462._.js");
 runtime.getOrInstantiateRuntimeModule("[project]/.next-internal/server/app/api/chat/route/actions.js [app-rsc] (server actions loader, ecmascript)", CHUNK_PUBLIC_PATH);
 runtime.getOrInstantiateRuntimeModule("[project]/node_modules/.pnpm/next@15.4.5_@opentelemetry+api@1.9.0_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/chat/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)", CHUNK_PUBLIC_PATH);
 module.exports = runtime.getOrInstantiateRuntimeModule("[project]/node_modules/.pnpm/next@15.4.5_@opentelemetry+api@1.9.0_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/chat/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)", CHUNK_PUBLIC_PATH).exports;

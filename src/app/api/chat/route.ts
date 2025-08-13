@@ -2,6 +2,7 @@ import { generateText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { after } from 'next/server';
+import { saveChatMessage, updateSessionStats, createChatSession } from '~/lib/interview-chat-service';
 
 const openrouter = createOpenRouter({
     apiKey: process.env.OPENROUTER_API_KEY,
@@ -431,6 +432,7 @@ export async function POST(req: NextRequest) {
         console.log('💬 Processed messages:', JSON.stringify(messages, null, 2));
 
         const sessionId = body.sessionId || 'default-session';
+        const userId = body.userId || 'anonymous-user'; // In production, get from auth
         const latestUserMessage = messages.filter(m => m.role === 'user').pop();
         const messageIndex = messages.filter(m => m.role === 'user').length;
 
@@ -438,6 +440,15 @@ export async function POST(req: NextRequest) {
         let state = conversationStates.get(sessionId);
         if (!state) {
             state = initializeTopicTree(sessionId);
+            
+            // Create database session if it doesn't exist and we have a real user
+            if (userId !== 'anonymous-user') {
+                try {
+                    await createChatSession(userId, `Interview Session ${new Date().toLocaleDateString()}`);
+                } catch (error) {
+                    console.warn('Failed to create database session:', error);
+                }
+            }
         }
 
         console.log(`📝 Processing adaptive interview message ${messageIndex} for session ${sessionId}`);
@@ -502,12 +513,66 @@ export async function POST(req: NextRequest) {
                         content: latestUserMessage.content,
                         engagementLevel: analysis.engagementLevel
                     });
+
+                    // Save messages to database with vectorization (if not anonymous)
+                    if (userId !== 'anonymous-user') {
+                        try {
+                            // Save user message
+                            await saveChatMessage(sessionId, userId, {
+                                role: 'user',
+                                content: latestUserMessage.content,
+                                messageIndex,
+                                currentTopic: state.currentPath[state.currentPath.length - 1],
+                                topicDepth: state.totalDepth,
+                                engagementLevel: analysis.engagementLevel,
+                                responseScore: score,
+                                metadata: {
+                                    analysis,
+                                    topicPath: state.currentPath.map(id => state.topicTree.get(id)?.name),
+                                    exhaustionSignals: analysis.exhaustionSignals,
+                                    newTopics: analysis.newTopics,
+                                }
+                            });
+
+                            // Save AI response
+                            await saveChatMessage(sessionId, userId, {
+                                role: 'assistant',
+                                content: result.text,
+                                messageIndex: messageIndex + 1,
+                                currentTopic: state.currentPath[state.currentPath.length - 1],
+                                topicDepth: state.totalDepth,
+                                metadata: {
+                                    topicTreeState: generateTopicTreeState(state),
+                                    currentPath: state.currentPath.map(id => state.topicTree.get(id)?.name),
+                                }
+                            });
+
+                            console.log('✅ Messages saved to vector database');
+                        } catch (dbError) {
+                            console.error('❌ Failed to save messages to database:', dbError);
+                        }
+                    }
                 }
 
                 // Generate summary every 5 messages
                 if (messageIndex >= 5 && messageIndex % 5 === 0) {
                     console.log(`🎯 Generating adaptive interview summary at message ${messageIndex}...`);
-                    generateSummaryTree(sessionId);
+                    const summary = generateSummaryTree(sessionId);
+                    
+                    // Update session stats in database
+                    if (userId !== 'anonymous-user' && summary) {
+                        try {
+                            await updateSessionStats(sessionId, {
+                                totalMessages: messageIndex + 1,
+                                maxDepthReached: summary.maxDepthReached,
+                                averageScore: summary.averageScore,
+                                topicCoverage: summary.topicCoverage,
+                            });
+                            console.log('✅ Session stats updated in database');
+                        } catch (dbError) {
+                            console.error('❌ Failed to update session stats:', dbError);
+                        }
+                    }
                 }
 
                 console.log(`✅ Adaptive processing completed for message ${messageIndex}`);

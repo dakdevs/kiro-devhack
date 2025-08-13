@@ -1,7 +1,7 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/[...all]/route": "app/api/auth/[...all]/route.js",
   "/api/chat/route": "app/api/chat/route.js",
+  "/api/interview-chat/route": "app/api/interview-chat/route.js",
   "/dashboard/interview/page": "app/dashboard/interview/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",

@@ -95,6 +95,38 @@ export const userProfiles = pgTable('user_profiles', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// Interview chat sessions
+export const interviewChatSessions = pgTable('interview_chat_sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  sessionName: text('session_name'),
+  startTime: timestamp('start_time').notNull().defaultNow(),
+  endTime: timestamp('end_time'),
+  totalMessages: text('total_messages').default('0'),
+  maxDepthReached: text('max_depth_reached').default('0'),
+  averageScore: text('average_score').default('0'),
+  topicCoverage: jsonb('topic_coverage'), // Store topic coverage stats
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Interview chat messages with embeddings
+export const interviewChatMessages = pgTable('interview_chat_messages', {
+  id: text('id').primaryKey(),
+  sessionId: text('session_id').notNull().references(() => interviewChatSessions.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  messageIndex: text('message_index').notNull(), // Order in conversation
+  role: text('role').notNull(), // 'user' or 'assistant'
+  content: text('content').notNull(),
+  embedding: vector('embedding', { dimensions: 2560 }), // Qwen3-4B embeddings
+  metadata: jsonb('metadata'), // Store analysis data, scores, topic info, etc.
+  currentTopic: text('current_topic'),
+  topicDepth: text('topic_depth').default('0'),
+  engagementLevel: text('engagement_level'), // 'high', 'medium', 'low'
+  responseScore: text('response_score'), // Grading score for user responses
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 // Documents table for Qwen3-4B embeddings (2560 dimensions)
 export const documents = pgTable('documents', {
   id: text('id').primaryKey(),

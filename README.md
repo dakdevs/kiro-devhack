@@ -2,6 +2,23 @@
 
 A Next.js application with authentication powered by Better Auth, PostgreSQL database with pgvector support, and **Qwen3-4B semantic search capabilities**. This application provides a complete vector database solution for storing and searching documents using 2560-dimensional embeddings.
 
+## 🎯 Interview Chat Vectorization
+
+This application now includes a powerful **Interview Chat Vectorization** system that:
+
+- **Automatically vectorizes** both user and AI responses during interview practice sessions
+- **Stores conversations** with rich metadata including engagement levels, topic tracking, and performance scores
+- **Enables semantic search** across all your interview conversations using vector similarity
+- **Tracks performance** with detailed analytics and topic exploration metrics
+- **Provides session management** to organize and review your interview practice history
+
+### Key Features:
+- 🤖 **AI-Powered Interview Practice** with adaptive questioning
+- 🔍 **Vector Search** through all your conversations
+- 📊 **Performance Tracking** with engagement and scoring metrics
+- 🗂️ **Session Management** to organize practice sessions
+- 🎯 **Topic Analysis** with depth tracking and coverage statistics
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -342,6 +359,47 @@ pnpm run db:generate
 # Apply migrations
 pnpm run db:migrate
 ```
+
+## Interview Chat Features
+
+### Using the Interview Practice System
+
+1. **Start a Practice Session**
+   - Navigate to `/dashboard/interview`
+   - Click "Practice Chat" to begin an AI-powered interview
+   - All conversations are automatically vectorized and stored
+
+2. **Search Your Conversations**
+   - Use the "Search Conversations" tab to find specific topics
+   - Search across all your interview sessions using natural language
+   - Results are ranked by semantic similarity
+
+3. **Manage Sessions**
+   - View all your practice sessions in "My Sessions"
+   - See performance metrics, topic coverage, and engagement scores
+   - Delete old sessions or continue previous conversations
+
+4. **Performance Analytics**
+   - Track your improvement over time
+   - See which topics you've explored and your engagement levels
+   - Get insights into your interview performance patterns
+
+### API Endpoints for Interview Chat
+
+- `POST /api/interview-chat` - Create sessions, save messages, update stats
+- `GET /api/interview-chat` - Retrieve sessions, messages, and user statistics
+- `POST /api/interview-chat/search` - Search through vectorized conversations
+- `GET /api/interview-chat/search` - Simple search with query parameters
+
+### Testing the Vectorization
+
+Run the test script to verify the interview vectorization is working:
+
+```bash
+npx tsx src/scripts/test-interview-vectorization.ts
+```
+
+This will create test data and demonstrate the vector search capabilities.
 
 ## License
 
