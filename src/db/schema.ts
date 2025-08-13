@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, vector, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, vector, boolean, jsonb } from 'drizzle-orm/pg-core';
 
 // Better Auth required tables
 export const user = pgTable('user', {
@@ -93,6 +93,15 @@ export const userProfiles = pgTable('user_profiles', {
   preferences: text('preferences'), // JSON object with job preferences
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Documents table for Qwen3-4B embeddings (2560 dimensions)
+export const documents = pgTable('documents', {
+  id: text('id').primaryKey(),
+  content: text('content').notNull(),
+  metadata: jsonb('metadata'),
+  embedding: vector('embedding', { dimensions: 2560 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // Example table with pgvector support

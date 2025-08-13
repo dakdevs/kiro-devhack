@@ -3,36 +3,41 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "docker-compose up -d && next dev --turbopack",
-    "dev:db": "docker-compose up -d",
+    "dev": "npm run dev:db && npm run dev:app",
+    "dev:db": "docker compose up -d && echo '✅ Database containers started'",
     "dev:app": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:stop": "docker-compose down",
-    "db:generate": "dotenvx run -f .env.local -- drizzle-kit generate",
-    "db:migrate": "dotenvx run -f .env.local -- drizzle-kit migrate",
-    "db:push": "dotenvx run -f .env.local -- drizzle-kit push",
+    "db:stop": "docker compose down && echo '🛑 Database containers stopped'",
+    "db:generate": "dotenvx run -f .env.local -- drizzle-kit generate && echo '✅ Migration files generated'",
+    "db:migrate": "dotenvx run -f .env.local -- drizzle-kit migrate && echo '✅ Database migrations applied' || echo '❌ Migration failed - check database connection'",
+    "db:push": "dotenvx run -f .env.local -- drizzle-kit push && echo '✅ Schema pushed to database' || echo '❌ Schema push failed - check database connection'",
     "db:studio": "dotenvx run -f .env.local -- drizzle-kit studio",
+    "db:reset": "docker compose down -v && docker compose up -d && sleep 5 && npm run db:migrate && echo '✅ Database reset complete'",
+    "db:optimize": "dotenvx run -f .env.local -- tsx src/scripts/optimize-vector-index.ts",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.3",
+    "@openrouter/ai-sdk-provider": "^1.0.0",
     "@t3-oss/env-nextjs": "^0.13.8",
+    "ai": "^5.0.4",
     "better-auth": "^1.3.4",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.44.4",
     "lucide-react": "^0.536.0",
-    "pg": "^8.16.3",
-    "tailwind-merge": "^3.3.1",
-    "zod": "^4.0.14",
-    "@ai-sdk/openai": "^2.0.3",
-    "@openrouter/ai-sdk-provider": "^1.0.0",
-    "ai": "^5.0.4",
+    "nanoid": "^5.1.5",
     "next": "15.4.5",
     "openai": "^5.12.0",
+    "pg": "^8.16.3",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.48.4",
@@ -48,7 +53,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
-
   },
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -15,6 +15,9 @@ export const env = createEnv({
     POSTGRES_DB: z.string().optional(),
     POSTGRES_USER: z.string().optional(),
     POSTGRES_PASSWORD: z.string().optional(),
+    DASHSCOPE_API_KEY: z.string().min(1, "DashScope API key is required for Qwen3-4B embeddings"),
+    DASHSCOPE_BASE_URL: z.string().url("DashScope base URL must be a valid URL").default("https://dashscope-intl.aliyuncs.com/compatible-mode/v1"),
+    QWEN_MODEL_NAME: z.string().min(1, "Qwen model name is required").default("text-embedding-v3"),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -42,6 +45,9 @@ export const env = createEnv({
     POSTGRES_DB: process.env.POSTGRES_DB,
     POSTGRES_USER: process.env.POSTGRES_USER,
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
+    DASHSCOPE_API_KEY: process.env.DASHSCOPE_API_KEY,
+    DASHSCOPE_BASE_URL: process.env.DASHSCOPE_BASE_URL,
+    QWEN_MODEL_NAME: process.env.QWEN_MODEL_NAME,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
   },

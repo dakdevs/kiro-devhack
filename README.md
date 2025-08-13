@@ -1,6 +1,6 @@
 # Better Profile App
 
-A Next.js application with authentication powered by Better Auth, PostgreSQL database with pgvector support, and modern tooling.
+A Next.js application with authentication powered by Better Auth, PostgreSQL database with pgvector support, and **Qwen3-4B semantic search capabilities**. This application provides a complete vector database solution for storing and searching documents using 2560-dimensional embeddings.
 
 ## Prerequisites
 
@@ -8,8 +8,9 @@ Before you begin, ensure you have the following installed:
 
 - **Node.js** (v18 or higher)
 - **pnpm** (v10.14.0 or higher) - This project uses pnpm as the package manager
-- **Docker** and **Docker Compose** - For running the PostgreSQL database
+- **Docker** and **Docker Compose** - For running the PostgreSQL database with pgvector
 - **Google OAuth App** - For authentication (see setup instructions below)
+- **DashScope API Key** - For Qwen3-4B embeddings (see setup instructions below)
 
 ## Quick Start
 
@@ -56,6 +57,14 @@ POSTGRES_DB="myapp"
 POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="password"
 DATABASE_URL="postgresql://postgres:password@localhost:5432/myapp"
+
+# DashScope API Configuration for Qwen3-4B Embeddings (REQUIRED)
+# Get your API key from: https://dashscope.console.aliyun.com/
+DASHSCOPE_API_KEY="sk-your-dashscope-api-key-here"
+# DashScope OpenAI-compatible endpoint URL
+DASHSCOPE_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+# Qwen3-4B model name for 2560-dimensional embeddings
+QWEN_MODEL_NAME="text-embedding-v3"
 ```
 
 ### 3. Google OAuth Setup
@@ -71,7 +80,19 @@ To enable authentication, you need to create a Google OAuth application:
    - `http://localhost:3000/api/auth/callback/google`
 7. Copy the Client ID and Client Secret to your `.env.local` file
 
-### 4. Start the Application
+### 4. DashScope API Setup
+
+To enable semantic search with Qwen3-4B embeddings:
+
+1. Go to [DashScope Console](https://dashscope.console.aliyun.com/)
+2. Create an account or sign in
+3. Navigate to API Keys section
+4. Create a new API key
+5. Copy the API key to your `.env.local` file as `DASHSCOPE_API_KEY`
+
+**Note**: DashScope provides Qwen3-4B embeddings with 2560 dimensions, offering superior semantic understanding compared to standard embedding models.
+
+### 5. Start the Application
 
 The easiest way to start everything:
 
@@ -93,7 +114,7 @@ pnpm run dev:db
 pnpm run dev:app
 ```
 
-### 5. Database Setup
+### 6. Database Setup
 
 The database will automatically start with Docker, but you may need to run migrations:
 
@@ -110,10 +131,13 @@ pnpm run db:push
 
 **⚠️ Important**: Always use `pnpm run db:generate` to create migrations. Never create manual SQL migration files. All schema changes should be made in `src/db/schema.ts` and then generate migrations using drizzle-kit.
 
-### 6. Access the Application
+### 7. Access the Application
 
 - **Application**: http://localhost:3000
 - **Database Studio**: `pnpm run db:studio` (opens Drizzle Studio)
+- **API Documentation**: 
+  - Document Ingestion: http://localhost:3000/api/ingest (GET)
+  - Semantic Search: http://localhost:3000/api/search (GET)
 
 ## Available Scripts
 
@@ -130,20 +154,27 @@ pnpm run db:push
 | `pnpm run db:migrate` | Run database migrations |
 | `pnpm run db:push` | Push schema to database |
 | `pnpm run db:studio` | Open Drizzle Studio |
+| `pnpm run db:reset` | Reset database (removes all data) |
 
 ## Project Structure
 
 ```
 ├── src/
-│   ├── app/                 # Next.js App Router pages
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── ingest/     # Document ingestion API
+│   │   │   └── search/     # Semantic search API
+│   │   └── ...             # Next.js App Router pages
 │   ├── components/          # React components
 │   ├── config/             # Configuration files
-│   ├── db/                 # Database schema and utilities
+│   ├── db/                 # Database schema and vector utilities
+│   ├── embeddings.ts       # Qwen3-4B embedding client
+│   ├── examples/           # API usage examples
 │   └── lib/                # Utility libraries
 ├── drizzle/                # Database migrations
 ├── public/                 # Static assets
 ├── .env.local.example      # Environment variables template
-└── docker-compose.yml      # PostgreSQL database setup
+└── docker-compose.yml      # PostgreSQL + pgvector setup
 ```
 
 ## Technology Stack
@@ -151,6 +182,8 @@ pnpm run db:push
 - **Framework**: Next.js 15 with App Router
 - **Authentication**: Better Auth
 - **Database**: PostgreSQL with pgvector extension
+- **Vector Search**: pgvector with HNSW indexing
+- **Embeddings**: Qwen3-4B (2560 dimensions) via DashScope API
 - **ORM**: Drizzle ORM
 - **Styling**: Tailwind CSS
 - **Package Manager**: pnpm
@@ -191,9 +224,12 @@ If port 3000 or 5432 is already in use:
 | `POSTGRES_DB` | ⚠️ | Database name (for Docker) | `"myapp"` |
 | `POSTGRES_USER` | ⚠️ | Database user (for Docker) | `"postgres"` |
 | `POSTGRES_PASSWORD` | ⚠️ | Database password (for Docker) | `"password"` |
+| `DASHSCOPE_API_KEY` | ✅ | DashScope API key for embeddings | `"sk-your-api-key"` |
+| `DASHSCOPE_BASE_URL` | ⚠️ | DashScope API endpoint | `"https://dashscope-intl.aliyuncs.com/compatible-mode/v1"` |
+| `QWEN_MODEL_NAME` | ⚠️ | Qwen embedding model name | `"text-embedding-v3"` |
 
 **✅ Required**: Must be set for the application to work  
-**⚠️ Docker**: Used by Docker Compose, can keep defaults for local development
+**⚠️ Docker/Default**: Used by Docker Compose or has sensible defaults
 
 ## Contributing
 
@@ -202,6 +238,110 @@ If port 3000 or 5432 is already in use:
 3. Make your changes
 4. Run tests and linting
 5. Submit a pull request
+
+## Semantic Search API Usage
+
+### Document Ingestion
+
+Store documents with automatic embedding generation:
+
+```bash
+curl -X POST http://localhost:3000/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "documents": [
+      {
+        "content": "Machine learning is a subset of artificial intelligence that focuses on algorithms.",
+        "metadata": {
+          "title": "ML Introduction",
+          "category": "education",
+          "tags": ["ml", "ai"]
+        }
+      }
+    ]
+  }'
+```
+
+### Semantic Search
+
+Search documents by semantic similarity:
+
+```bash
+curl -X POST http://localhost:3000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "artificial intelligence algorithms",
+    "k": 5,
+    "threshold": 0.7
+  }'
+```
+
+### API Features
+
+- **Document Ingestion**: `/api/ingest`
+  - Batch processing (up to 100 documents)
+  - Automatic Qwen3-4B embedding generation
+  - Flexible metadata support
+  - Comprehensive error handling
+
+- **Semantic Search**: `/api/search`
+  - Cosine similarity search with pgvector
+  - Configurable result count (k parameter)
+  - Similarity threshold filtering
+  - Performance monitoring
+
+### Example Usage
+
+Check out the comprehensive examples in:
+- `src/examples/ingest-api-example.ts` - Document ingestion examples
+- `src/examples/search-api-example.ts` - Semantic search examples
+- `src/examples/embedding-example.ts` - Direct embedding client usage
+
+## Development Workflow
+
+### Complete Setup (First Time)
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Configure environment
+cp .env.local.example .env.local
+# Edit .env.local with your API keys
+
+# 3. Start everything
+pnpm dev
+
+# 4. In another terminal, set up database
+pnpm run db:push
+```
+
+### Daily Development
+
+```bash
+# Start development environment
+pnpm dev
+
+# The command above starts:
+# - PostgreSQL database with pgvector
+# - Next.js development server with Turbopack
+```
+
+### Database Management
+
+```bash
+# View database in browser
+pnpm run db:studio
+
+# Reset database (removes all data)
+pnpm run db:reset
+
+# Generate new migrations after schema changes
+pnpm run db:generate
+
+# Apply migrations
+pnpm run db:migrate
+```
 
 ## License
 

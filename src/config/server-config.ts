@@ -19,6 +19,13 @@ export const serverConfig = {
             clientSecret: env.GOOGLE_CLIENT_SECRET,
         },
     },
+    embeddings: {
+        dashscope: {
+            apiKey: env.DASHSCOPE_API_KEY,
+            baseUrl: env.DASHSCOPE_BASE_URL,
+            modelName: env.QWEN_MODEL_NAME,
+        },
+    },
     app: {
         nodeEnv: env.NODE_ENV,
     },

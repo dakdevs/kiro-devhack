@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -8,17 +6,32 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-myapp}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      # Optimize PostgreSQL for vector operations
+      POSTGRES_INITDB_ARGS: "--data-checksums"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init-pgvector.sql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} && psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-myapp} -c \"SELECT 1 FROM pg_extension WHERE extname = 'vector';\""]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 30s
+    # Optimize container resources for vector operations
+    shm_size: 256mb
+    command: >
+      postgres
+      -c shared_preload_libraries=vector
+      -c work_mem=256MB
+      -c maintenance_work_mem=512MB
+      -c effective_cache_size=1GB
+      -c random_page_cost=1.1
+      -c max_connections=100
+      -c log_statement=all
+      -c log_min_duration_statement=1000
 
 volumes:
   postgres_data: {}
