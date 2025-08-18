@@ -2,11 +2,14 @@ import { generateText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { after } from 'next/server';
+import { getOrCreateConversation, saveUserResponse } from '~/services/interview'
 
 const openrouter = createOpenRouter({
     apiKey: process.env.OPENROUTER_API_KEY,
 });
-
+async function getUserIdFromAuth(req: NextRequest): Promise<string | null> {
+    return "put code for auth this is placeholdren for rn"
+}
 // --- Adaptive Interview System Prompt ---
 const INTERVIEW_SYSTEM_PROMPT = `
 You are an adaptive interviewer who dynamically explores topics based on interviewee responses. Your goal is to maximize knowledge extraction while maintaining natural conversation flow.
@@ -123,7 +126,7 @@ function initializeTopicTree(sessionId: string): ConversationState {
 
     state.topicTree.set('root', rootNode);
     state.currentPath = ['root'];
-    
+
     conversationStates.set(sessionId, state);
     return state;
 }
@@ -170,7 +173,7 @@ async function analyzeResponse(userResponse: string): Promise<any> {
 function analyzeResponseFallback(userResponse: string): any {
     const text = userResponse.toLowerCase();
     const wordCount = text.split(' ').length;
-    
+
     const exhaustionSignals = [];
     if (wordCount < 10) exhaustionSignals.push('short_answer');
     if (text.includes("don't know") || text.includes("not sure")) exhaustionSignals.push('dont_know');
@@ -189,7 +192,7 @@ function analyzeResponseFallback(userResponse: string): any {
 // --- Extract Topics from Text ---
 function extractTopicsFromText(text: string): string[] {
     const topics = [];
-    
+
     // Domain-agnostic topic indicators
     const topicPatterns = [
         /work(?:ing)?\s+(?:on|with|in)\s+([^,.!?]+)/g,
@@ -239,26 +242,26 @@ function updateTopicTree(sessionId: string, analysis: any, userResponse: string,
         // Mark current topic as exhausted and backtrack
         currentNode.status = 'exhausted';
         state.exhaustedTopics.push(currentNodeId);
-        
+
         console.log(`🔄 Topic "${currentNode.name}" marked as exhausted, backtracking...`);
-        
+
         // Navigate to parent or sibling
         navigateToNextTopic(state);
-        
+
     } else if (isHighEngagement && hasNewTopics) {
         // Create subtopics and go deeper
         currentNode.status = 'rich';
-        
+
         analysis.newTopics.forEach((topicName: string) => {
             createSubtopic(state, currentNodeId, topicName, userResponse);
         });
-        
+
         // Navigate to first new subtopic
         if (currentNode.children.length > 0) {
             const firstChild = currentNode.children[0];
             state.currentPath.push(firstChild);
             state.maxDepthReached = Math.max(state.maxDepthReached, state.currentPath.length - 1);
-            
+
             console.log(`🔍 Going deeper: ${state.currentPath.map(id => state.topicTree.get(id)?.name).join(' → ')}`);
         }
     }
@@ -273,7 +276,7 @@ function createSubtopic(state: ConversationState, parentId: string, topicName: s
     if (!parentNode) return;
 
     const subtopicId = `${parentId}_${topicName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
-    
+
     const subtopic: TopicNode = {
         id: subtopicId,
         name: topicName,
@@ -288,7 +291,7 @@ function createSubtopic(state: ConversationState, parentId: string, topicName: s
 
     state.topicTree.set(subtopicId, subtopic);
     parentNode.children.push(subtopicId);
-    
+
     console.log(`🌱 New subtopic created: "${topicName}" (depth ${subtopic.depth})`);
 }
 
@@ -297,7 +300,7 @@ function navigateToNextTopic(state: ConversationState) {
     // Try to find unexplored sibling
     const currentNodeId = state.currentPath[state.currentPath.length - 1];
     const currentNode = state.topicTree.get(currentNodeId);
-    
+
     if (currentNode?.parentId) {
         const parent = state.topicTree.get(currentNode.parentId);
         if (parent) {
@@ -305,7 +308,7 @@ function navigateToNextTopic(state: ConversationState) {
                 const child = state.topicTree.get(childId);
                 return child && child.status === 'unexplored';
             });
-            
+
             if (unexploredSibling) {
                 // Navigate to sibling
                 state.currentPath[state.currentPath.length - 1] = unexploredSibling;
@@ -314,13 +317,13 @@ function navigateToNextTopic(state: ConversationState) {
                 return;
             }
         }
-        
+
         // No unexplored siblings, backtrack to parent
         state.currentPath.pop();
         if (state.currentPath.length === 0) {
             state.currentPath = ['root'];
         }
-        
+
         const newCurrentNode = state.topicTree.get(state.currentPath[state.currentPath.length - 1]);
         console.log(`⬆️ Backtracked to: "${newCurrentNode?.name}"`);
     }
@@ -330,44 +333,44 @@ function navigateToNextTopic(state: ConversationState) {
 async function gradeResponse(userResponse: string, analysis: any): Promise<number> {
     // Simple scoring based on engagement and depth
     let score = 1.0; // Base score
-    
+
     if (analysis.engagementLevel === 'high') score += 0.5;
     else if (analysis.engagementLevel === 'low') score -= 0.3;
-    
+
     if (analysis.responseLength === 'detailed') score += 0.3;
     else if (analysis.responseLength === 'brief') score -= 0.2;
-    
+
     if (analysis.confidenceLevel === 'confident') score += 0.2;
     else if (analysis.confidenceLevel === 'struggling') score -= 0.3;
-    
+
     return Math.max(0, Math.min(2.0, score));
 }
 
 // --- Generate Topic Tree State for Prompt ---
 function generateTopicTreeState(state: ConversationState): string {
     const treeRepresentation: string[] = [];
-    
+
     function traverseNode(nodeId: string, indent: string = '') {
         const node = state.topicTree.get(nodeId);
         if (!node) return;
-        
+
         const statusEmoji = {
             'unexplored': '⚪',
             'exploring': '🔵',
             'exhausted': '🔴',
             'rich': '🟢'
         }[node.status];
-        
+
         const isCurrentNode = state.currentPath[state.currentPath.length - 1] === nodeId;
         const marker = isCurrentNode ? ' ← CURRENT' : '';
-        
+
         treeRepresentation.push(`${indent}${statusEmoji} ${node.name} (depth: ${node.depth})${marker}`);
-        
+
         node.children.forEach(childId => {
             traverseNode(childId, indent + '  ');
         });
     }
-    
+
     traverseNode('root');
     return treeRepresentation.join('\n');
 }
@@ -400,7 +403,7 @@ function generateSummaryTree(sessionId: string) {
     console.log('\n🗺️ TOPIC TREE STRUCTURE:');
     console.log(generateTopicTreeState(state));
     console.log('=====================================\n');
-    
+
     return summary;
 }
 
@@ -408,7 +411,7 @@ function generateSummaryTree(sessionId: string) {
 export async function POST(req: NextRequest) {
     try {
         console.log('🚀 API Route called');
-        
+
         // Check if API key is available
         if (!process.env.OPENROUTER_API_KEY) {
             console.error('❌ OPENROUTER_API_KEY is not set');
@@ -417,22 +420,30 @@ export async function POST(req: NextRequest) {
                 { status: 500 }
             );
         }
-        
+
         console.log('✅ API key is available');
-        
+
         const body = await req.json();
         console.log('📝 Request body:', JSON.stringify(body, null, 2));
-        
+
         let messages = Array.isArray(body.messages) ? body.messages : [];
         if (!messages.length && typeof body.message === "string") {
             messages = [{ role: "user", content: body.message }];
         }
-        
+
         console.log('💬 Processed messages:', JSON.stringify(messages, null, 2));
 
         const sessionId = body.sessionId || 'default-session';
         const latestUserMessage = messages.filter(m => m.role === 'user').pop();
         const messageIndex = messages.filter(m => m.role === 'user').length;
+        // user and conversation db logic
+        const userId = await getUserIdFromAuth(req);
+        if (!userId) {
+            return NextResponse.json({ reply: 'Auth Error: User not found the auth logic is not implemented' }, { status: 401 });
+        }
+
+        // Get or create conversation in database
+        const conversation = await getOrCreateConversation(userId, sessionId);
 
         // Initialize or get conversation state
         let state = conversationStates.get(sessionId);
@@ -470,18 +481,20 @@ export async function POST(req: NextRequest) {
             try {
                 // Analyze user response
                 const analysis = await analyzeResponse(latestUserMessage.content);
-                
+
                 if (analysis) {
                     // Update topic tree based on analysis
                     updateTopicTree(sessionId, analysis, latestUserMessage.content, messageIndex);
-                    
+
                     // Grade the response
                     const score = await gradeResponse(latestUserMessage.content, analysis);
-                    
+
                     // Enhanced grading display
                     const scoreEmoji = score >= 1.8 ? '🌟' : score >= 1.5 ? '🎯' : score >= 1.0 ? '👍' : '📝';
                     const performance = score >= 1.8 ? 'EXCELLENT' : score >= 1.5 ? 'STRONG' : score >= 1.0 ? 'GOOD' : 'NEEDS WORK';
-                    
+                    //save data here
+
+
                     console.log('\n' + '='.repeat(60));
                     console.log(`${scoreEmoji} ADAPTIVE INTERVIEW GRADE - Response #${messageIndex}`);
                     console.log('='.repeat(60));
@@ -493,7 +506,7 @@ export async function POST(req: NextRequest) {
                     console.log(`🗺️ CURRENT PATH: ${currentPath}`);
                     console.log(`⏰ TIMESTAMP: ${new Date().toLocaleTimeString()}`);
                     console.log('='.repeat(60) + '\n');
-                    
+
                     // Store grade
                     state.grades.push({
                         messageIndex,
@@ -502,6 +515,11 @@ export async function POST(req: NextRequest) {
                         content: latestUserMessage.content,
                         engagementLevel: analysis.engagementLevel
                     });
+
+                    // TODO: Generate embedding for the user response
+                    // For now, using a placeholder empty array - you'll need to implement embedding generation
+                    const embedding: number[] = []; // This should be replaced with actual embedding generation
+                    await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
                 }
 
                 // Generate summary every 5 messages

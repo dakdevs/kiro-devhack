@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, vector, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, vector, boolean, jsonb, index, bigserial } from 'drizzle-orm/pg-core';
 
 // Better Auth required tables
 export const user = pgTable('user', {
@@ -102,3 +102,26 @@ export const embeddings = pgTable('embeddings', {
   embedding: vector('embedding', { dimensions: 1536 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const conversations = pgTable('conversations', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, {
+    onDelete: 'cascade'
+  }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  finalAnalysis: jsonb('final_analysis'),
+}, (table) => ({
+  userIndex: index('conversation_user_idx').on(table.userId),
+}));
+
+export const userResponses = pgTable('user_responses', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  conversationId: text('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  embedding: vector('embedding', { dimensions: 1536 }).notNull(),
+}, (table) => ({
+  embeddingIdx: index('response_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
+}));
+
+
