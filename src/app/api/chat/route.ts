@@ -2,13 +2,15 @@ import { generateText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { after } from 'next/server';
-import { getOrCreateConversation, saveUserResponse } from '~/services/interview'
+import { getOrCreateConversation, saveUserResponse } from '~/services/interview';
 
 const openrouter = createOpenRouter({
     apiKey: process.env.OPENROUTER_API_KEY,
 });
 async function getUserIdFromAuth(req: NextRequest): Promise<string | null> {
-    return "put code for auth this is placeholdren for rn"
+    // TODO: Implement proper auth logic
+    // For now, return a valid UUID format for testing
+    return "temp-user-" + Date.now().toString();
 }
 // --- Adaptive Interview System Prompt ---
 const INTERVIEW_SYSTEM_PROMPT = `
@@ -191,7 +193,7 @@ function analyzeResponseFallback(userResponse: string): any {
 
 // --- Extract Topics from Text ---
 function extractTopicsFromText(text: string): string[] {
-    const topics = [];
+    const topics: string[] = [];
 
     // Domain-agnostic topic indicators
     const topicPatterns = [
@@ -437,13 +439,17 @@ export async function POST(req: NextRequest) {
         const latestUserMessage = messages.filter(m => m.role === 'user').pop();
         const messageIndex = messages.filter(m => m.role === 'user').length;
         // user and conversation db logic
+        console.log('🔐 Getting user ID from auth...');
         const userId = await getUserIdFromAuth(req);
         if (!userId) {
             return NextResponse.json({ reply: 'Auth Error: User not found the auth logic is not implemented' }, { status: 401 });
         }
+        console.log('✅ User ID obtained:', userId);
 
         // Get or create conversation in database
+        console.log('💾 Getting or creating conversation...');
         const conversation = await getOrCreateConversation(userId, sessionId);
+        console.log('✅ Conversation obtained:', conversation.id);
 
         // Initialize or get conversation state
         let state = conversationStates.get(sessionId);
@@ -516,10 +522,19 @@ export async function POST(req: NextRequest) {
                         engagementLevel: analysis.engagementLevel
                     });
 
-                    // TODO: Generate embedding for the user response
-                    // For now, using a placeholder empty array - you'll need to implement embedding generation
-                    const embedding: number[] = []; // This should be replaced with actual embedding generation
-                    await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
+                    // Generate embedding for the user response
+                    console.log('🔄 Generating embedding for user response...');
+                    const { embedOne } = await import('~/utils/embeddings');
+                    const embedding = await embedOne(latestUserMessage.content);
+                    
+                    // Only save if we got a valid embedding
+                    if (embedding.length > 0) {
+                        console.log('💾 Saving user response to database...');
+                        await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
+                        console.log('✅ User response saved successfully');
+                    } else {
+                        console.log('⚠️ Empty embedding generated, skipping database save');
+                    }
                 }
 
                 // Generate summary every 5 messages
