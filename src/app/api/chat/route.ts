@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { after } from 'next/server';
 import { getOrCreateConversation, saveUserResponse } from '~/services/interview';
+// Adding RAG imports back step by step
+import { storeConversation } from '~/utils/conversation-storage';
+import { InterviewRAGAgent } from '~/services/rag-agent';
 
 const openrouter = createOpenRouter({
     apiKey: process.env.OPENROUTER_API_KEY,
@@ -470,10 +473,47 @@ export async function POST(req: NextRequest) {
             .replace('{currentPath}', currentPath)
             .replace('{exhaustedTopics}', exhaustedTopics);
 
+        // RAG AGENT PROCESSING - Intercept user message
+        let finalMessages = messages;
+        if (latestUserMessage?.content) {
+            try {
+                const ragAgent = new InterviewRAGAgent();
+                const ragResult = await ragAgent.processQuery(latestUserMessage.content, userId);
+                
+                if (!ragResult.isRelevant) {
+                    // RAG agent determined query is off-topic, return direct response
+                    await storeConversation(latestUserMessage.content, 'user');
+                    await storeConversation(ragResult.response!, 'assistant');
+                    
+                    return NextResponse.json({ 
+                        reply: ragResult.response,
+                        sessionId 
+                    });
+                }
+                
+                // RAG agent enhanced the prompt, use enhanced version
+                if (ragResult.enhancedPrompt) {
+                    // Replace the latest user message with enhanced prompt
+                    finalMessages = [...messages];
+                    const userMessageIndex = finalMessages.map(m => m.role).lastIndexOf('user');
+                    if (userMessageIndex !== -1) {
+                        finalMessages[userMessageIndex] = {
+                            role: 'user',
+                            content: ragResult.enhancedPrompt
+                        };
+                    }
+                }
+            } catch (ragError) {
+                console.error('\n\n\n❌ RAG AGENT ERROR:', ragError);
+                console.log('🔄 Falling back to original message processing');
+                // Continue with original messages if RAG fails
+            }
+        }
+
         // Generate AI response
         const result = await generateText({
             system: dynamicPrompt,
-            messages,
+            messages: finalMessages,
             model: openrouter.chat(INTERVIEW_MODEL),
             temperature: 0.7,
         });
@@ -558,6 +598,16 @@ export async function POST(req: NextRequest) {
                 console.error('❌ Adaptive processing failed:', error);
             }
         });
+
+        // Store assistant response in RAG system
+        if (result.text) {
+            try {
+                await storeConversation(result.text, 'assistant');
+            } catch (storageError) {
+                console.error('\n\n\n❌ ASSISTANT STORAGE ERROR:', storageError);
+                // Continue even if storage fails
+            }
+        }
 
         return NextResponse.json({
             reply: result.text,

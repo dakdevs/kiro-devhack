@@ -18,21 +18,22 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.3",
+    "@openrouter/ai-sdk-provider": "^1.0.0",
     "@t3-oss/env-nextjs": "^0.13.8",
+    "ai": "^5.0.4",
     "better-auth": "^1.3.4",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.44.4",
     "lucide-react": "^0.536.0",
-    "pg": "^8.16.3",
-    "tailwind-merge": "^3.3.1",
-    "zod": "^4.0.14",
-    "@ai-sdk/openai": "^2.0.3",
-    "@openrouter/ai-sdk-provider": "^1.0.0",
-    "ai": "^5.0.4",
+    "nanoid": "^5.1.5",
     "next": "15.4.5",
     "openai": "^5.12.0",
+    "pg": "^8.16.3",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.48.4",
@@ -48,7 +49,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
-
   },
   "pnpm": {
     "onlyBuiltDependencies": [

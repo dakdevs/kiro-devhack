@@ -3,7 +3,8 @@ const HUGGINGFACE_MODEL_ID = 'BAAI/bge-base-en-v1.5';
 const HUGGINGFACE_API_URL = `https://api-inference.huggingface.co/models/${HUGGINGFACE_MODEL_ID}`;
 
 export async function embedOne(input: string): Promise<number[]> {
-	console.log('🔄 Starting embedding generation for input:', input.substring(0, 50) + '...');
+	console.log('\n\n\n🔄 EMBEDDING GENERATION');
+	console.log('📝 Input:', input.substring(0, 50) + '...');
 	console.log('🔗 Using HuggingFace API URL:', HUGGINGFACE_API_URL);
 	console.log('🔑 API Token available:', !!process.env.HUGGINGFACE_API_TOKEN);
 
