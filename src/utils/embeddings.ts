@@ -1,4 +1,4 @@
-const HUGGINGFACE_MODEL_ID = 'Qwen/Qwen3-Embedding-0.6B';
+const HUGGINGFACE_MODEL_ID = 'BAAI/bge-base-en-v1.5';
 
 const HUGGINGFACE_API_URL =  `https://api-inference.huggingface.co/pipeline/feature-extraction/${HUGGINGFACE_MODEL_ID}`;
 

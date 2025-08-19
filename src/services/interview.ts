@@ -4,23 +4,36 @@ import { db } from '~/db';
 import { embedOne } from '~/utils/embeddings'
 
 export async function getOrCreateConversation(userId: string, sessionId: string) {
-    // First, ensure the user exists
-    await ensureUserExists(userId);
-    
-    const existingConversation = await db.query.conversations.findFirst({
-        where: and(eq(conversations.userId, userId), eq(conversations.id, sessionId)),
-    });
+    try {
+        // First, ensure the user exists
+        console.log('🔍 Ensuring user exists...');
+        await ensureUserExists(userId);
+        console.log('✅ User exists or created');
+        
+        console.log('🔍 Looking for existing conversation...');
+        console.log('🔍 Query params - userId:', userId, 'sessionId:', sessionId);
+        const existingConversation = await db.query.conversations.findFirst({
+            where: and(eq(conversations.userId, userId), eq(conversations.id, sessionId)),
+        });
+        console.log('🔍 Query result:', existingConversation);
 
-    if (existingConversation) {
-        return existingConversation;
+        if (existingConversation) {
+            console.log('✅ Found existing conversation:', existingConversation.id);
+            return existingConversation;
+        }
+
+        console.log('🆕 Creating new conversation...');
+        const newConversation = await db.insert(conversations).values({
+            id: sessionId,
+            userId: userId
+        }).returning();
+
+        console.log('✅ New conversation created:', newConversation[0].id);
+        return newConversation[0];
+    } catch (error) {
+        console.error('❌ Error in getOrCreateConversation:', error);
+        throw error;
     }
-
-    const newConversation = await db.insert(conversations).values({
-        id: sessionId,
-        userId: userId
-    }).returning();
-
-    return newConversation[0];
 }
 
 async function ensureUserExists(userId: string) {
