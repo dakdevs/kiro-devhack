@@ -6,9 +6,9 @@ export async function embedOne(input: string): Promise<number[]> {
 	console.log('🔄 Starting embedding generation for input:', input.substring(0, 50) + '...');
 	console.log('🔗 Using HuggingFace API URL:', HUGGINGFACE_API_URL);
 	console.log('🔑 API Token available:', !!process.env.HUGGINGFACE_API_TOKEN);
-	
-	try{
-		const response = await fetch(HUGGINGFACE_API_URL,{
+
+	try {
+		const response = await fetch(HUGGINGFACE_API_URL, {
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
@@ -23,7 +23,7 @@ export async function embedOne(input: string): Promise<number[]> {
 
 		console.log('📡 HuggingFace API response status:', response.status);
 
-		if (!response.ok){
+		if (!response.ok) {
 			const errorBody = await response.text();
 			console.error('❌ HuggingFace API error body:', errorBody);
 			throw new Error(`Hugging face api reqest failed with status ${response.status}: ${errorBody}`);
@@ -46,9 +46,9 @@ export async function embedOne(input: string): Promise<number[]> {
 				return result;
 			}
 		}
-		
+
 		console.error('❌ Invalid response structure from HuggingFace API:', result);
-		throw new Error ('Invalid response structure from HuggingFace API.');
+		throw new Error('Invalid response structure from HuggingFace API.');
 
 	} catch (error) {
 		console.error('❌ Failed to get embedding from hugging face', error);
