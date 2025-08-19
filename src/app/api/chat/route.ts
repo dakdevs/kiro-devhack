@@ -435,7 +435,7 @@ export async function POST(req: NextRequest) {
 
         console.log('💬 Processed messages:', JSON.stringify(messages, null, 2));
 
-        const sessionId = body.sessionId || 'default-session';
+        const sessionId = body.sessionId || `session-${Date.now()}`;
         const latestUserMessage = messages.filter(m => m.role === 'user').pop();
         const messageIndex = messages.filter(m => m.role === 'user').length;
         // user and conversation db logic
@@ -524,14 +524,23 @@ export async function POST(req: NextRequest) {
 
                     // Generate embedding for the user response
                     console.log('🔄 Generating embedding for user response...');
+                    console.log('📝 User message content:', latestUserMessage.content);
                     const { embedOne } = await import('~/utils/embeddings');
                     const embedding = await embedOne(latestUserMessage.content);
                     
+                    console.log('📊 Embedding result - length:', embedding.length);
+                    console.log('📊 Embedding result - first 5 values:', embedding.slice(0, 5));
+                    
                     // Only save if we got a valid embedding
                     if (embedding.length > 0) {
-                        console.log('💾 Saving user response to database...');
-                        await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
-                        console.log('✅ User response saved successfully');
+                        console.log('💾 Attempting to save user response to database...');
+                        console.log('💾 Save params - userId:', userId, 'conversationId:', conversation.id);
+                        try {
+                            await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
+                            console.log('✅ User response saved successfully to database');
+                        } catch (saveError) {
+                            console.error('❌ Failed to save user response to database:', saveError);
+                        }
                     } else {
                         console.log('⚠️ Empty embedding generated, skipping database save');
                     }

@@ -62,14 +62,29 @@ export async function saveUserResponse(
     responseText: string,
     embedding: number[]
 ) {
-    const savedResponse = await db.insert(userResponses).values({
-        userId,
-        conversationId,
-        content: responseText,
-        embedding: embedding
-    }).returning();
-    console.log(`3. Saved responses with ID: ${savedResponse[0].id}`)
-    return savedResponse[0];
+    console.log('💾 saveUserResponse called with:');
+    console.log('  - userId:', userId);
+    console.log('  - conversationId:', conversationId);
+    console.log('  - responseText length:', responseText.length);
+    console.log('  - embedding length:', embedding.length);
+    console.log('  - embedding dimensions check:', embedding.length === 768 ? '✅ Correct (768)' : `❌ Wrong (${embedding.length}, expected 768)`);
+    
+    try {
+        console.log('💾 Attempting database insert...');
+        const savedResponse = await db.insert(userResponses).values({
+            userId,
+            conversationId,
+            content: responseText,
+            embedding: embedding
+        }).returning();
+        
+        console.log('✅ Database insert successful!');
+        console.log('✅ Saved response with ID:', savedResponse[0].id);
+        return savedResponse[0];
+    } catch (error) {
+        console.error('❌ Database insert failed:', error);
+        throw error;
+    }
 }
 
 
