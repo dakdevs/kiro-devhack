@@ -14,6 +14,7 @@
     "db:migrate": "dotenvx run -f .env.local -- drizzle-kit migrate",
     "db:push": "dotenvx run -f .env.local -- drizzle-kit push",
     "db:studio": "dotenvx run -f .env.local -- drizzle-kit studio",
+    "db:drop": "dotenvx run -f .env.local -- drizzle-kit drop",
     "test": "vitest",
     "test:run": "vitest run"
   },

@@ -6,6 +6,9 @@ import { getOrCreateConversation, saveUserResponse } from '~/services/interview'
 // Adding RAG imports back step by step
 import { storeConversation } from '~/utils/conversation-storage';
 import { InterviewRAGAgent } from '~/services/rag-agent';
+import { db } from '~/db';
+import { skills, skillMentions } from '~/db/schema';
+import { eq } from 'drizzle-orm';
 
 const openrouter = createOpenRouter({
     apiKey: process.env.OPENROUTER_API_KEY,
@@ -412,6 +415,264 @@ function generateSummaryTree(sessionId: string) {
     return summary;
 }
 
+// --- Skill extraction helpers ---
+async function upsertSkillByName(name: string) {
+    const norm = name.trim();
+    const slug = norm.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
+    console.log(`🔎 upsertSkillByName called for "${name}" -> id: ${slug}`);
+
+    try {
+        const existing = await db.query.skills.findFirst({
+            where: eq(skills.name, norm),
+        });
+        if (existing) {
+            console.log(`✅ Skill already exists in DB: ${existing.id} (${existing.name})`);
+            return existing.id;
+        }
+
+        console.log('🆕 Inserting new skill into DB...');
+        const inserted = await db.insert(skills).values({
+            id: slug,
+            name: norm,
+            synonyms: null,
+        }).returning();
+
+        console.log('✅ Skill inserted:', inserted[0]);
+        return inserted[0].id;
+    } catch (error) {
+        console.error('❌ Failed to upsert skill:', error);
+        throw error;
+    }
+}
+
+async function createSkillMention(params: {
+    skillId: string;
+    userId: string;
+    conversationId?: string | null;
+    responseId?: string | number | null;
+    mentionText?: string | null;
+    confidence?: number | null;
+    grade?: string | null;
+    topicDepth?: number | null;
+}) {
+    try {
+        console.log('💾 Inserting skill mention:', params.skillId, 'for user', params.userId);
+        const inserted = await db.insert(skillMentions).values({
+            skillId: params.skillId,
+            userId: params.userId,
+            conversationId: params.conversationId ?? null,
+            responseId: params.responseId ? String(params.responseId) : null,
+            mentionText: params.mentionText ?? null,
+            confidence: params.confidence != null ? String(params.confidence) : null,
+            grade: params.grade ?? null,
+            topicDepth: params.topicDepth != null ? String(params.topicDepth) : null,
+        }).returning();
+
+        console.log('✅ Skill mention inserted with id:', inserted[0].id);
+        return inserted[0];
+    } catch (error) {
+        console.error('❌ Failed to insert skill mention:', error);
+        throw error; pnpm db:push
+pnpm
+> better-profile-app@0.1.0 db:push /home/sumiranmishra/Documents/GitHub/kiro-devhack
+> dotenvx run -f .env.local -- drizzle-kit push
+
+ :[dotenvx@1.48.4] injecting env (13) from .env.local
+dNo config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/sumiranmishra/Documents/GitHub/kiro-devhack/drizzle.config.ts'
+bUsing 'pg' driver for database querying
+[✓] Pulling schema from database...
+
++ mention_text column will be created
+
++ confidence column will be created
+
+~ context › grade column will be renamed
+--- all columns conflicts in skill_mentions table resolved ---
+
+
++ synonyms column will be created
+--- all columns conflicts in skills table resolved ---
+
+ Warning  Found data-loss statements:
+· You're about to delete message_index column in user_responses table with 3 items
+· You're about to delete score column in user_responses table with 3 items
+· You're about to delete engagement_level column in user_responses table with 3 items
+· You're about to delete created_at column in user_responses table with 3 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+error: type "bigserial" does not exist
+    at /home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.query (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:80601:26)
+    at async pgPush (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:84411:13)
+    at async Object.handler (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93813:9)
+    at async run (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93059:7) {
+  length: 92,
+  severity: 'ERROR',
+  code: '42704',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_type.c',
+  line: '270',
+  routine: 'typenameType'
+} pnpm db:push
+pnpm
+> better-profile-app@0.1.0 db:push /home/sumiranmishra/Documents/GitHub/kiro-devhack
+> dotenvx run -f .env.local -- drizzle-kit push
+
+ :[dotenvx@1.48.4] injecting env (13) from .env.local
+dNo config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/sumiranmishra/Documents/GitHub/kiro-devhack/drizzle.config.ts'
+bUsing 'pg' driver for database querying
+[✓] Pulling schema from database...
+
++ mention_text column will be created
+
++ confidence column will be created
+
+~ context › grade column will be renamed
+--- all columns conflicts in skill_mentions table resolved ---
+
+
++ synonyms column will be created
+--- all columns conflicts in skills table resolved ---
+
+ Warning  Found data-loss statements:
+· You're about to delete message_index column in user_responses table with 3 items
+· You're about to delete score column in user_responses table with 3 items
+· You're about to delete engagement_level column in user_responses table with 3 items
+· You're about to delete created_at column in user_responses table with 3 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+error: type "bigserial" does not exist
+    at /home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.query (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:80601:26)
+    at async pgPush (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:84411:13)
+    at async Object.handler (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93813:9)
+    at async run (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93059:7) {
+  length: 92,
+  severity: 'ERROR',
+  code: '42704',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_type.c',
+  line: '270',
+  routine: 'typenameType'
+} pnpm db:push
+pnpm
+> better-profile-app@0.1.0 db:push /home/sumiranmishra/Documents/GitHub/kiro-devhack
+> dotenvx run -f .env.local -- drizzle-kit push
+
+ :[dotenvx@1.48.4] injecting env (13) from .env.local
+dNo config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/sumiranmishra/Documents/GitHub/kiro-devhack/drizzle.config.ts'
+bUsing 'pg' driver for database querying
+[✓] Pulling schema from database...
+
++ mention_text column will be created
+
++ confidence column will be created
+
+~ context › grade column will be renamed
+--- all columns conflicts in skill_mentions table resolved ---
+
+
++ synonyms column will be created
+--- all columns conflicts in skills table resolved ---
+
+ Warning  Found data-loss statements:
+· You're about to delete message_index column in user_responses table with 3 items
+· You're about to delete score column in user_responses table with 3 items
+· You're about to delete engagement_level column in user_responses table with 3 items
+· You're about to delete created_at column in user_responses table with 3 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+error: type "bigserial" does not exist
+    at /home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.query (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:80601:26)
+    at async pgPush (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:84411:13)
+    at async Object.handler (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93813:9)
+    at async run (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93059:7) {
+  length: 92,
+  severity: 'ERROR',
+  code: '42704',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_type.c',
+  line: '270',
+  routine: 'typenameType'
+}
+    }
+}
+
+function extractSkillsFromText(text: string): Array<{ skill: string; evidence: string; confidence: number }> {
+    const knownSkills = [
+        'react', 'reactjs', 'typescript', 'node', 'next', 'tailwind', 'sql', 'postgres', 'docker', 'graphql', 'jest'
+    ];
+
+    const normalized = text.toLowerCase();
+    const results: Array<{ skill: string; evidence: string; confidence: number }> = [];
+
+    // First, check known skills by simple word boundary match
+    for (const s of knownSkills) {
+        const pattern = new RegExp(`\\b${s}\\b`, 'i');
+        if (pattern.test(normalized)) {
+            results.push({ skill: s === 'reactjs' ? 'react' : s, evidence: s, confidence: 0.9 });
+        }
+    }
+
+    // Also include heuristic topics discovered by extractTopicsFromText (if any)
+    try {
+        const topics = extractTopicsFromText(normalized);
+        for (const t of topics) {
+            // avoid duplicates
+            if (!results.find(r => r.skill === t)) {
+                results.push({ skill: t, evidence: t, confidence: 0.7 });
+            }
+        }
+    } catch (err) {
+        console.warn('⚠️ extractTopicsFromText failed during skill extraction:', err);
+    }
+
+    return results;
+}
+
 // --- Main Handler ---
 export async function POST(req: NextRequest) {
     try {
@@ -584,6 +845,28 @@ export async function POST(req: NextRequest) {
                     } else {
                         console.log('⚠️ Empty embedding generated, skipping database save');
                     }
+                }
+
+                // Skill extraction and persistence
+                console.log('🔍 Extracting skills from user response...');
+                const skills = extractSkillsFromText(latestUserMessage.content);
+                for (const { skill, evidence, confidence } of skills) {
+                    console.log(`📌 Detected skill: ${skill} (confidence: ${confidence})`);
+
+                    // Upsert skill into DB
+                    const skillId = await upsertSkillByName(skill);
+
+                    // Create skill mention record
+                    await createSkillMention({
+                        skillId,
+                        userId,
+                        conversationId: conversation.id,
+                        responseId: messageIndex,
+                        mentionText: evidence,
+                        confidence,
+                        grade: analysis.engagementLevel,
+                        topicDepth: state.totalDepth
+                    });
                 }
 
                 // Generate summary every 5 messages

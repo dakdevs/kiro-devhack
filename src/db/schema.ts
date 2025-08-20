@@ -124,4 +124,26 @@ export const userResponses = pgTable('user_responses', {
   embeddingIdx: index('response_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
 }));
 
+export const skills = pgTable('skills', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  synonyms: jsonb('synonyms'), // optional array/object of synonyms
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const skillMentions = pgTable('skill_mentions', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  skillId: text('skill_id').notNull().references(() => skills.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  conversationId: text('conversation_id').references(() => conversations.id),
+  responseId: text('response_id'), // stores response identifier (keeps flexible type)
+  mentionText: text('mention_text'),
+  confidence: text('confidence'), // store as text to avoid extra numeric imports; keep as stringified float
+  grade: text('grade'),
+  topicDepth: text('topic_depth'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  skillUserIdx: index('skill_user_idx').on(table.skillId, table.userId),
+}));
+
 
