@@ -1,1 +1,9 @@
+<<<<<<< HEAD
 {}
+=======
+{
+  "/api/chat/route": "app/api/chat/route.js",
+  "/dashboard/interview/page": "app/dashboard/interview/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js"
+}
+>>>>>>> c7f0499 (Implemented feature to extract buzzwords from user text. woohoo!! TODO -> Integrate to vector db)

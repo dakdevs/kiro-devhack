@@ -4,8 +4,14 @@
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
+<<<<<<< HEAD
     "previewModeId": "20d414154e63d8905ce540453541030d",
     "previewModeSigningKey": "f0a05eb7440cfc60195d875788c75df2fe44f930111fbfbe2b91c6b93a693649",
     "previewModeEncryptionKey": "d337549bed8cd59f08c8cce6aa338556a420708afdec0ba71e9a5f6a32d1b25b"
+=======
+    "previewModeId": "ec4d7734225a7e659bfac468c32d6b0c",
+    "previewModeSigningKey": "3ace404b907ca4e24c83076dcd0e62f261a95057bcdadf33e328a0d77e518dac",
+    "previewModeEncryptionKey": "3039091ab642c9b978734abb469df88159a4c21e569a80a01433df149e33948f"
+>>>>>>> c7f0499 (Implemented feature to extract buzzwords from user text. woohoo!! TODO -> Integrate to vector db)
   }
 }

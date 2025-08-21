@@ -61,14 +61,21 @@ Return JSON with this structure:
   "subtopics": ["subtopic1", "subtopic2"],
   "responseLength": "detailed|moderate|brief",
   "confidenceLevel": "confident|uncertain|struggling"
+  "buzzwords": ["term1", "term2", "multi word term 3"]
 }
+
+Instructions for "buzzwords":
+- Return 3-15 concise, domain-relevant terms/phrases from the response.
+- Prefer multi-word technical terms, jargon, or key concepts.
+- Include acronyms, frameworks, libraries, methodologies, tools, companies, roles, and metrics if present.
+- lowercase all items, remove duplicates, and avoid generic stopwords.
 
 RESPOND WITH ONLY THE JSON OBJECT.
 `;
 
 // --- Models ---
-const INTERVIEW_MODEL = 'liquid/lfm-3b';
-const ANALYSIS_MODEL = 'liquid/lfm-3b';
+const INTERVIEW_MODEL = 'moonshotai/kimi-k2:free';
+const ANALYSIS_MODEL = 'moonshotai/kimi-k2:free';
 
 // --- Topic Tree Data Structure ---
 interface TopicNode {
@@ -88,6 +95,37 @@ interface TopicNode {
     createdAt: string;
 }
 
+
+
+
+
+
+
+
+// interface ConversationState {
+//     topicTree: Map<string, TopicNode>;
+//     currentPath: string[];
+//     exhaustedTopics: string[];
+//     grades: Array<{
+//         messageIndex: number;
+//         score: number;
+//         timestamp: string;
+//         content: string;
+//         engagementLevel: string;
+//     }>;
+//     startTime: string;
+//     totalDepth: number;
+//     maxDepthReached: number;
+// }
+
+//START MY CODING ATTEMPT:
+// interface BuzzwordHit {
+//     term: string;
+//     count: number;
+//     sources: number[]; // Indices of messages where this term was found
+// }
+
+
 interface ConversationState {
     topicTree: Map<string, TopicNode>;
     currentPath: string[];
@@ -102,13 +140,34 @@ interface ConversationState {
     startTime: string;
     totalDepth: number;
     maxDepthReached: number;
+    
+    // NEW PROPERTY FOR BUZZWORDS
+    buzzwords?: Map<string, {count: number; sources: Set<number> }>;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Global conversation state (use Redis/database in production)
 const conversationStates = new Map<string, ConversationState>();
 
 // --- Initialize Topic Tree ---
 function initializeTopicTree(sessionId: string): ConversationState {
+
+
+
+
+
+    // edited to intclude buzzwords:
     const state: ConversationState = {
         topicTree: new Map(),
         currentPath: [],
@@ -116,8 +175,15 @@ function initializeTopicTree(sessionId: string): ConversationState {
         grades: [],
         startTime: new Date().toISOString(),
         totalDepth: 0,
-        maxDepthReached: 0
+        maxDepthReached: 0,
+        buzzwords: new Map(), // NEW BUZZWORDS MAP
     };
+
+
+
+
+
+
 
     // Create root node
     const rootNode: TopicNode = {
@@ -166,7 +232,9 @@ async function analyzeResponse(userResponse: string): Promise<any> {
         const analysisText = data.choices?.[0]?.message?.content?.trim();
 
         try {
-            return JSON.parse(analysisText);
+            const parsed = JSON.parse(analysisText);
+            if (!Array.isArray(parsed.buzzwords)) parsed.buzzwords = [];
+            return parsed;
         } catch {
             // Fallback analysis
             return analyzeResponseFallback(userResponse);
@@ -193,7 +261,8 @@ function analyzeResponseFallback(userResponse: string): any {
         newTopics: extractTopicsFromText(text),
         subtopics: [],
         responseLength: wordCount > 30 ? 'detailed' : wordCount > 15 ? 'moderate' : 'brief',
-        confidenceLevel: exhaustionSignals.length === 0 ? 'confident' : 'uncertain'
+        confidenceLevel: exhaustionSignals.length === 0 ? 'confident' : 'uncertain',
+        buzzwords: [] // ADD
     };
 }
 
@@ -383,6 +452,26 @@ function generateTopicTreeState(state: ConversationState): string {
     return treeRepresentation.join('\n');
 }
 
+
+
+
+
+// NEW HELPER FUNCTION FOR BUZZWORDS ROLLUP HELPER WOOHOO!!!:
+function topBuzzwords(state: ConversationState, limit = 50) {
+    if (!state.buzzwords) return [];
+    const arr = [...state.buzzwords.entries()].map(([term, v]) => ({
+        term,count: v.count,
+        sources: [...v.sources].sort((a, b) => a - b),
+    }));
+    arr.sort((a, b) => b.count - a.count || a.term.localeCompare(b.term));
+    return arr.slice(0, limit);
+}
+
+
+
+
+
+
 // --- Generate Summary Tree ---
 function generateSummaryTree(sessionId: string) {
     const state = conversationStates.get(sessionId);
@@ -400,7 +489,9 @@ function generateSummaryTree(sessionId: string) {
             explored: Array.from(state.topicTree.values()).filter(n => n.status !== 'unexplored').length,
             rich: Array.from(state.topicTree.values()).filter(n => n.status === 'rich').length,
             exhausted: Array.from(state.topicTree.values()).filter(n => n.status === 'exhausted').length
-        }
+        },
+        // ADD NEW TOP BUZZWORDS woohoo!!
+        buzzwords: topBuzzwords(state),
     };
 
     console.log('\n🌟 === ADAPTIVE INTERVIEW SUMMARY ===');
@@ -408,6 +499,8 @@ function generateSummaryTree(sessionId: string) {
     console.log(`📊 Average Score: ${summary.averageScore.toFixed(2)}/2.0`);
     console.log(`🌳 Topic Tree: ${summary.totalNodes} nodes, max depth ${summary.maxDepthReached}`);
     console.log(`📈 Coverage: ${summary.topicCoverage.explored} explored, ${summary.topicCoverage.rich} rich, ${summary.topicCoverage.exhausted} exhausted`);
+    //ADDING CONSOLE LOG FOR BUZZWORDS SUMMARY SO FAR:
+    console.log('🧠 Top Buzzwords:', summary.buzzwords.slice(0,20));
     console.log('\n🗺️ TOPIC TREE STRUCTURE:');
     console.log(generateTopicTreeState(state));
     console.log('=====================================\n');
@@ -771,6 +864,16 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // NEW BLOCK FOR COMPUTE ANALYIS BLOCK WOOHOO!
+        let analysis: any = null;
+        if (latestUserMessage?.content) {
+            try {
+                analysis = await analyzeResponse(latestUserMessage.content);
+            } catch {
+                analysis = analyzeResponseFallback(LatestUserMessage.content);
+            }
+        }
+
         // Generate AI response
         const result = await generateText({
             system: dynamicPrompt,
@@ -787,9 +890,13 @@ export async function POST(req: NextRequest) {
 
             try {
                 // Analyze user response
-                const analysis = await analyzeResponse(latestUserMessage.content);
-
-                if (analysis) {
+                // const analysis = await analyzeResponse(latestUserMessage.content); REMOVING THIS LINE TO AVOID DOUBLE ANALYSIS
+                
+                // REUSE THE CAPTURED ANALYIS AND GAURD IT WOOHOO:
+                if (!analysis) {
+                    analysis = analyzeResponseFallback(latestUserMessage.content);
+                }
+                // if (analysis) {
                     // Update topic tree based on analysis
                     updateTopicTree(sessionId, analysis, latestUserMessage.content, messageIndex);
 
@@ -823,6 +930,26 @@ export async function POST(req: NextRequest) {
                         engagementLevel: analysis.engagementLevel
                     });
 
+
+
+
+                    // INSERT BUZZWORDS AGGREGATION WOOHOO!!!:
+                    const buzz = Array.isArray(analysis?.buzzwords) ? analysis.buzzwords : [];
+                    for (const raw of buzz) {
+                        const term = String(raw).trim().toLowerCase();
+                        if (!term) continue;
+                        const existing = state.buzzwords!.get(term) ?? { count: 0, sources: new Set<number>() };
+                        existing.count += 1;
+                        existing.sources.add(messageIndex);
+                        state.buzzwords!.set(term, existing);
+                    }
+                    console.log('🧩 Buzzwords for message', messageIndex, buzz);
+                    
+
+
+
+
+
                     // Generate embedding for the user response
                     console.log('🔄 Generating embedding for user response...');
                     console.log('📝 User message content:', latestUserMessage.content);
@@ -845,7 +972,7 @@ export async function POST(req: NextRequest) {
                     } else {
                         console.log('⚠️ Empty embedding generated, skipping database save');
                     }
-                }
+                // }
 
                 // Skill extraction and persistence
                 console.log('🔍 Extracting skills from user response...');
@@ -897,7 +1024,8 @@ export async function POST(req: NextRequest) {
             sessionId,
             messageIndex,
             currentTopic: state.currentPath[state.currentPath.length - 1],
-            topicDepth: state.totalDepth
+            topicDepth: state.totalDepth,
+            buzzwords: Array.isArray(analysis?.buszzwords) ? analysis.buzzwords : [], // NEW BUZZWORDS RETURN WOOHOO!!!
         });
 
     } catch (error: any) {
