@@ -771,6 +771,9 @@ export async function POST(req: NextRequest) {
     try {
         console.log('🚀 API Route called');
 
+    // we store boolean value for storage/embedding flag for RAG agent
+        let allowEmbeddingAndStorage: boolean = true;
+
         // Check if API key is available
         if (!process.env.OPENROUTER_API_KEY) {
             console.error('❌ OPENROUTER_API_KEY is not set');
@@ -834,16 +837,46 @@ export async function POST(req: NextRequest) {
                 const ragAgent = new InterviewRAGAgent();
                 const ragResult = await ragAgent.processQuery(latestUserMessage.content, userId);
                 
-                if (!ragResult.isRelevant) {
-                    // RAG agent determined query is off-topic, return direct response
-                    await storeConversation(latestUserMessage.content, 'user');
-                    await storeConversation(ragResult.response!, 'assistant');
+                // if (!ragResult.isRelevant) {
+                //     // RAG agent determined query is off-topic, return direct response
+                //     await storeConversation(latestUserMessage.content, 'user');
+                //     await storeConversation(ragResult.response!, 'assistant');
                     
-                    return NextResponse.json({ 
-                        reply: ragResult.response,
-                        sessionId 
+                //     return NextResponse.json({ 
+                //         reply: ragResult.response,
+                //         sessionId 
+                //     });
+                // }
+
+
+
+
+
+           
+
+        // CHANGING LOGIC SO IF RAG DEEMS NOT RELEVANT NOTHING STORED:
+                if (!ragResult.isRelevant) {
+
+                    /*
+                    Rationale: you exit early and you’ve removed the storeConversation(...) calls, 
+                    so nothing is written to your RAG store nor to embeddings. (In your file, this return 
+                    happens before the after() block is even registered, so nothing async runs either.)
+                    */
+
+                    //off topic, do not embed or store anything embedding-related
+                    allowEmbeddingAndStorage = false;
+
+                    return NextResponse.json({
+                        reply:ragResult.response,
+                        sessionId
                     });
                 }
+
+
+
+
+
+
                 
                 // RAG agent enhanced the prompt, use enhanced version
                 if (ragResult.enhancedPrompt) {
@@ -870,7 +903,7 @@ export async function POST(req: NextRequest) {
             try {
                 analysis = await analyzeResponse(latestUserMessage.content);
             } catch {
-                analysis = analyzeResponseFallback(LatestUserMessage.content);
+                analysis = analyzeResponseFallback(latestUserMessage.content);
             }
         }
 
@@ -947,32 +980,39 @@ export async function POST(req: NextRequest) {
                     
 
 
+        // WRAPPING LOGIC WITH GAURD TO ALLOW EMBEDDING AND STORAGE IF RAG AGENT ALLOWS IT:
 
-
-
-                    // Generate embedding for the user response
-                    console.log('🔄 Generating embedding for user response...');
-                    console.log('📝 User message content:', latestUserMessage.content);
-                    const { embedOne } = await import('~/utils/embeddings');
-                    const embedding = await embedOne(latestUserMessage.content);
-                    
-                    console.log('📊 Embedding result - length:', embedding.length);
-                    console.log('📊 Embedding result - first 5 values:', embedding.slice(0, 5));
-                    
-                    // Only save if we got a valid embedding
-                    if (embedding.length > 0) {
-                        console.log('💾 Attempting to save user response to database...');
-                        console.log('💾 Save params - userId:', userId, 'conversationId:', conversation.id);
-                        try {
-                            await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
-                            console.log('✅ User response saved successfully to database');
-                        } catch (saveError) {
-                            console.error('❌ Failed to save user response to database:', saveError);
+                    if (allowEmbeddingAndStorage) {
+                        // Generate embedding for the user response
+                        console.log('🔄 Generating embedding for user response...');
+                        console.log('📝 User message content:', latestUserMessage.content);
+                        const { embedOne } = await import('~/utils/embeddings');
+                        const embedding = await embedOne(latestUserMessage.content);
+                        
+                        console.log('📊 Embedding result - length:', embedding.length);
+                        console.log('📊 Embedding result - first 5 values:', embedding.slice(0, 5));
+                        
+                        // Only save if we got a valid embedding
+                        if (embedding.length > 0) {
+                            console.log('💾 Attempting to save user response to database...');
+                            console.log('💾 Save params - userId:', userId, 'conversationId:', conversation.id);
+                            try {
+                                await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
+                                console.log('✅ User response saved successfully to database');
+                            } catch (saveError) {
+                                console.error('❌ Failed to save user response to database:', saveError);
+                            }
+                        } else {
+                            console.log('⚠️ Empty embedding generated, skipping database save');
                         }
                     } else {
-                        console.log('⚠️ Empty embedding generated, skipping database save');
+                        console.log('⛔ Skipping embedding & storage due to non-relevant RAG result');
                     }
-                // }
+
+
+
+                    
+
 
                 // Skill extraction and persistence
                 console.log('🔍 Extracting skills from user response...');
