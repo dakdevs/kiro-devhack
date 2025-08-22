@@ -51,3 +51,4 @@ next-env.d.ts
 
 media/*
 !media/.gitkeep
+drizzle/meta/_journal.json

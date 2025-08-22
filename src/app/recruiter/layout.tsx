@@ -1,0 +1,67 @@
+import { redirect } from 'next/navigation';
+import { auth } from '~/lib/auth';
+import { headers } from 'next/headers';
+
+export default async function RecruiterLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const session = await auth.api.getSession({
+        headers: await headers()
+    });
+
+    if (!session?.user) {
+        redirect('/auth/signin');
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-700">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        <div className="flex items-center gap-8">
+                            <h1 className="text-xl font-semibold text-black dark:text-white">
+                                Recruiter Dashboard
+                            </h1>
+                            <nav className="flex gap-6">
+                                <a
+                                    href="/recruiter/post"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Post Job
+                                </a>
+                                <a
+                                    href="/recruiter/calendar"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Calendar
+                                </a>
+                                <a
+                                    href="/recruiter/applications"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Applications
+                                </a>
+                            </nav>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {session.user.name}
+                            </span>
+                            <a
+                                href="/dashboard"
+                                className="text-sm text-apple-blue hover:text-blue-600 transition-colors duration-150"
+                            >
+                                Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {children}
+            </main>
+        </div>
+    );
+}
