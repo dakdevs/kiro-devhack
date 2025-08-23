@@ -54,3 +54,10 @@ body {
 .animate-move-up {
   animation: moveUp 20s linear infinite;
 }
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -1,4 +1,5 @@
-import { Plus, Upload, Search, User, FileText, Calendar, ArrowRight, Zap, Briefcase } from 'lucide-react'
+import { Plus, Upload, Search, User, FileText, Calendar, ArrowRight, Zap, Briefcase, Star } from 'lucide-react'
+import Link from 'next/link'
 
 const iconMap = {
   Plus,
@@ -8,9 +9,19 @@ const iconMap = {
   User,
   Calendar,
   Briefcase,
+  Star,
 }
 
 const actions = [
+  {
+    title: 'Create a Better Profile',
+    description: 'Practice interviews with AI',
+    icon: 'Star' as const,
+    color: 'bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-600 hover:from-yellow-100 hover:to-yellow-200 border-yellow-200',
+    href: '/dashboard/interview',
+    featured: true,
+    new: true
+  },
   {
     title: 'Add Job Application',
     description: 'Track a new job application',
@@ -34,14 +45,6 @@ const actions = [
     color: 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-600 hover:from-purple-100 hover:to-purple-200 border-purple-200',
     href: '/dashboard/jobs/browse',
     featured: true
-  },
-  {
-    title: 'Schedule Interview',
-    description: 'Book your next interview',
-    icon: 'Calendar' as const,
-    color: 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600 hover:from-orange-100 hover:to-orange-200 border-orange-200',
-    href: '/dashboard/interviews/schedule',
-    featured: false
   }
 ]
 
@@ -59,43 +62,55 @@ export function QuickActions() {
       
       {/* Actions Grid */}
       <div className="space-y-3">
-        {actions.map((action) => (
-          <button
-            key={action.title}
-            className={`group w-full flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md ${action.color}`}
-          >
-            <div className="flex-shrink-0">
-              <action.icon className="h-5 w-5" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="flex items-center gap-2">
-                <div className="font-semibold text-gray-900 text-sm">
-                  {action.title}
+        {actions.map((action) => {
+          const IconComponent = iconMap[action.icon];
+          return (
+            <Link
+              key={action.title}
+              href={action.href}
+              className={`group w-full flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md ${action.color}`}
+            >
+              <div className="flex-shrink-0">
+                <IconComponent className="h-5 w-5" />
+              </div>
+              <div className="flex-1 text-left">
+                <div className="flex items-center gap-2">
+                  <div className="font-semibold text-gray-900 text-sm">
+                    {action.title}
+                  </div>
+                  {action.new && (
+                    <span className="px-2 py-0.5 bg-apple-blue/10 text-apple-blue text-xs font-medium rounded-full">
+                      New
+                    </span>
+                  )}
+                  {action.featured && !action.new && (
+                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                      Popular
+                    </span>
+                  )}
                 </div>
-                {action.featured && (
-                  <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                    Popular
-                  </span>
-                )}
+                <div className="text-xs text-gray-600 mt-0.5">
+                  {action.description}
+                </div>
               </div>
-              <div className="text-xs text-gray-600 mt-0.5">
-                {action.description}
-              </div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
-          </button>
-        ))}
+              <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
+            </Link>
+          );
+        })}
       </div>
       
       {/* Profile Section */}
       <div className="mt-6 pt-6 border-t border-gray-100">
-        <button className="w-full flex items-center justify-between gap-3 p-4 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all group">
+        <Link 
+          href="/dashboard/profile"
+          className="w-full flex items-center justify-between gap-3 p-4 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all group"
+        >
           <div className="flex items-center gap-3">
             <User className="h-4 w-4" />
             <span>Edit Profile</span>
           </div>
           <ArrowRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
-        </button>
+        </Link>
       </div>
 
       {/* Weekly Goals */}

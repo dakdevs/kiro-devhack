@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Menu, X, Bell, Search, User } from 'lucide-react'
+import Link from 'next/link'
 import { MobileMenu } from './mobile-menu'
 import { UserMenu } from './user-menu'
 
@@ -52,8 +53,30 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             </div>
           </div>
 
-          {/* Right side - Notifications and user menu */}
+          {/* Right side - For Recruiters, Notifications and user menu */}
           <div className="flex items-center gap-2">
+            {/* Desktop For Recruiters Button */}
+            <Link
+              href="/recruiter"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-apple-blue hover:bg-blue-600 rounded-lg transition-colors duration-150"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h8z" />
+              </svg>
+              For Recruiters
+            </Link>
+
+            {/* Mobile For Recruiters Button */}
+            <Link
+              href="/recruiter"
+              className="sm:hidden p-2 text-white bg-apple-blue hover:bg-blue-600 rounded-lg transition-colors duration-150"
+              title="For Recruiters"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h8z" />
+              </svg>
+            </Link>
+            
             <button className="p-2 text-gray-600 hover:text-gray-900 relative">
               <Bell className="h-5 w-5" />
               <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">

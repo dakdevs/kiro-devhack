@@ -124,26 +124,68 @@ export const userResponses = pgTable('user_responses', {
   embeddingIdx: index('response_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
 }));
 
-export const skills = pgTable('skills', {
+// Recruiter-specific tables
+export const recruiterProfiles = pgTable('recruiter_profiles', {
   id: text('id').primaryKey(),
-  name: text('name').notNull().unique(),
-  synonyms: jsonb('synonyms'), // optional array/object of synonyms
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  companyName: text('company_name').notNull(),
+  companyDescription: text('company_description'),
+  companyWebsite: text('company_website'),
+  companyLogo: text('company_logo'),
+  contactEmail: text('contact_email'),
+  contactPhone: text('contact_phone'),
+  googleCalendarId: text('google_calendar_id'),
+  googleAccessToken: text('google_access_token'),
+  googleRefreshToken: text('google_refresh_token'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const skillMentions = pgTable('skill_mentions', {
-  id: bigserial('id', { mode: 'number' }).primaryKey(),
-  skillId: text('skill_id').notNull().references(() => skills.id, { onDelete: 'cascade' }),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  conversationId: text('conversation_id').references(() => conversations.id),
-  responseId: text('response_id'), // stores response identifier (keeps flexible type)
-  mentionText: text('mention_text'),
-  confidence: text('confidence'), // store as text to avoid extra numeric imports; keep as stringified float
-  grade: text('grade'),
-  topicDepth: text('topic_depth'),
+export const jobPostings = pgTable('job_postings', {
+  id: text('id').primaryKey(),
+  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  requirements: text('requirements'),
+  responsibilities: text('responsibilities'),
+  salaryMin: text('salary_min'),
+  salaryMax: text('salary_max'),
+  location: text('location').notNull(),
+  jobType: text('job_type').notNull(), // full-time, part-time, contract, remote
+  experienceLevel: text('experience_level'), // entry, mid, senior, executive
+  skills: text('skills'), // JSON array of required skills
+  benefits: text('benefits'),
+  applicationDeadline: timestamp('application_deadline'),
+  status: text('status').notNull().default('active'), // active, paused, closed, draft
   createdAt: timestamp('created_at').notNull().defaultNow(),
-}, (table) => ({
-  skillUserIdx: index('skill_user_idx').on(table.skillId, table.userId),
-}));
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const recruiterAvailability = pgTable('recruiter_availability', {
+  id: text('id').primaryKey(),
+  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
+  jobPostingId: text('job_posting_id').references(() => jobPostings.id, { onDelete: 'cascade' }),
+  dayOfWeek: text('day_of_week').notNull(), // monday, tuesday, etc.
+  startTime: text('start_time').notNull(), // HH:MM format
+  endTime: text('end_time').notNull(), // HH:MM format
+  timezone: text('timezone').notNull().default('UTC'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const jobApplicationsFromCandidates = pgTable('job_applications_from_candidates', {
+  id: text('id').primaryKey(),
+  jobPostingId: text('job_posting_id').notNull().references(() => jobPostings.id, { onDelete: 'cascade' }),
+  candidateUserId: text('candidate_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  coverLetter: text('cover_letter'),
+  resumeUrl: text('resume_url'),
+  status: text('status').notNull().default('pending'), // pending, reviewing, interview_scheduled, rejected, hired
+  appliedAt: timestamp('applied_at').notNull().defaultNow(),
+  reviewedAt: timestamp('reviewed_at'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
 
 
