@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '~/lib/auth';
 import { headers } from 'next/headers';
+import Link from 'next/link';
 
 export default async function RecruiterLayout({
     children,
@@ -25,36 +26,36 @@ export default async function RecruiterLayout({
                                 Recruiter Dashboard
                             </h1>
                             <nav className="flex gap-6">
-                                <a
-                                    href="/recruiter/post"
+                                <Link
+                                    href="/recruiter/post-job"
                                     className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
                                 >
                                     Post Job
-                                </a>
-                                <a
+                                </Link>
+                                <Link
                                     href="/recruiter/calendar"
                                     className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
                                 >
                                     Calendar
-                                </a>
-                                <a
+                                </Link>
+                                <Link
                                     href="/recruiter/applications"
                                     className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
                                 >
                                     Applications
-                                </a>
+                                </Link>
                             </nav>
                         </div>
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-gray-600 dark:text-gray-400">
                                 {session.user.name}
                             </span>
-                            <a
+                            <Link
                                 href="/dashboard"
                                 className="text-sm text-apple-blue hover:text-blue-600 transition-colors duration-150"
                             >
                                 Back to Dashboard
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>

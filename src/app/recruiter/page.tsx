@@ -15,7 +15,7 @@ export default function RecruiterDashboard() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Link
-          href="/recruiter/post"
+          href="/recruiter/post-job"
           className="group bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 ease-out"
         >
           <div className="flex items-center gap-4 mb-4">
