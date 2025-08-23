@@ -16,6 +16,8 @@
 # next.js
 /.next/
 /out/
+.next/*
+.next
 
 # production
 /build
@@ -23,6 +25,8 @@
 # misc
 .DS_Store
 *.pem
+drizzle/meta/_journal.json
+
 
 # debug
 npm-debug.log*
