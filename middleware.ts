@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '~/lib/auth'
-//meow
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -18,9 +18,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // If user is authenticated and on the root page, redirect to dashboard
+  if (pathname === '/') {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    })
+
+    if (session?.user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*']
+  matcher: ['/', '/dashboard/:path*']
 }

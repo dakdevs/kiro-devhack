@@ -1,14 +1,7 @@
--- Enable pgvector extension
+-- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Example table with vector column
--- CREATE TABLE IF NOT EXISTS embeddings (
---   id SERIAL PRIMARY KEY,
---   content TEXT NOT NULL,
---   embedding vector(1536),
---   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
-
--- Example index for vector similarity search
--- CREATE INDEX IF NOT EXISTS embeddings_embedding_idx ON embeddings 
--- USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+-- Set up proper permissions
+GRANT ALL PRIVILEGES ON DATABASE myapp TO postgres;
+GRANT ALL PRIVILEGES ON SCHEMA public TO postgres;

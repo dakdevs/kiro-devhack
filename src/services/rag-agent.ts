@@ -52,29 +52,45 @@ export class InterviewRAGAgent {
   private async checkRelevance(query: string): Promise<{ isRelevant: boolean }> {
     console.log('🔎 Sending relevance check to moonshotai/kimi-k2:free...');
 
-    const response = await fetch(this.baseUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.openRouterKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'moonshotai/kimi-k2:free',
-        messages: [{
-          role: 'user',
-          content: `Is this query relevant to a job interview context? Answer only "YES" or "NO": "${query}"`
-        }],
-        max_tokens: 5
-      })
-    });
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    const result = await response.json();
-    const answer = result.choices[0]?.message?.content?.trim().toUpperCase();
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.openRouterKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'moonshotai/kimi-k2:free',
+          messages: [{
+            role: 'user',
+            content: `Is this query relevant to a job interview context? Answer only "YES" or "NO": "${query}"`
+          }],
+          max_tokens: 5
+        }),
+        signal: controller.signal
+      });
 
-    console.log('🤖 LLM Response:', answer);
-    console.log('📊 Relevance Decision:', answer === 'YES' ? '✅ RELEVANT' : '❌ NOT RELEVANT');
+      clearTimeout(timeoutId);
 
-    return { isRelevant: answer === 'YES' };
+      if (!response.ok) {
+        console.log('⚠️ API response not OK, assuming relevant');
+        return { isRelevant: true };
+      }
+
+      const result = await response.json();
+      const answer = result.choices[0]?.message?.content?.trim().toUpperCase();
+
+      console.log('🤖 LLM Response:', answer);
+      console.log('📊 Relevance Decision:', answer === 'YES' ? '✅ RELEVANT' : '❌ NOT RELEVANT');
+
+      return { isRelevant: answer === 'YES' };
+    } catch (error) {
+      console.log('⚠️ Relevance check failed, assuming relevant:', error.message);
+      return { isRelevant: true }; // Default to relevant if check fails
+    }
   }
 
   private async getRelevantContext(query: string, userId: string): Promise<string[]> {
@@ -114,7 +130,7 @@ export class InterviewRAGAgent {
 
       return similarConversations.map(item => item.content);
     } catch (error) {
-      console.error('❌ Context retrieval failed:', error);
+      console.log('⚠️ Context retrieval failed, continuing without context:', error.message);
       return [];
     }
   }

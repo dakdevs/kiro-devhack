@@ -2,22 +2,96 @@ import { generateText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { after } from 'next/server';
-import { getOrCreateConversation, saveUserResponse } from '~/services/interview';
-// Adding RAG imports back step by step
-import { storeConversation } from '~/utils/conversation-storage';
-import { InterviewRAGAgent } from '~/services/rag-agent';
+// Session management will be handled directly in this file
+// RAG agent disabled - embeddings table removed
+// import { InterviewRAGAgent } from '~/services/rag-agent';
 import { db } from '~/db';
-import { skills, skillMentions } from '~/db/schema';
+import { user, userSkills, skillMentions, interviewSessions, embeddings } from '~/db/schema';
 import { eq } from 'drizzle-orm';
+import { InterviewRAGAgent } from '~/services/rag-agent';
 
 const openrouter = createOpenRouter({
     apiKey: process.env.OPENROUTER_API_KEY,
 });
+
 async function getUserIdFromAuth(req: NextRequest): Promise<string | null> {
     // TODO: Implement proper auth logic
-    // For now, return a valid UUID format for testing
-    return "temp-user-" + Date.now().toString();
+    // For now, create a test user if it doesn't exist
+    const userId = "test-user-123";
+
+    try {
+        // Check if user exists
+        const existingUser = await db.query.user.findFirst({
+            where: (users, { eq }) => eq(users.id, userId),
+        });
+
+        if (!existingUser) {
+            // Create test user
+            await db.insert(user).values({
+                id: userId,
+                name: "Test User",
+                email: "test@example.com",
+                emailVerified: true,
+            });
+            console.log('✅ Test user created:', userId);
+        }
+
+        return userId;
+    } catch (error) {
+        console.error('❌ Failed to get/create user:', error);
+        return null;
+    }
 }
+
+// --- Session Management ---
+async function getOrCreateSession(userId: string, sessionId: string) {
+    try {
+        // Check if session exists
+        const existing = await db.query.interviewSessions.findFirst({
+            where: eq(interviewSessions.id, sessionId),
+        });
+
+        if (existing) {
+            console.log(`✅ Session exists: ${existing.id}`);
+            return existing;
+        }
+
+        // Create new session
+        console.log('🆕 Creating new interview session...');
+        const inserted = await db.insert(interviewSessions).values({
+            id: sessionId,
+            userId: userId,
+            sessionType: 'interview',
+            title: 'AI Interview Session',
+            description: 'Adaptive interview session for skill assessment',
+            status: 'active',
+        }).returning();
+
+        console.log('✅ Session created:', inserted[0].id);
+        return inserted[0];
+    } catch (error) {
+        console.error('❌ Failed to get or create session:', error);
+        throw error;
+    }
+}
+
+async function updateSessionMetrics(sessionId: string, messageCount: number, averageEngagement: string, overallScore: number) {
+    try {
+        await db.update(interviewSessions)
+            .set({
+                messageCount,
+                averageEngagement,
+                overallScore: overallScore.toString(),
+                updatedAt: new Date(),
+            })
+            .where(eq(interviewSessions.id, sessionId));
+
+        console.log(`✅ Session metrics updated: ${sessionId}`);
+    } catch (error) {
+        console.error('❌ Failed to update session metrics:', error);
+    }
+}
+
 // --- Adaptive Interview System Prompt ---
 const INTERVIEW_SYSTEM_PROMPT = `
 You are an adaptive interviewer who dynamically explores topics based on interviewee responses. Your goal is to maximize knowledge extraction while maintaining natural conversation flow.
@@ -95,37 +169,6 @@ interface TopicNode {
     createdAt: string;
 }
 
-
-
-
-
-
-
-
-// interface ConversationState {
-//     topicTree: Map<string, TopicNode>;
-//     currentPath: string[];
-//     exhaustedTopics: string[];
-//     grades: Array<{
-//         messageIndex: number;
-//         score: number;
-//         timestamp: string;
-//         content: string;
-//         engagementLevel: string;
-//     }>;
-//     startTime: string;
-//     totalDepth: number;
-//     maxDepthReached: number;
-// }
-
-//START MY CODING ATTEMPT:
-// interface BuzzwordHit {
-//     term: string;
-//     count: number;
-//     sources: number[]; // Indices of messages where this term was found
-// }
-
-
 interface ConversationState {
     topicTree: Map<string, TopicNode>;
     currentPath: string[];
@@ -140,34 +183,17 @@ interface ConversationState {
     startTime: string;
     totalDepth: number;
     maxDepthReached: number;
-    
+
     // NEW PROPERTY FOR BUZZWORDS
-    buzzwords?: Map<string, {count: number; sources: Set<number> }>;
+    buzzwords?: Map<string, { count: number; sources: Set<number> }>;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Global conversation state (use Redis/database in production)
 const conversationStates = new Map<string, ConversationState>();
 
 // --- Initialize Topic Tree ---
 function initializeTopicTree(sessionId: string): ConversationState {
-
-
-
-
-
-    // edited to intclude buzzwords:
+    // edited to include buzzwords:
     const state: ConversationState = {
         topicTree: new Map(),
         currentPath: [],
@@ -178,12 +204,6 @@ function initializeTopicTree(sessionId: string): ConversationState {
         maxDepthReached: 0,
         buzzwords: new Map(), // NEW BUZZWORDS MAP
     };
-
-
-
-
-
-
 
     // Create root node
     const rootNode: TopicNode = {
@@ -292,7 +312,6 @@ function extractTopicsFromText(text: string): string[] {
 
     return topics;
 }
-
 // --- Update Topic Tree ---
 function updateTopicTree(sessionId: string, analysis: any, userResponse: string, messageIndex: number) {
     const state = conversationStates.get(sessionId);
@@ -452,25 +471,16 @@ function generateTopicTreeState(state: ConversationState): string {
     return treeRepresentation.join('\n');
 }
 
-
-
-
-
 // NEW HELPER FUNCTION FOR BUZZWORDS ROLLUP HELPER WOOHOO!!!:
 function topBuzzwords(state: ConversationState, limit = 50) {
     if (!state.buzzwords) return [];
     const arr = [...state.buzzwords.entries()].map(([term, v]) => ({
-        term,count: v.count,
+        term, count: v.count,
         sources: [...v.sources].sort((a, b) => a - b),
     }));
     arr.sort((a, b) => b.count - a.count || a.term.localeCompare(b.term));
     return arr.slice(0, limit);
 }
-
-
-
-
-
 
 // --- Generate Summary Tree ---
 function generateSummaryTree(sessionId: string) {
@@ -500,7 +510,7 @@ function generateSummaryTree(sessionId: string) {
     console.log(`🌳 Topic Tree: ${summary.totalNodes} nodes, max depth ${summary.maxDepthReached}`);
     console.log(`📈 Coverage: ${summary.topicCoverage.explored} explored, ${summary.topicCoverage.rich} rich, ${summary.topicCoverage.exhausted} exhausted`);
     //ADDING CONSOLE LOG FOR BUZZWORDS SUMMARY SO FAR:
-    console.log('🧠 Top Buzzwords:', summary.buzzwords.slice(0,20));
+    console.log('🧠 Top Buzzwords:', summary.buzzwords.slice(0, 20));
     console.log('\n🗺️ TOPIC TREE STRUCTURE:');
     console.log(generateTopicTreeState(state));
     console.log('=====================================\n');
@@ -508,229 +518,119 @@ function generateSummaryTree(sessionId: string) {
     return summary;
 }
 
-// --- Skill extraction helpers ---
-async function upsertSkillByName(name: string) {
-    const norm = name.trim();
-    const slug = norm.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
-    console.log(`🔎 upsertSkillByName called for "${name}" -> id: ${slug}`);
+// --- User-centric skill tracking helpers ---
+async function upsertUserSkill(userId: string, skillName: string, confidence: number, engagementLevel: string, topicDepth: number) {
+    const norm = skillName.trim();
+    const userSkillId = `${userId}_${norm.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '')}`;
+
+    console.log(`🔎 upsertUserSkill called for user "${userId}" skill "${norm}"`);
 
     try {
-        const existing = await db.query.skills.findFirst({
-            where: eq(skills.name, norm),
+        // Check if user already has this skill
+        const existing = await db.query.userSkills.findFirst({
+            where: eq(userSkills.id, userSkillId),
         });
+
         if (existing) {
-            console.log(`✅ Skill already exists in DB: ${existing.id} (${existing.name})`);
-            return existing.id;
+            // Update existing skill metrics
+            const newMentionCount = existing.mentionCount + 1;
+            const currentAvgConfidence = parseFloat(existing.averageConfidence);
+            const currentAvgDepth = parseFloat(existing.topicDepthAverage);
+
+            // Calculate new averages
+            const newAvgConfidence = ((currentAvgConfidence * (newMentionCount - 1)) + confidence) / newMentionCount;
+            const newAvgDepth = ((currentAvgDepth * (newMentionCount - 1)) + topicDepth) / newMentionCount;
+
+            // Calculate proficiency score (0-100) based on confidence, engagement, and frequency
+            const engagementScore = engagementLevel === 'high' ? 1.0 : engagementLevel === 'medium' ? 0.7 : 0.4;
+            const frequencyScore = Math.min(newMentionCount / 10, 1.0); // Max out at 10 mentions
+            const proficiencyScore = Math.round((newAvgConfidence * 0.4 + engagementScore * 0.4 + frequencyScore * 0.2) * 100);
+
+            const updated = await db.update(userSkills)
+                .set({
+                    mentionCount: newMentionCount,
+                    lastMentioned: new Date(),
+                    averageConfidence: newAvgConfidence.toFixed(3),
+                    averageEngagement: calculateAverageEngagement(existing.averageEngagement, engagementLevel, newMentionCount),
+                    topicDepthAverage: newAvgDepth.toFixed(2),
+                    proficiencyScore: proficiencyScore.toString(),
+                    updatedAt: new Date(),
+                })
+                .where(eq(userSkills.id, userSkillId))
+                .returning();
+
+            console.log(`✅ User skill updated: ${updated[0].skillName} (mentions: ${newMentionCount}, proficiency: ${proficiencyScore})`);
+            return updated[0].id;
+        } else {
+            // Create new user skill
+            const proficiencyScore = Math.round((confidence * 0.4 + (engagementLevel === 'high' ? 1.0 : engagementLevel === 'medium' ? 0.7 : 0.4) * 0.4 + 0.1 * 0.2) * 100);
+
+            const inserted = await db.insert(userSkills).values({
+                id: userSkillId,
+                userId: userId,
+                skillName: norm,
+                mentionCount: 1,
+                lastMentioned: new Date(),
+                proficiencyScore: proficiencyScore.toString(),
+                averageConfidence: confidence.toFixed(3),
+                averageEngagement: engagementLevel,
+                topicDepthAverage: topicDepth.toFixed(2),
+                firstMentioned: new Date(),
+                synonyms: null,
+            }).returning();
+
+            console.log(`✅ New user skill created: ${inserted[0].skillName} (proficiency: ${proficiencyScore})`);
+            return inserted[0].id;
         }
-
-        console.log('🆕 Inserting new skill into DB...');
-        const inserted = await db.insert(skills).values({
-            id: slug,
-            name: norm,
-            synonyms: null,
-        }).returning();
-
-        console.log('✅ Skill inserted:', inserted[0]);
-        return inserted[0].id;
     } catch (error) {
-        console.error('❌ Failed to upsert skill:', error);
+        console.error('❌ Failed to upsert user skill:', error);
         throw error;
     }
 }
 
+function calculateAverageEngagement(currentAvg: string, newEngagement: string, totalCount: number): string {
+    const engagementToScore = { 'high': 3, 'medium': 2, 'low': 1 };
+    const scoreToEngagement = { 3: 'high', 2: 'medium', 1: 'low' };
+
+    const currentScore = engagementToScore[currentAvg as keyof typeof engagementToScore] || 2;
+    const newScore = engagementToScore[newEngagement as keyof typeof engagementToScore] || 2;
+
+    const avgScore = ((currentScore * (totalCount - 1)) + newScore) / totalCount;
+    const roundedScore = Math.round(avgScore) as keyof typeof scoreToEngagement;
+
+    return scoreToEngagement[roundedScore] || 'medium';
+}
+
 async function createSkillMention(params: {
-    skillId: string;
+    userSkillId: string;
     userId: string;
-    conversationId?: string | null;
-    responseId?: string | number | null;
+    sessionId?: string | null;
+    messageIndex?: number | null;
     mentionText?: string | null;
     confidence?: number | null;
-    grade?: string | null;
+    engagementLevel?: string | null;
     topicDepth?: number | null;
+    conversationContext?: string | null;
 }) {
     try {
-        console.log('💾 Inserting skill mention:', params.skillId, 'for user', params.userId);
+        console.log('💾 Inserting skill mention for user skill:', params.userSkillId);
         const inserted = await db.insert(skillMentions).values({
-            skillId: params.skillId,
+            userSkillId: params.userSkillId,
             userId: params.userId,
-            conversationId: params.conversationId ?? null,
-            responseId: params.responseId ? String(params.responseId) : null,
+            sessionId: params.sessionId ?? null,
+            messageIndex: params.messageIndex ?? null,
             mentionText: params.mentionText ?? null,
             confidence: params.confidence != null ? String(params.confidence) : null,
-            grade: params.grade ?? null,
+            engagementLevel: params.engagementLevel ?? null,
             topicDepth: params.topicDepth != null ? String(params.topicDepth) : null,
+            conversationContext: params.conversationContext ?? null,
         }).returning();
 
         console.log('✅ Skill mention inserted with id:', inserted[0].id);
         return inserted[0];
     } catch (error) {
         console.error('❌ Failed to insert skill mention:', error);
-        throw error; pnpm db:push
-pnpm
-> better-profile-app@0.1.0 db:push /home/sumiranmishra/Documents/GitHub/kiro-devhack
-> dotenvx run -f .env.local -- drizzle-kit push
-
- :[dotenvx@1.48.4] injecting env (13) from .env.local
-dNo config path provided, using default 'drizzle.config.ts'
-Reading config file '/home/sumiranmishra/Documents/GitHub/kiro-devhack/drizzle.config.ts'
-bUsing 'pg' driver for database querying
-[✓] Pulling schema from database...
-
-+ mention_text column will be created
-
-+ confidence column will be created
-
-~ context › grade column will be renamed
---- all columns conflicts in skill_mentions table resolved ---
-
-
-+ synonyms column will be created
---- all columns conflicts in skills table resolved ---
-
- Warning  Found data-loss statements:
-· You're about to delete message_index column in user_responses table with 3 items
-· You're about to delete score column in user_responses table with 3 items
-· You're about to delete engagement_level column in user_responses table with 3 items
-· You're about to delete created_at column in user_responses table with 3 items
-
-THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
-
-Do you still want to push changes?
-error: type "bigserial" does not exist
-    at /home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at async Object.query (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:80601:26)
-    at async pgPush (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:84411:13)
-    at async Object.handler (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93813:9)
-    at async run (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93059:7) {
-  length: 92,
-  severity: 'ERROR',
-  code: '42704',
-  detail: undefined,
-  hint: undefined,
-  position: undefined,
-  internalPosition: undefined,
-  internalQuery: undefined,
-  where: undefined,
-  schema: undefined,
-  table: undefined,
-  column: undefined,
-  dataType: undefined,
-  constraint: undefined,
-  file: 'parse_type.c',
-  line: '270',
-  routine: 'typenameType'
-} pnpm db:push
-pnpm
-> better-profile-app@0.1.0 db:push /home/sumiranmishra/Documents/GitHub/kiro-devhack
-> dotenvx run -f .env.local -- drizzle-kit push
-
- :[dotenvx@1.48.4] injecting env (13) from .env.local
-dNo config path provided, using default 'drizzle.config.ts'
-Reading config file '/home/sumiranmishra/Documents/GitHub/kiro-devhack/drizzle.config.ts'
-bUsing 'pg' driver for database querying
-[✓] Pulling schema from database...
-
-+ mention_text column will be created
-
-+ confidence column will be created
-
-~ context › grade column will be renamed
---- all columns conflicts in skill_mentions table resolved ---
-
-
-+ synonyms column will be created
---- all columns conflicts in skills table resolved ---
-
- Warning  Found data-loss statements:
-· You're about to delete message_index column in user_responses table with 3 items
-· You're about to delete score column in user_responses table with 3 items
-· You're about to delete engagement_level column in user_responses table with 3 items
-· You're about to delete created_at column in user_responses table with 3 items
-
-THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
-
-Do you still want to push changes?
-error: type "bigserial" does not exist
-    at /home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at async Object.query (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:80601:26)
-    at async pgPush (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:84411:13)
-    at async Object.handler (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93813:9)
-    at async run (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93059:7) {
-  length: 92,
-  severity: 'ERROR',
-  code: '42704',
-  detail: undefined,
-  hint: undefined,
-  position: undefined,
-  internalPosition: undefined,
-  internalQuery: undefined,
-  where: undefined,
-  schema: undefined,
-  table: undefined,
-  column: undefined,
-  dataType: undefined,
-  constraint: undefined,
-  file: 'parse_type.c',
-  line: '270',
-  routine: 'typenameType'
-} pnpm db:push
-pnpm
-> better-profile-app@0.1.0 db:push /home/sumiranmishra/Documents/GitHub/kiro-devhack
-> dotenvx run -f .env.local -- drizzle-kit push
-
- :[dotenvx@1.48.4] injecting env (13) from .env.local
-dNo config path provided, using default 'drizzle.config.ts'
-Reading config file '/home/sumiranmishra/Documents/GitHub/kiro-devhack/drizzle.config.ts'
-bUsing 'pg' driver for database querying
-[✓] Pulling schema from database...
-
-+ mention_text column will be created
-
-+ confidence column will be created
-
-~ context › grade column will be renamed
---- all columns conflicts in skill_mentions table resolved ---
-
-
-+ synonyms column will be created
---- all columns conflicts in skills table resolved ---
-
- Warning  Found data-loss statements:
-· You're about to delete message_index column in user_responses table with 3 items
-· You're about to delete score column in user_responses table with 3 items
-· You're about to delete engagement_level column in user_responses table with 3 items
-· You're about to delete created_at column in user_responses table with 3 items
-
-THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
-
-Do you still want to push changes?
-error: type "bigserial" does not exist
-    at /home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at async Object.query (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:80601:26)
-    at async pgPush (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:84411:13)
-    at async Object.handler (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93813:9)
-    at async run (/home/sumiranmishra/Documents/GitHub/kiro-devhack/node_modules/.pnpm/drizzle-kit@0.31.4/node_modules/drizzle-kit/bin.cjs:93059:7) {
-  length: 92,
-  severity: 'ERROR',
-  code: '42704',
-  detail: undefined,
-  hint: undefined,
-  position: undefined,
-  internalPosition: undefined,
-  internalQuery: undefined,
-  where: undefined,
-  schema: undefined,
-  table: undefined,
-  column: undefined,
-  dataType: undefined,
-  constraint: undefined,
-  file: 'parse_type.c',
-  line: '270',
-  routine: 'typenameType'
-}
+        throw error;
     }
 }
 
@@ -766,12 +666,44 @@ function extractSkillsFromText(text: string): Array<{ skill: string; evidence: s
     return results;
 }
 
-// --- Main Handler ---
+// --- Store Conversation Embedding for RAG ---
+async function storeConversationEmbedding(content: string, userId: string, sessionId: string, messageIndex: number) {
+    try {
+        console.log('💾 Storing conversation embedding for RAG...');
+        
+        // Import embedOne function
+        const { embedOne } = await import('~/utils/embeddings');
+        
+        // Generate embedding
+        const embedding = await embedOne(content);
+        
+        if (!embedding || embedding.length === 0) {
+            console.log('⚠️ No embedding generated, skipping storage');
+            return;
+        }
+
+        // Store in database
+        await db.insert(embeddings).values({
+            userId,
+            sessionId,
+            content,
+            embedding,
+            messageIndex,
+        });
+
+        console.log('✅ Conversation embedding stored successfully');
+    } catch (error) {
+        console.log('⚠️ Failed to store conversation embedding:', error.message);
+        throw error;
+    }
+}
+
+//  --- Main Handler-- -
 export async function POST(req: NextRequest) {
     try {
         console.log('🚀 API Route called');
 
-    // we store boolean value for storage/embedding flag for RAG agent
+        // we store boolean value for storage/embedding flag for RAG agent
         let allowEmbeddingAndStorage: boolean = true;
 
         // Check if API key is available
@@ -798,7 +730,8 @@ export async function POST(req: NextRequest) {
         const sessionId = body.sessionId || `session-${Date.now()}`;
         const latestUserMessage = messages.filter(m => m.role === 'user').pop();
         const messageIndex = messages.filter(m => m.role === 'user').length;
-        // user and conversation db logic
+
+        // user and session db logic
         console.log('🔐 Getting user ID from auth...');
         const userId = await getUserIdFromAuth(req);
         if (!userId) {
@@ -806,10 +739,10 @@ export async function POST(req: NextRequest) {
         }
         console.log('✅ User ID obtained:', userId);
 
-        // Get or create conversation in database
-        console.log('💾 Getting or creating conversation...');
-        const conversation = await getOrCreateConversation(userId, sessionId);
-        console.log('✅ Conversation obtained:', conversation.id);
+        // Get or create interview session in database
+        console.log('💾 Getting or creating interview session...');
+        const session = await getOrCreateSession(userId, sessionId);
+        console.log('✅ Session obtained:', session.id);
 
         // Initialize or get conversation state
         let state = conversationStates.get(sessionId);
@@ -836,48 +769,18 @@ export async function POST(req: NextRequest) {
             try {
                 const ragAgent = new InterviewRAGAgent();
                 const ragResult = await ragAgent.processQuery(latestUserMessage.content, userId);
-                
-                // if (!ragResult.isRelevant) {
-                //     // RAG agent determined query is off-topic, return direct response
-                //     await storeConversation(latestUserMessage.content, 'user');
-                //     await storeConversation(ragResult.response!, 'assistant');
-                    
-                //     return NextResponse.json({ 
-                //         reply: ragResult.response,
-                //         sessionId 
-                //     });
-                // }
 
-
-
-
-
-           
-
-        // CHANGING LOGIC SO IF RAG DEEMS NOT RELEVANT NOTHING STORED:
+                // CHANGING LOGIC SO IF RAG DEEMS NOT RELEVANT NOTHING STORED:
                 if (!ragResult.isRelevant) {
-
-                    /*
-                    Rationale: you exit early and you’ve removed the storeConversation(...) calls, 
-                    so nothing is written to your RAG store nor to embeddings. (In your file, this return 
-                    happens before the after() block is even registered, so nothing async runs either.)
-                    */
-
                     //off topic, do not embed or store anything embedding-related
                     allowEmbeddingAndStorage = false;
 
                     return NextResponse.json({
-                        reply:ragResult.response,
+                        reply: ragResult.response,
                         sessionId
                     });
                 }
 
-
-
-
-
-
-                
                 // RAG agent enhanced the prompt, use enhanced version
                 if (ragResult.enhancedPrompt) {
                     // Replace the latest user message with enhanced prompt
@@ -922,97 +825,57 @@ export async function POST(req: NextRequest) {
             console.log(`🔄 Starting adaptive analysis for message ${messageIndex}...`);
 
             try {
-                // Analyze user response
-                // const analysis = await analyzeResponse(latestUserMessage.content); REMOVING THIS LINE TO AVOID DOUBLE ANALYSIS
-                
                 // REUSE THE CAPTURED ANALYIS AND GAURD IT WOOHOO:
                 if (!analysis) {
                     analysis = analyzeResponseFallback(latestUserMessage.content);
                 }
-                // if (analysis) {
-                    // Update topic tree based on analysis
-                    updateTopicTree(sessionId, analysis, latestUserMessage.content, messageIndex);
 
-                    // Grade the response
-                    const score = await gradeResponse(latestUserMessage.content, analysis);
+                // Update topic tree based on analysis
+                updateTopicTree(sessionId, analysis, latestUserMessage.content, messageIndex);
 
-                    // Enhanced grading display
-                    const scoreEmoji = score >= 1.8 ? '🌟' : score >= 1.5 ? '🎯' : score >= 1.0 ? '👍' : '📝';
-                    const performance = score >= 1.8 ? 'EXCELLENT' : score >= 1.5 ? 'STRONG' : score >= 1.0 ? 'GOOD' : 'NEEDS WORK';
-                    //save data here
+                // Grade the response
+                const score = await gradeResponse(latestUserMessage.content, analysis);
 
+                // Enhanced grading display
+                const scoreEmoji = score >= 1.8 ? '🌟' : score >= 1.5 ? '🎯' : score >= 1.0 ? '👍' : '📝';
+                const performance = score >= 1.8 ? 'EXCELLENT' : score >= 1.5 ? 'STRONG' : score >= 1.0 ? 'GOOD' : 'NEEDS WORK';
 
-                    console.log('\n' + '='.repeat(60));
-                    console.log(`${scoreEmoji} ADAPTIVE INTERVIEW GRADE - Response #${messageIndex}`);
-                    console.log('='.repeat(60));
-                    console.log(`📊 SCORE: ${score.toFixed(2)}/2.0 (${performance})`);
-                    console.log(`🎯 ENGAGEMENT: ${analysis.engagementLevel.toUpperCase()}`);
-                    console.log(`📏 LENGTH: ${analysis.responseLength.toUpperCase()}`);
-                    console.log(`🎪 CONFIDENCE: ${analysis.confidenceLevel.toUpperCase()}`);
-                    console.log(`💬 RESPONSE: "${latestUserMessage.content.substring(0, 80)}${latestUserMessage.content.length > 80 ? '...' : ''}"`);
-                    console.log(`🗺️ CURRENT PATH: ${currentPath}`);
-                    console.log(`⏰ TIMESTAMP: ${new Date().toLocaleTimeString()}`);
-                    console.log('='.repeat(60) + '\n');
+                console.log('\n' + '='.repeat(60));
+                console.log(`${scoreEmoji} ADAPTIVE INTERVIEW GRADE - Response #${messageIndex}`);
+                console.log('='.repeat(60));
+                console.log(`📊 SCORE: ${score.toFixed(2)}/2.0 (${performance})`);
+                console.log(`🎯 ENGAGEMENT: ${analysis.engagementLevel.toUpperCase()}`);
+                console.log(`📏 LENGTH: ${analysis.responseLength.toUpperCase()}`);
+                console.log(`🎪 CONFIDENCE: ${analysis.confidenceLevel.toUpperCase()}`);
+                console.log(`💬 RESPONSE: "${latestUserMessage.content.substring(0, 80)}${latestUserMessage.content.length > 80 ? '...' : ''}"`);
+                console.log(`🗺️ CURRENT PATH: ${currentPath}`);
+                console.log(`⏰ TIMESTAMP: ${new Date().toLocaleTimeString()}`);
+                console.log('='.repeat(60) + '\n');
 
-                    // Store grade
-                    state.grades.push({
-                        messageIndex,
-                        score,
-                        timestamp: new Date().toISOString(),
-                        content: latestUserMessage.content,
-                        engagementLevel: analysis.engagementLevel
-                    });
+                // Store grade
+                state.grades.push({
+                    messageIndex,
+                    score,
+                    timestamp: new Date().toISOString(),
+                    content: latestUserMessage.content,
+                    engagementLevel: analysis.engagementLevel
+                });
 
+                // INSERT BUZZWORDS AGGREGATION WOOHOO!!!:
+                const buzz = Array.isArray(analysis?.buzzwords) ? analysis.buzzwords : [];
+                for (const raw of buzz) {
+                    const term = String(raw).trim().toLowerCase();
+                    if (!term) continue;
+                    const existing = state.buzzwords!.get(term) ?? { count: 0, sources: new Set<number>() };
+                    existing.count += 1;
+                    existing.sources.add(messageIndex);
+                    state.buzzwords!.set(term, existing);
+                }
+                console.log('🧩 Buzzwords for message', messageIndex, buzz);
 
-
-
-                    // INSERT BUZZWORDS AGGREGATION WOOHOO!!!:
-                    const buzz = Array.isArray(analysis?.buzzwords) ? analysis.buzzwords : [];
-                    for (const raw of buzz) {
-                        const term = String(raw).trim().toLowerCase();
-                        if (!term) continue;
-                        const existing = state.buzzwords!.get(term) ?? { count: 0, sources: new Set<number>() };
-                        existing.count += 1;
-                        existing.sources.add(messageIndex);
-                        state.buzzwords!.set(term, existing);
-                    }
-                    console.log('🧩 Buzzwords for message', messageIndex, buzz);
-                    
-
-
-        // WRAPPING LOGIC WITH GAURD TO ALLOW EMBEDDING AND STORAGE IF RAG AGENT ALLOWS IT:
-
-                    if (allowEmbeddingAndStorage) {
-                        // Generate embedding for the user response
-                        console.log('🔄 Generating embedding for user response...');
-                        console.log('📝 User message content:', latestUserMessage.content);
-                        const { embedOne } = await import('~/utils/embeddings');
-                        const embedding = await embedOne(latestUserMessage.content);
-                        
-                        console.log('📊 Embedding result - length:', embedding.length);
-                        console.log('📊 Embedding result - first 5 values:', embedding.slice(0, 5));
-                        
-                        // Only save if we got a valid embedding
-                        if (embedding.length > 0) {
-                            console.log('💾 Attempting to save user response to database...');
-                            console.log('💾 Save params - userId:', userId, 'conversationId:', conversation.id);
-                            try {
-                                await saveUserResponse(userId, conversation.id, latestUserMessage.content, embedding);
-                                console.log('✅ User response saved successfully to database');
-                            } catch (saveError) {
-                                console.error('❌ Failed to save user response to database:', saveError);
-                            }
-                        } else {
-                            console.log('⚠️ Empty embedding generated, skipping database save');
-                        }
-                    } else {
-                        console.log('⛔ Skipping embedding & storage due to non-relevant RAG result');
-                    }
-
-
-
-                    
-
+                // Update session metrics
+                const avgScore = state.grades.reduce((sum, g) => sum + g.score, 0) / state.grades.length || 0;
+                await updateSessionMetrics(sessionId, messageIndex, analysis.engagementLevel, avgScore * 50); // Convert to 0-100 scale
 
                 // Skill extraction and persistence
                 console.log('🔍 Extracting skills from user response...');
@@ -1020,20 +883,37 @@ export async function POST(req: NextRequest) {
                 for (const { skill, evidence, confidence } of skills) {
                     console.log(`📌 Detected skill: ${skill} (confidence: ${confidence})`);
 
-                    // Upsert skill into DB
-                    const skillId = await upsertSkillByName(skill);
-
-                    // Create skill mention record
-                    await createSkillMention({
-                        skillId,
+                    // Upsert user skill (creates or updates aggregated skill data)
+                    const userSkillId = await upsertUserSkill(
                         userId,
-                        conversationId: conversation.id,
-                        responseId: messageIndex,
+                        skill,
+                        confidence,
+                        analysis.engagementLevel,
+                        state.totalDepth
+                    );
+
+                    // Create detailed skill mention record for audit trail
+                    await createSkillMention({
+                        userSkillId,
+                        userId,
+                        sessionId: session.id,
+                        messageIndex: messageIndex,
                         mentionText: evidence,
                         confidence,
-                        grade: analysis.engagementLevel,
-                        topicDepth: state.totalDepth
+                        engagementLevel: analysis.engagementLevel,
+                        topicDepth: state.totalDepth,
+                        conversationContext: `Topic: ${state.currentPath.map(id => state.topicTree.get(id)?.name).join(' → ')}`
                     });
+                }
+
+                // Store conversation for RAG if allowed
+                if (allowEmbeddingAndStorage) {
+                    try {
+                        await storeConversationEmbedding(latestUserMessage.content, userId, sessionId, messageIndex);
+                        console.log('✅ Conversation stored for RAG');
+                    } catch (error) {
+                        console.log('⚠️ Failed to store conversation embedding:', error.message);
+                    }
                 }
 
                 // Generate summary every 5 messages
@@ -1049,15 +929,7 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        // Store assistant response in RAG system
-        if (result.text) {
-            try {
-                await storeConversation(result.text, 'assistant');
-            } catch (storageError) {
-                console.error('\n\n\n❌ ASSISTANT STORAGE ERROR:', storageError);
-                // Continue even if storage fails
-            }
-        }
+        // Session response logged automatically through metrics
 
         return NextResponse.json({
             reply: result.text,
@@ -1065,7 +937,7 @@ export async function POST(req: NextRequest) {
             messageIndex,
             currentTopic: state.currentPath[state.currentPath.length - 1],
             topicDepth: state.totalDepth,
-            buzzwords: Array.isArray(analysis?.buszzwords) ? analysis.buzzwords : [], // NEW BUZZWORDS RETURN WOOHOO!!!
+            buzzwords: Array.isArray(analysis?.buzzwords) ? analysis.buzzwords : [], // NEW BUZZWORDS RETURN WOOHOO!!!
         });
 
     } catch (error: any) {

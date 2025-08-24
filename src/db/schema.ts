@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, vector, boolean, jsonb, index, bigserial } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, vector, boolean, jsonb, index, bigserial, integer } from 'drizzle-orm/pg-core';
 
 // Better Auth required tables
 export const user = pgTable('user', {
@@ -7,16 +7,16 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('emailVerified').notNull().default(false),
   image: text('image'),
-  createdAt: timestamp('createdAt').notNull(),
-  updatedAt: timestamp('updatedAt').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 });
 
 export const session = pgTable('session', {
   id: text('id').primaryKey(),
   expiresAt: timestamp('expiresAt').notNull(),
   token: text('token').notNull().unique(),
-  createdAt: timestamp('createdAt').notNull(),
-  updatedAt: timestamp('updatedAt').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
   ipAddress: text('ipAddress'),
   userAgent: text('userAgent'),
   userId: text('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
@@ -34,8 +34,8 @@ export const account = pgTable('account', {
   refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
   scope: text('scope'),
   password: text('password'),
-  createdAt: timestamp('createdAt').notNull(),
-  updatedAt: timestamp('updatedAt').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 });
 
 export const verification = pgTable('verification', {
@@ -43,149 +43,111 @@ export const verification = pgTable('verification', {
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: timestamp('expiresAt').notNull(),
-  createdAt: timestamp('createdAt'),
-  updatedAt: timestamp('updatedAt'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
 });
 
-// Job applications and interview management
-export const jobApplications = pgTable('job_applications', {
+// Interview sessions - stores conversation/interview session data
+export const interviewSessions = pgTable('interview_sessions', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  jobTitle: text('job_title').notNull(),
-  company: text('company').notNull(),
-  jobUrl: text('job_url'),
-  status: text('status').notNull().default('applied'), // applied, interview_scheduled, interviewed, rejected, offered
-  applicationDate: timestamp('application_date').notNull().defaultNow(),
-  notes: text('notes'),
-  salary: text('salary'),
-  location: text('location'),
-  jobType: text('job_type'), // full-time, part-time, contract, remote
+  
+  // Session metadata
+  sessionType: text('session_type').notNull().default('interview'), // interview, practice, assessment
+  title: text('title'), // Optional title for the session
+  description: text('description'), // Optional description
+  
+  // Session metrics
+  duration: integer('duration'), // Duration in minutes
+  messageCount: integer('message_count').notNull().default(0),
+  averageEngagement: text('average_engagement').default('medium'), // high, medium, low
+  overallScore: text('overall_score').default('0'), // 0-100 overall performance score
+  
+  // Session analysis
+  topicsExplored: jsonb('topics_explored'), // Array of topics discussed
+  skillsIdentified: jsonb('skills_identified'), // Array of skills mentioned in this session
+  finalAnalysis: jsonb('final_analysis'), // AI analysis summary
+  
+  // Status and timestamps
+  status: text('status').notNull().default('active'), // active, completed, abandoned
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
-export const interviews = pgTable('interviews', {
-  id: text('id').primaryKey(),
-  jobApplicationId: text('job_application_id').notNull().references(() => jobApplications.id, { onDelete: 'cascade' }),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  interviewType: text('interview_type').notNull(), // phone, video, in-person, technical
-  scheduledAt: timestamp('scheduled_at').notNull(),
-  duration: text('duration'), // e.g., "60 minutes"
-  interviewerName: text('interviewer_name'),
-  interviewerEmail: text('interviewer_email'),
-  meetingLink: text('meeting_link'),
-  location: text('location'),
-  notes: text('notes'),
-  status: text('status').notNull().default('scheduled'), // scheduled, completed, cancelled, rescheduled
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
-export const userProfiles = pgTable('user_profiles', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  resume: text('resume'), // URL to resume file
-  linkedinUrl: text('linkedin_url'),
-  githubUrl: text('github_url'),
-  portfolioUrl: text('portfolio_url'),
-  skills: text('skills'), // JSON array of skills
-  experience: text('experience'), // JSON object with experience details
-  preferences: text('preferences'), // JSON object with job preferences
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
-// Example table with pgvector support
-export const embeddings = pgTable('embeddings', {
-  id: text('id').primaryKey(),
-  content: text('content').notNull(),
-  embedding: vector('embedding', { dimensions: 768 }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const conversations = pgTable('conversations', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id, {
-    onDelete: 'cascade'
-  }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  finalAnalysis: jsonb('final_analysis'),
 }, (table) => ({
-  userIndex: index('conversation_user_idx').on(table.userId),
+  userIndex: index('interview_sessions_user_idx').on(table.userId),
+  statusIndex: index('interview_sessions_status_idx').on(table.status),
+  dateIndex: index('interview_sessions_date_idx').on(table.startedAt),
 }));
 
-export const userResponses = pgTable('user_responses', {
+// User-centric skills tracking system
+export const userSkills = pgTable('user_skills', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  skillName: text('skill_name').notNull(),
+  
+  // Frequency metrics
+  mentionCount: integer('mention_count').notNull().default(0),
+  lastMentioned: timestamp('last_mentioned').notNull().defaultNow(),
+  
+  // Proficiency metrics
+  proficiencyScore: text('proficiency_score').notNull().default('0'), // Calculated based on engagement and confidence
+  averageConfidence: text('average_confidence').notNull().default('0'), // Average confidence of skill detection
+  averageEngagement: text('average_engagement').notNull().default('medium'), // Average engagement level when mentioned
+  
+  // Context information
+  topicDepthAverage: text('topic_depth_average').notNull().default('0'), // How deep in conversations this skill appears
+  firstMentioned: timestamp('first_mentioned').notNull().defaultNow(),
+  
+  // Metadata
+  synonyms: jsonb('synonyms'), // Alternative names for this skill
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userSkillIndex: index('user_skills_user_skill_idx').on(table.userId, table.skillName),
+  userIndex: index('user_skills_user_idx').on(table.userId),
+  skillNameIndex: index('user_skills_skill_name_idx').on(table.skillName),
+  proficiencyIndex: index('user_skills_proficiency_idx').on(table.proficiencyScore),
+}));
+
+// Detailed skill mentions for audit trail and analysis
+export const skillMentions = pgTable('skill_mentions', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  userSkillId: text('user_skill_id').notNull().references(() => userSkills.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  sessionId: text('session_id').references(() => interviewSessions.id, { onDelete: 'cascade' }),
+  messageIndex: integer('message_index'), // Which message in the session this was mentioned
+  
+  // Mention details
+  mentionText: text('mention_text'), // The actual text where the skill was mentioned
+  confidence: text('confidence'), // Confidence score of the skill detection (0-1)
+  engagementLevel: text('engagement_level'), // high, medium, low
+  topicDepth: text('topic_depth'), // How deep in the conversation tree this was mentioned
+  
+  // Context
+  conversationContext: text('conversation_context'), // Brief context of what was being discussed
+  
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userSkillIndex: index('skill_mentions_user_skill_idx').on(table.userSkillId),
+  userIndex: index('skill_mentions_user_idx').on(table.userId),
+  sessionIndex: index('skill_mentions_session_idx').on(table.sessionId),
+  confidenceIndex: index('skill_mentions_confidence_idx').on(table.confidence),
+}));
+
+// Embeddings table for RAG functionality
+export const embeddings = pgTable('embeddings', {
   id: bigserial('id', { mode: 'number' }).primaryKey(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  conversationId: text('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  sessionId: text('session_id').references(() => interviewSessions.id, { onDelete: 'cascade' }),
   content: text('content').notNull(),
-  embedding: vector('embedding', { dimensions: 768 }).notNull(),
+  embedding: vector('embedding', { dimensions: 768 }),
+  messageIndex: integer('message_index'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
-  embeddingIdx: index('response_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
+  userIdx: index('embeddings_user_idx').on(table.userId),
+  sessionIdx: index('embeddings_session_idx').on(table.sessionId),
+  embeddingIdx: index('embeddings_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
 }));
-
-// Recruiter-specific tables
-export const recruiterProfiles = pgTable('recruiter_profiles', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  companyName: text('company_name').notNull(),
-  companyDescription: text('company_description'),
-  companyWebsite: text('company_website'),
-  companyLogo: text('company_logo'),
-  contactEmail: text('contact_email'),
-  contactPhone: text('contact_phone'),
-  googleCalendarId: text('google_calendar_id'),
-  googleAccessToken: text('google_access_token'),
-  googleRefreshToken: text('google_refresh_token'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
-export const jobPostings = pgTable('job_postings', {
-  id: text('id').primaryKey(),
-  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  requirements: text('requirements'),
-  responsibilities: text('responsibilities'),
-  salaryMin: text('salary_min'),
-  salaryMax: text('salary_max'),
-  location: text('location').notNull(),
-  jobType: text('job_type').notNull(), // full-time, part-time, contract, remote
-  experienceLevel: text('experience_level'), // entry, mid, senior, executive
-  skills: text('skills'), // JSON array of required skills
-  benefits: text('benefits'),
-  applicationDeadline: timestamp('application_deadline'),
-  status: text('status').notNull().default('active'), // active, paused, closed, draft
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
-export const recruiterAvailability = pgTable('recruiter_availability', {
-  id: text('id').primaryKey(),
-  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
-  jobPostingId: text('job_posting_id').references(() => jobPostings.id, { onDelete: 'cascade' }),
-  dayOfWeek: text('day_of_week').notNull(), // monday, tuesday, etc.
-  startTime: text('start_time').notNull(), // HH:MM format
-  endTime: text('end_time').notNull(), // HH:MM format
-  timezone: text('timezone').notNull().default('UTC'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
-export const jobApplicationsFromCandidates = pgTable('job_applications_from_candidates', {
-  id: text('id').primaryKey(),
-  jobPostingId: text('job_posting_id').notNull().references(() => jobPostings.id, { onDelete: 'cascade' }),
-  candidateUserId: text('candidate_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  coverLetter: text('cover_letter'),
-  resumeUrl: text('resume_url'),
-  status: text('status').notNull().default('pending'), // pending, reviewing, interview_scheduled, rejected, hired
-  appliedAt: timestamp('applied_at').notNull().defaultNow(),
-  reviewedAt: timestamp('reviewed_at'),
-  notes: text('notes'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
 
 

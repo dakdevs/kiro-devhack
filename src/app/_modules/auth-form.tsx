@@ -2,18 +2,29 @@
 
 import { authClient } from "~/lib/auth-client"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
-export function AuthForm() {
+interface AuthFormProps {
+  redirectTo?: string
+}
+
+export function AuthForm({ redirectTo }: AuthFormProps) {
   const [session, setSession] = useState<any>(null)
   const [isPending, setIsPending] = useState(true)
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const getSession = async () => {
       try {
         const sessionData = await authClient.getSession()
         setSession(sessionData)
+        
+        // Redirect to dashboard if user is authenticated
+        if (sessionData?.user) {
+          router.push(redirectTo || '/dashboard')
+        }
       } catch (error) {
         console.error("Session error:", error)
       } finally {
@@ -22,7 +33,7 @@ export function AuthForm() {
     }
     
     getSession()
-  }, [])
+  }, [router])
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
@@ -39,7 +50,10 @@ export function AuthForm() {
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true)
     try {
-      await authClient.signIn.social({ provider: "google" })
+      await authClient.signIn.social({ 
+        provider: "google",
+        callbackURL: redirectTo || "/dashboard"
+      })
     } catch (error) {
       console.error("Google sign in error:", error)
       setIsSigningIn(false)

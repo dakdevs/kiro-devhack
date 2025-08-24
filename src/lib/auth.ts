@@ -15,4 +15,30 @@ export const auth = betterAuth({
   },
   secret: serverConfig.auth.secret,
   baseURL: serverConfig.auth.baseUrl,
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // Cache for 5 minutes
+    },
+  },
+  callbacks: {
+    async signIn({ user, account }) {
+      return true
+    },
+    async redirect({ url, baseURL }) {
+      // Redirect to dashboard after successful sign in
+      if (url === baseURL || url === `${baseURL}/`) {
+        return `${baseURL}/dashboard`
+      }
+      // Allow relative callback URLs
+      if (url.startsWith("/")) {
+        return `${baseURL}${url}`
+      }
+      // Allow callback URLs on the same origin
+      if (new URL(url).origin === baseURL) {
+        return url
+      }
+      return `${baseURL}/dashboard`
+    },
+  },
 })

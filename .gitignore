@@ -56,3 +56,11 @@ next-env.d.ts
 media/*
 !media/.gitkeep
 drizzle/meta/_journal.json
+
+drizzle/meta/
+
+drizzle/0002_organic_ulik.sql
+
+drizzle/0005_sharp_pet_avengers.sql
+
+drizzle/0004_opposite_madelyne_pryor.sql

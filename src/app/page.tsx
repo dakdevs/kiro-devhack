@@ -1,7 +1,11 @@
 
 import { AuthForm } from "./_modules/auth-form";
 
-export default function Home() {
+interface HomeProps {
+  searchParams: { redirect?: string }
+}
+
+export default function Home({ searchParams }: HomeProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Background Pattern */}
@@ -30,7 +34,7 @@ export default function Home() {
         </div>
 
         {/* Auth Form */}
-        <AuthForm />
+        <AuthForm redirectTo={searchParams.redirect} />
 
         {/* Footer */}
         <div className="mt-12 text-center">
