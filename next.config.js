@@ -1,11 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable HTTPS in development
-  ...(process.env.NODE_ENV === 'development' && {
-    experimental: {
-      https: true,
-    },
-  }),
+  // HTTPS is now handled via --experimental-https flag in dev command
+  // or through environment variables
 }
 
 module.exports = nextConfig

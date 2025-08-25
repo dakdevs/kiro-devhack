@@ -11,6 +11,7 @@ export const auth = betterAuth({
     google: {
       clientId: serverConfig.auth.google.clientId,
       clientSecret: serverConfig.auth.google.clientSecret,
+      redirectURI: `${serverConfig.auth.baseUrl}/api/auth/callback/google`,
     },
   },
   secret: serverConfig.auth.secret,
@@ -23,9 +24,11 @@ export const auth = betterAuth({
   },
   callbacks: {
     async signIn({ user, account }) {
+      console.log("Sign in callback:", { user: user?.email, account: account?.provider })
       return true
     },
     async redirect({ url, baseURL }) {
+      console.log("Redirect callback:", { url, baseURL })
       // Redirect to dashboard after successful sign in
       if (url === baseURL || url === `${baseURL}/`) {
         return `${baseURL}/dashboard`

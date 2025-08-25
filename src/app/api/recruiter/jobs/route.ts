@@ -1,132 +1,141 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '~/lib/auth';
-import { db } from '~/db';
-import { jobPostings, recruiterAvailability, recruiterProfiles } from '~/db/schema';
-import { eq } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { jobPostingService } from '~/services/job-posting';
+import { recruiterProfileService } from '~/services/recruiter-profile';
+import { 
+  CreateJobPostingRequest, 
+  CreateJobPostingResponse,
+  JobPostingsResponse,
+  ApiResponse,
+  JobPostingStatus,
+  createJobPostingSchema
+} from '~/types/interview-management';
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    });
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { jobData, availability } = await request.json();
-
-    // First, ensure the user has a recruiter profile
-    let recruiterProfile = await db
-      .select()
-      .from(recruiterProfiles)
-      .where(eq(recruiterProfiles.userId, session.user.id))
-      .limit(1);
-
-    if (recruiterProfile.length === 0) {
-      // Create a basic recruiter profile if it doesn't exist
-      const newProfile = {
-        id: nanoid(),
-        userId: session.user.id,
-        companyName: 'Your Company', // This should be updated by the user
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await db.insert(recruiterProfiles).values(newProfile);
-      recruiterProfile = [newProfile];
-    }
-
-    // Create the job posting
-    const jobId = nanoid();
-    const newJob = {
-      id: jobId,
-      recruiterId: recruiterProfile[0].id,
-      title: jobData.title,
-      description: jobData.description,
-      requirements: jobData.requirements || null,
-      responsibilities: jobData.responsibilities || null,
-      salaryMin: jobData.salaryMin || null,
-      salaryMax: jobData.salaryMax || null,
-      location: jobData.location,
-      jobType: jobData.jobType,
-      experienceLevel: jobData.experienceLevel || null,
-      skills: JSON.stringify(jobData.skills || []),
-      benefits: jobData.benefits || null,
-      applicationDeadline: jobData.applicationDeadline ? new Date(jobData.applicationDeadline) : null,
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    await db.insert(jobPostings).values(newJob);
-
-    // Create availability slots
-    if (availability && availability.length > 0) {
-      const availabilitySlots = availability.map((slot: any) => ({
-        id: nanoid(),
-        recruiterId: recruiterProfile[0].id,
-        jobPostingId: jobId,
-        dayOfWeek: slot.dayOfWeek,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        timezone: slot.timezone,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-
-      await db.insert(recruiterAvailability).values(availabilitySlots);
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      jobId,
-      message: 'Job posted successfully' 
-    });
-
-  } catch (error) {
-    console.error('Error creating job posting:', error);
-    return NextResponse.json(
-      { error: 'Failed to create job posting' },
-      { status: 500 }
-    );
-  }
-}
-
+/**
+ * GET /api/recruiter/jobs
+ * Retrieve job postings for the current recruiter with pagination and filtering
+ */
 export async function GET(request: NextRequest) {
   try {
+    // Get authenticated user
     const session = await auth.api.getSession({
-      headers: request.headers
+      headers: request.headers,
     });
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     // Get recruiter profile
-    const recruiterProfile = await db
-      .select()
-      .from(recruiterProfiles)
-      .where(eq(recruiterProfiles.userId, session.user.id))
-      .limit(1);
-
-    if (recruiterProfile.length === 0) {
-      return NextResponse.json({ jobs: [] });
+    const recruiterProfile = await recruiterProfileService.getProfileByUserId(session.user.id);
+    if (!recruiterProfile) {
+      return NextResponse.json(
+        { success: false, error: 'Recruiter profile not found. Please create a profile first.' },
+        { status: 404 }
+      );
     }
 
-    // Get all job postings for this recruiter
-    const jobs = await db
-      .select()
-      .from(jobPostings)
-      .where(eq(jobPostings.recruiterId, recruiterProfile[0].id));
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50); // Max 50 per page
+    const status = searchParams.get('status') as JobPostingStatus | null;
+    const search = searchParams.get('search') || undefined;
 
-    return NextResponse.json({ jobs });
+    // Validate status parameter
+    if (status && !['active', 'paused', 'closed', 'draft'].includes(status)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid status parameter' },
+        { status: 400 }
+      );
+    }
 
+    // Get job postings
+    const result = await jobPostingService.getJobPostings(recruiterProfile.id, {
+      page,
+      limit,
+      status: status || undefined,
+      search,
+    });
+
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Error fetching job postings:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch job postings' },
-      { status: 500 }
+    console.error('Error retrieving job postings:', error);
+    
+    const response: ApiResponse = {
+      success: false,
+      error: 'Internal server error',
+    };
+
+    return NextResponse.json(response, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/recruiter/jobs
+ * Create a new job posting with AI analysis
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Get authenticated user
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Get recruiter profile
+    const recruiterProfile = await recruiterProfileService.getProfileByUserId(session.user.id);
+    if (!recruiterProfile) {
+      return NextResponse.json(
+        { success: false, error: 'Recruiter profile not found. Please create a profile first.' },
+        { status: 404 }
+      );
+    }
+
+    // Parse and validate request body
+    let requestData: CreateJobPostingRequest;
+    try {
+      const rawData = await request.json();
+      requestData = createJobPostingSchema.parse(rawData);
+    } catch (error) {
+      console.error('Validation error:', error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: error instanceof Error ? error.message : 'Invalid request data' 
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create job posting with AI analysis
+    const result = await jobPostingService.createJobPosting(
+      recruiterProfile.id,
+      requestData
     );
+
+    if (!result.success) {
+      return NextResponse.json(result, { status: 400 });
+    }
+
+    return NextResponse.json(result, { status: 201 });
+  } catch (error) {
+    console.error('Error creating job posting:', error);
+    
+    const response: ApiResponse = {
+      success: false,
+      error: 'Internal server error',
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

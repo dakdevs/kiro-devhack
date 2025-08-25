@@ -15,7 +15,8 @@ import {
   Search,
   User,
   BookOpen,
-  Target
+  Target,
+  Clock
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
@@ -33,6 +34,7 @@ const iconMap = {
   User,
   BookOpen,
   Target,
+  Clock,
 }
 
 interface SidebarLinkProps {
@@ -52,14 +54,14 @@ export function SidebarLink({ name, href, icon }: SidebarLinkProps) {
       className={cn(
         'group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors',
         isActive
-          ? 'bg-blue-50 text-blue-700'
-          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+          ? 'bg-apple-blue/10 text-apple-blue dark:bg-apple-blue/20'
+          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
       )}
     >
       <Icon
         className={cn(
           'mr-3 h-5 w-5 flex-shrink-0',
-          isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+          isActive ? 'text-apple-blue' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400'
         )}
       />
       {name}

@@ -15,6 +15,27 @@ export default function RecruiterDashboard() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Link
+          href="/recruiter/profile"
+          className="group bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 ease-out"
+        >
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-apple-purple/10 rounded-lg flex items-center justify-center group-hover:bg-apple-purple/20 transition-colors duration-200">
+              <svg className="w-6 h-6 text-apple-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-black dark:text-white">
+                Recruiter Profile
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Set up your recruiting information
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
           href="/recruiter/post-job"
           className="group bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 ease-out"
         >

@@ -27,6 +27,18 @@ export default async function RecruiterLayout({
                             </h1>
                             <nav className="flex gap-6">
                                 <Link
+                                    href="/recruiter/profile"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Profile
+                                </Link>
+                                <Link
+                                    href="/recruiter/jobs"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Jobs
+                                </Link>
+                                <Link
                                     href="/recruiter/post-job"
                                     className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
                                 >
