@@ -78,7 +78,7 @@ export class CandidateMatchingService {
         );
 
         // Filter by minimum match score if specified
-        const minScore = filters?.minMatchScore || 30; // Default 30% minimum
+        const minScore = filters?.minMatchScore || 10; // Default 10% minimum (lowered to catch more candidates)
         const filteredMatches = matches.filter(match => match.match.score >= minScore);
 
         // Sort by match score (highest first)

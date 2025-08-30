@@ -516,6 +516,62 @@ export function RecruiterDashboard({ userId }: RecruiterDashboardProps) {
           <button
             onClick={async () => {
               try {
+                const response = await fetch('/api/debug/candidate-query-test');
+                const data = await response.json();
+                console.log('[RECRUITER-DASHBOARD] Candidate query test:', data);
+                
+                if (data.success) {
+                  const summary = data.data.summary;
+                  const candidates = data.data.candidates;
+                  alert(`Candidate Query Test:\\n- Total Users: ${summary.totalUsers}\\n- User Skills: ${summary.totalUserSkills}\\n- Unique Candidates: ${summary.uniqueCandidates}\\n\\nCandidates: ${candidates.map(c => `${c.name} (${c.skillCount} skills)`).join(', ')}\\n\\nCheck console for detailed data.`);
+                } else {
+                  alert(`Candidate query test failed: ${data.error}`);
+                }
+              } catch (error) {
+                console.error('[RECRUITER-DASHBOARD] Candidate query test failed:', error);
+                alert('Candidate query test failed - check console');
+              }
+            }}
+            className="inline-flex items-center gap-2 px-3 py-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 border border-indigo-200 dark:border-indigo-700 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors duration-150"
+            title="Test candidate database queries"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 01-2 2m-6 9l2 2 4-4" />
+            </svg>
+            Test Queries
+          </button>
+          
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/debug/clear-cache', { method: 'POST' });
+                const data = await response.json();
+                console.log('[RECRUITER-DASHBOARD] Clear cache result:', data);
+                
+                if (data.success) {
+                  alert(`Cache Cleared Successfully!\\n\\nAll cached data has been cleared. Try refreshing candidate searches now.`);
+                  // Refresh dashboard data
+                  fetchDashboardData(true);
+                } else {
+                  alert(`Failed to clear cache: ${data.error}`);
+                }
+              } catch (error) {
+                console.error('[RECRUITER-DASHBOARD] Clear cache failed:', error);
+                alert('Clear cache failed - check console');
+              }
+            }}
+            className="inline-flex items-center gap-2 px-3 py-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200 border border-yellow-200 dark:border-yellow-700 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors duration-150"
+            title="Clear all caches to refresh data"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Clear Cache
+          </button>
+          
+          <button
+            onClick={async () => {
+              try {
                 // Get the first job ID from recentJobs
                 if (recentJobs.length === 0) {
                   alert('No jobs found. Please create a job first.');

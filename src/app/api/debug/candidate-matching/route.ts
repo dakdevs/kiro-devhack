@@ -90,12 +90,16 @@ export async function GET(request: NextRequest) {
 
     const candidates = Array.from(candidateMap.values()).slice(0, limit);
 
+    console.log(`[CANDIDATE-MATCHING-DEBUG] Found ${candidates.length} candidates to test matching`);
+    
     // Calculate matches
     const matches = await Promise.all(
       candidates.map(candidate => 
         candidateMatchingService.calculateCandidateMatch(candidate, jobData as any)
       )
     );
+    
+    console.log(`[CANDIDATE-MATCHING-DEBUG] Calculated ${matches.length} matches`);
 
     // Sort by match score
     const sortedMatches = matches.sort((a, b) => b.match.score - a.match.score);
