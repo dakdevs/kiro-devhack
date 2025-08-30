@@ -14,29 +14,29 @@ const iconMap = {
 
 const actions = [
   {
+    title: 'Set Interview Availability',
+    description: 'Add your available time slots',
+    icon: 'Calendar' as const,
+    color: 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 hover:from-blue-100 hover:to-blue-200 border-blue-200',
+    href: '/dashboard/availability',
+    featured: true,
+    new: true
+  },
+  {
     title: 'Create a Better Profile',
     description: 'Practice interviews with AI',
     icon: 'Star' as const,
     color: 'bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-600 hover:from-yellow-100 hover:to-yellow-200 border-yellow-200',
     href: '/dashboard/interview',
-    featured: true,
-    new: true
+    featured: true
   },
   {
     title: 'Add Job Application',
     description: 'Track a new job application',
     icon: 'Plus' as const,
-    color: 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 hover:from-blue-100 hover:to-blue-200 border-blue-200',
+    color: 'bg-gradient-to-br from-green-50 to-green-100 text-green-600 hover:from-green-100 hover:to-green-200 border-green-200',
     href: '/dashboard/applications/new',
     featured: true
-  },
-  {
-    title: 'Update Resume',
-    description: 'Upload your latest resume',
-    icon: 'Upload' as const,
-    color: 'bg-gradient-to-br from-green-50 to-green-100 text-green-600 hover:from-green-100 hover:to-green-200 border-green-200',
-    href: '/dashboard/profile/resume',
-    featured: false
   },
   {
     title: 'Browse Jobs',
@@ -44,7 +44,7 @@ const actions = [
     icon: 'Search' as const,
     color: 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-600 hover:from-purple-100 hover:to-purple-200 border-purple-200',
     href: '/dashboard/jobs/browse',
-    featured: true
+    featured: false
   }
 ]
 

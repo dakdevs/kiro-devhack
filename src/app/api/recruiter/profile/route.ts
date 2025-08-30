@@ -14,33 +14,41 @@ import {
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log('[RECRUITER-PROFILE-API-GET] Starting profile retrieval');
+    
     // Get authenticated user
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
     if (!session?.user?.id) {
+      console.log('[RECRUITER-PROFILE-API-GET] ERROR: No authenticated user');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
+    console.log('[RECRUITER-PROFILE-API-GET] Authenticated user:', session.user.id);
 
     // Get recruiter profile
+    console.log('[RECRUITER-PROFILE-API-GET] Fetching profile for user:', session.user.id);
     const profile = await recruiterProfileService.getProfileByUserId(session.user.id);
 
     if (!profile) {
+      console.log('[RECRUITER-PROFILE-API-GET] Profile not found for user:', session.user.id);
       return NextResponse.json(
         { success: false, error: 'Recruiter profile not found' },
         { status: 404 }
       );
     }
+    console.log('[RECRUITER-PROFILE-API-GET] Profile found:', profile.id, 'for organization:', profile.organizationName);
 
     const response: RecruiterProfileResponse = {
       success: true,
       data: profile,
     };
 
+    console.log('[RECRUITER-PROFILE-API-GET] Returning profile data');
     return NextResponse.json(response);
   } catch (error) {
     console.error('Error retrieving recruiter profile:', error);
@@ -60,23 +68,30 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('[RECRUITER-PROFILE-API-POST] Starting profile creation');
+    
     // Get authenticated user
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
     if (!session?.user?.id) {
+      console.log('[RECRUITER-PROFILE-API-POST] ERROR: No authenticated user');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
+    console.log('[RECRUITER-PROFILE-API-POST] Authenticated user:', session.user.id);
 
     // Parse request body
     let requestData: CreateRecruiterProfileRequest;
     try {
+      console.log('[RECRUITER-PROFILE-API-POST] Parsing request body');
       requestData = await request.json();
+      console.log('[RECRUITER-PROFILE-API-POST] Request data:', { organizationName: requestData.organizationName, recruitingFor: requestData.recruitingFor });
     } catch (error) {
+      console.log('[RECRUITER-PROFILE-API-POST] ERROR: Invalid JSON in request body:', error);
       return NextResponse.json(
         { success: false, error: 'Invalid JSON in request body' },
         { status: 400 }
@@ -84,10 +99,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create recruiter profile
+    console.log('[RECRUITER-PROFILE-API-POST] Creating profile via service');
     const profile = await recruiterProfileService.createProfile(
       session.user.id,
       requestData
     );
+    console.log('[RECRUITER-PROFILE-API-POST] Profile created successfully:', profile.id);
 
     const response: RecruiterProfileResponse = {
       success: true,

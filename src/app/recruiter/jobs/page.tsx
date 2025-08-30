@@ -3,16 +3,21 @@
 import { useState, useEffect } from 'react';
 import { JobPostingForm } from '../_modules/job-posting-form';
 import { JobPostingList } from '../_modules/job-posting-list';
+import { JobEditModal } from '../_modules/job-edit-modal';
+import { JobDeleteModal } from '../_modules/job-delete-modal';
+import { useCSRFToken, secureApiRequest } from '~/hooks/use-csrf-token';
 import { 
   JobPosting, 
   CreateJobPostingRequest,
   CreateJobPostingResponse,
   JobPostingsResponse,
-  JobPostingStatus
+  JobPostingStatus,
+  UpdateJobPostingRequest
 } from '~/types/interview-management';
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<JobPostingsResponse['pagination']>();
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -26,6 +31,11 @@ export default function JobsPage() {
     closed: number;
     draft: number;
   } | null>(null);
+  const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
+  const [deletingJob, setDeletingJob] = useState<JobPosting | null>(null);
+
+  // Initialize CSRF token
+  const csrfToken = useCSRFToken();
 
   // Load jobs on component mount and when filters change
   useEffect(() => {
@@ -39,6 +49,7 @@ export default function JobsPage() {
 
   const loadJobs = async (page = 1) => {
     setIsLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -48,17 +59,33 @@ export default function JobsPage() {
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter) params.append('status', statusFilter);
 
+      console.log('[JOBS-PAGE] Fetching jobs with params:', params.toString());
       const response = await fetch(`/api/recruiter/jobs?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data: JobPostingsResponse = await response.json();
+      console.log('[JOBS-PAGE] API response:', data);
 
       if (data.success) {
-        setJobs(data.data || []);
+        // Ensure data.data is an array
+        const jobsArray = Array.isArray(data.data) ? data.data : [];
+        setJobs(jobsArray);
         setPagination(data.pagination);
+        console.log('[JOBS-PAGE] Loaded jobs:', jobsArray.length, 'jobs');
       } else {
         console.error('Failed to load jobs:', data.error);
+        setError(data.error || 'Failed to load jobs');
+        setJobs([]); // Ensure jobs is always an array
+        setPagination(undefined);
       }
     } catch (error) {
       console.error('Error loading jobs:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load jobs');
+      setJobs([]); // Ensure jobs is always an array
+      setPagination(undefined);
     } finally {
       setIsLoading(false);
     }
@@ -80,11 +107,8 @@ export default function JobsPage() {
   const handleCreateJob = async (jobData: CreateJobPostingRequest): Promise<CreateJobPostingResponse> => {
     setIsCreating(true);
     try {
-      const response = await fetch('/api/recruiter/jobs', {
+      const response = await secureApiRequest('/api/recruiter/jobs', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(jobData),
       });
 
@@ -101,7 +125,7 @@ export default function JobsPage() {
       console.error('Error creating job:', error);
       return {
         success: false,
-        error: 'Failed to create job posting',
+        error: error instanceof Error ? error.message : 'Failed to create job posting',
       };
     } finally {
       setIsCreating(false);
@@ -110,11 +134,8 @@ export default function JobsPage() {
 
   const handleStatusChange = async (jobId: string, status: JobPostingStatus) => {
     try {
-      const response = await fetch(`/api/recruiter/jobs/${jobId}`, {
+      const response = await secureApiRequest(`/api/recruiter/jobs/${jobId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ status }),
       });
 
@@ -135,13 +156,46 @@ export default function JobsPage() {
     }
   };
 
-  const handleDeleteJob = async (jobId: string) => {
-    if (!confirm('Are you sure you want to delete this job posting? This action cannot be undone.')) {
-      return;
-    }
+  const handleEditJob = (job: JobPosting) => {
+    setEditingJob(job);
+  };
 
+  const handleSaveJob = async (jobId: string, updates: UpdateJobPostingRequest) => {
     try {
-      const response = await fetch(`/api/recruiter/jobs/${jobId}`, {
+      const response = await secureApiRequest(`/api/recruiter/jobs/${jobId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update the job in the local state
+        setJobs(prevJobs => 
+          prevJobs.map(job => 
+            job.id === jobId ? { ...job, ...result.data } : job
+          )
+        );
+        setEditingJob(null);
+      } else {
+        throw new Error(result.error || 'Failed to update job posting');
+      }
+    } catch (error) {
+      console.error('Error updating job:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteJob = (jobId: string) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (job) {
+      setDeletingJob(job);
+    }
+  };
+
+  const handleConfirmDelete = async (jobId: string) => {
+    try {
+      const response = await secureApiRequest(`/api/recruiter/jobs/${jobId}`, {
         method: 'DELETE',
       });
 
@@ -150,11 +204,13 @@ export default function JobsPage() {
       if (result.success) {
         // Remove the job from the local state
         setJobs(prevJobs => prevJobs.filter(job => job.id !== jobId));
+        setDeletingJob(null);
       } else {
-        console.error('Failed to delete job:', result.error);
+        throw new Error(result.error || 'Failed to delete job posting');
       }
     } catch (error) {
       console.error('Error deleting job:', error);
+      throw error;
     }
   };
 
@@ -274,14 +330,52 @@ export default function JobsPage() {
         </div>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="bg-apple-red/10 border border-apple-red/20 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-apple-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-apple-red font-medium">Error loading jobs</span>
+          </div>
+          <p className="text-apple-red/80 text-sm mt-1">{error}</p>
+          <button
+            onClick={() => loadJobs()}
+            className="mt-2 px-3 py-1 bg-apple-red text-white rounded text-sm hover:bg-red-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Job List */}
       <JobPostingList
         jobs={jobs}
         pagination={pagination}
+        onEdit={handleEditJob}
         onStatusChange={handleStatusChange}
         onDelete={handleDeleteJob}
         onPageChange={handlePageChange}
         isLoading={isLoading}
+      />
+
+      {/* Edit Modal */}
+      {editingJob && (
+        <JobEditModal
+          job={editingJob}
+          isOpen={!!editingJob}
+          onClose={() => setEditingJob(null)}
+          onSave={handleSaveJob}
+        />
+      )}
+
+      {/* Delete Modal */}
+      <JobDeleteModal
+        job={deletingJob}
+        isOpen={!!deletingJob}
+        onClose={() => setDeletingJob(null)}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

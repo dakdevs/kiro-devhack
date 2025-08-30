@@ -22,10 +22,14 @@ export class RecruiterProfileService {
     userId: string, 
     data: CreateRecruiterProfileRequest
   ): Promise<RecruiterProfile> {
+    console.log('[RECRUITER-PROFILE-SERVICE] Creating profile for user:', userId, 'with data:', { organizationName: data.organizationName, recruitingFor: data.recruitingFor });
+    
     // Validate input data
+    console.log('[RECRUITER-PROFILE-SERVICE] Validating input data');
     const validatedData = createRecruiterProfileSchema.parse(data);
     
     // Check if user exists
+    console.log('[RECRUITER-PROFILE-SERVICE] Checking if user exists:', userId);
     const existingUser = await db
       .select()
       .from(user)
@@ -33,10 +37,13 @@ export class RecruiterProfileService {
       .limit(1);
     
     if (existingUser.length === 0) {
+      console.log('[RECRUITER-PROFILE-SERVICE] ERROR: User not found:', userId);
       throw new Error('User not found');
     }
+    console.log('[RECRUITER-PROFILE-SERVICE] User found:', existingUser[0].email);
     
     // Check if recruiter profile already exists for this user
+    console.log('[RECRUITER-PROFILE-SERVICE] Checking for existing profile');
     const existingProfile = await db
       .select()
       .from(recruiterProfiles)
@@ -44,8 +51,10 @@ export class RecruiterProfileService {
       .limit(1);
     
     if (existingProfile.length > 0) {
+      console.log('[RECRUITER-PROFILE-SERVICE] ERROR: Profile already exists for user:', userId);
       throw new Error('Recruiter profile already exists for this user');
     }
+    console.log('[RECRUITER-PROFILE-SERVICE] No existing profile found, proceeding with creation');
     
     // Create new profile
     const profileId = nanoid();
@@ -63,7 +72,9 @@ export class RecruiterProfileService {
       updatedAt: now,
     };
     
+    console.log('[RECRUITER-PROFILE-SERVICE] Inserting new profile with ID:', profileId);
     await db.insert(recruiterProfiles).values(newProfile);
+    console.log('[RECRUITER-PROFILE-SERVICE] Profile created successfully');
     
     return {
       ...newProfile,
@@ -76,6 +87,7 @@ export class RecruiterProfileService {
    * Get recruiter profile by user ID
    */
   async getProfileByUserId(userId: string): Promise<RecruiterProfile | null> {
+    console.log('[RECRUITER-PROFILE-SERVICE] Getting profile for user:', userId);
     const profiles = await db
       .select()
       .from(recruiterProfiles)
@@ -83,8 +95,10 @@ export class RecruiterProfileService {
       .limit(1);
     
     if (profiles.length === 0) {
+      console.log('[RECRUITER-PROFILE-SERVICE] No profile found for user:', userId);
       return null;
     }
+    console.log('[RECRUITER-PROFILE-SERVICE] Profile found:', profiles[0].id);
     
     const profile = profiles[0];
     return {

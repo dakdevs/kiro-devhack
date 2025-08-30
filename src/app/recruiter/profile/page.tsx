@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RecruiterProfileForm } from '../_modules/recruiter-profile-form';
 import { RecruiterProfileView } from '../_modules/recruiter-profile-view';
+import { useCSRFToken, secureApiRequest } from '~/hooks/use-csrf-token';
 import { 
   RecruiterProfile, 
   CreateRecruiterProfileRequest, 
@@ -14,6 +15,8 @@ import {
 type ViewMode = 'view' | 'create' | 'edit';
 
 export default function RecruiterProfilePage() {
+  console.log('[RECRUITER-PROFILE-PAGE] Component initialized');
+  
   const [profile, setProfile] = useState<RecruiterProfile | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('view');
   const [isLoading, setIsLoading] = useState(true);
@@ -21,20 +24,27 @@ export default function RecruiterProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Initialize CSRF token
+  const csrfToken = useCSRFToken();
+
   // Load profile on component mount
   useEffect(() => {
+    console.log('[RECRUITER-PROFILE-PAGE] Component mounted, loading profile');
     loadProfile();
   }, []);
 
   const loadProfile = async () => {
     try {
+      console.log('[RECRUITER-PROFILE-PAGE] Loading profile from API');
       setIsLoading(true);
       setError(null);
 
       const response = await fetch('/api/recruiter/profile');
       const data: RecruiterProfileResponse = await response.json();
+      console.log('[RECRUITER-PROFILE-PAGE] API response:', { success: data.success, status: response.status });
 
       if (data.success && data.data) {
+        console.log('[RECRUITER-PROFILE-PAGE] Profile loaded successfully:', data.data.id);
         setProfile({
           ...data.data,
           createdAt: new Date(data.data.createdAt),
@@ -43,13 +53,15 @@ export default function RecruiterProfilePage() {
         setViewMode('view');
       } else if (response.status === 404) {
         // Profile doesn't exist, show create form
+        console.log('[RECRUITER-PROFILE-PAGE] No profile found, switching to create mode');
         setProfile(null);
         setViewMode('create');
       } else {
+        console.log('[RECRUITER-PROFILE-PAGE] Error loading profile:', data.error);
         setError(data.error || 'Failed to load profile');
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('[RECRUITER-PROFILE-PAGE] Error loading profile:', error);
       setError('Failed to load profile');
     } finally {
       setIsLoading(false);
@@ -58,20 +70,20 @@ export default function RecruiterProfilePage() {
 
   const handleCreateProfile = async (data: CreateRecruiterProfileRequest) => {
     try {
+      console.log('[RECRUITER-PROFILE-PAGE] Creating profile with data:', data);
       setIsSubmitting(true);
       setError(null);
 
-      const response = await fetch('/api/recruiter/profile', {
+      const response = await secureApiRequest('/api/recruiter/profile', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
 
       const result: RecruiterProfileResponse = await response.json();
+      console.log('[RECRUITER-PROFILE-PAGE] Create profile response:', { success: result.success, status: response.status });
 
       if (result.success && result.data) {
+        console.log('[RECRUITER-PROFILE-PAGE] Profile created successfully:', result.data.id);
         setProfile({
           ...result.data,
           createdAt: new Date(result.data.createdAt),
@@ -83,10 +95,11 @@ export default function RecruiterProfilePage() {
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
+        console.log('[RECRUITER-PROFILE-PAGE] Profile creation failed:', result.error);
         setError(result.error || 'Failed to create profile');
       }
     } catch (error) {
-      console.error('Error creating profile:', error);
+      console.error('[RECRUITER-PROFILE-PAGE] Error creating profile:', error);
       setError('Failed to create profile');
     } finally {
       setIsSubmitting(false);
@@ -98,11 +111,8 @@ export default function RecruiterProfilePage() {
       setIsSubmitting(true);
       setError(null);
 
-      const response = await fetch('/api/recruiter/profile', {
+      const response = await secureApiRequest('/api/recruiter/profile', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
 
@@ -139,7 +149,7 @@ export default function RecruiterProfilePage() {
       setIsSubmitting(true);
       setError(null);
 
-      const response = await fetch('/api/recruiter/profile', {
+      const response = await secureApiRequest('/api/recruiter/profile', {
         method: 'DELETE',
       });
 

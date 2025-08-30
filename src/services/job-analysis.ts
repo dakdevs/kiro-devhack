@@ -6,6 +6,15 @@ import {
   ExperienceLevel, 
   SkillCategory 
 } from '~/types/interview-management';
+import { 
+  AIProcessingError, 
+  ValidationError, 
+  ExternalServiceError 
+} from '~/lib/errors';
+import { logger, withLogging } from '~/lib/logger';
+import { withRetry, CircuitBreaker } from '~/lib/error-handler';
+import { cache, cacheKeys, cacheTTL, cacheUtils } from '~/lib/cache';
+import { rateLimiters, rateLimit, batchUtils } from '~/lib/rate-limiter';
 
 /**
  * Service for analyzing job postings using AI to extract skills, requirements, and other metadata
@@ -15,33 +24,128 @@ export class JobAnalysisService {
   private readonly apiUrl = 'https://api.moonshot.cn/v1/chat/completions';
   private readonly maxRetries = 3;
   private readonly retryDelay = 1000; // 1 second
+  private readonly circuitBreaker = new CircuitBreaker(3, 30000); // 3 failures, 30s recovery
+  private readonly batchProcessor = batchUtils.createAIBatcher(
+    this.processBatchAnalysis.bind(this),
+    3, // batch size
+    2000 // max wait time
+  );
 
   constructor() {
     if (!serverConfig.ai.openRouterApiKey) {
-      console.warn('OpenRouter API key not configured. Job analysis will use fallback mode.');
+      logger.warn('OpenRouter API key not configured. Job analysis will use fallback mode.', {
+        operation: 'job-analysis.init',
+      });
     }
   }
 
   /**
    * Analyze a job posting to extract skills, requirements, and metadata
    */
-  async analyzeJobPosting(jobDescription: string, jobTitle?: string): Promise<JobAnalysisResult> {
-    if (!serverConfig.ai.openRouterApiKey) {
-      console.warn('AI analysis unavailable, using fallback extraction');
-      return this.fallbackAnalysis(jobDescription, jobTitle);
+  async analyzeJobPosting(jobDescription: string, jobTitle?: string, userId?: string): Promise<JobAnalysisResult> {
+    // Apply rate limiting
+    const identifier = userId || 'default';
+    const limitInfo = await rateLimiters.aiApi.checkLimit(identifier);
+    
+    if (limitInfo.isBlocked) {
+      throw new Error(`Rate limit exceeded for AI analysis. Try again in ${Math.ceil(limitInfo.msBeforeNext / 1000)} seconds.`);
+    }
+    // Validate input
+    if (!jobDescription || typeof jobDescription !== 'string' || jobDescription.trim().length === 0) {
+      throw new ValidationError('Job description is required and cannot be empty', 'jobDescription', jobDescription);
     }
 
-    try {
-      const prompt = this.buildAnalysisPrompt(jobDescription, jobTitle);
-      const response = await this.callAIWithRetry(prompt);
-      const result = this.parseAIResponse(response);
-      
-      // Validate and enhance the result
-      return this.validateAndEnhanceResult(result, jobDescription);
-    } catch (error) {
-      console.error('AI job analysis failed:', error);
-      return this.fallbackAnalysis(jobDescription, jobTitle);
+    if (jobDescription.length > 50000) {
+      throw new ValidationError('Job description is too long (max 50,000 characters)', 'jobDescription', jobDescription.length);
     }
+
+    // Check cache first
+    const contentHash = cacheUtils.generateContentHash(jobDescription + (jobTitle || ''));
+    const cacheKey = cacheKeys.aiAnalysis(contentHash);
+    
+    const cachedResult = await cache.get<JobAnalysisResult>(cacheKey);
+    if (cachedResult) {
+      logger.debug('Job analysis cache hit', {
+        operation: 'job-analysis.analyze',
+        metadata: { contentHash, fromCache: true },
+      });
+      return cachedResult;
+    }
+
+    return withLogging('job-analysis.analyze', async () => {
+      if (!serverConfig.ai.openRouterApiKey) {
+        logger.warn('AI analysis unavailable, using fallback extraction', {
+          operation: 'job-analysis.analyze',
+          metadata: { fallbackMode: true },
+        });
+        return this.fallbackAnalysis(jobDescription, jobTitle);
+      }
+
+      try {
+        const prompt = this.buildAnalysisPrompt(jobDescription, jobTitle);
+        const response = await this.circuitBreaker.execute(() => 
+          this.callAIWithRetry(prompt)
+        );
+        const result = this.parseAIResponse(response);
+        
+        // Validate and enhance the result
+        const finalResult = this.validateAndEnhanceResult(result, jobDescription);
+        
+        // Cache the result
+        await cache.set(cacheKey, finalResult, cacheTTL.long);
+        
+        logger.logAIOperation('job-analysis', 0, true, {
+          metadata: { 
+            skillsExtracted: finalResult.extractedSkills.length,
+            confidence: finalResult.confidence,
+            hasTitle: !!jobTitle,
+            cached: true
+          },
+        });
+        
+        // Record successful rate limit usage
+        await rateLimiters.aiApi.recordRequest(identifier, true);
+        
+        return finalResult;
+      } catch (error) {
+        const aiError = error instanceof Error ? error : new Error(String(error));
+        
+        logger.logAIOperation('job-analysis', 0, false, {
+          metadata: { 
+            fallbackUsed: true,
+            hasTitle: !!jobTitle 
+          },
+        }, aiError);
+
+        // If it's a circuit breaker error or external service error, provide fallback
+        if (error instanceof ExternalServiceError || error instanceof AIProcessingError) {
+          const fallbackResult = this.fallbackAnalysis(jobDescription, jobTitle);
+          
+          // Wrap in AIProcessingError with fallback data
+          throw new AIProcessingError(
+            'AI analysis failed, fallback data available',
+            fallbackResult,
+            true,
+            aiError
+          );
+        }
+        
+        // For other errors, still provide fallback but log as error
+        logger.error('Unexpected error in job analysis, using fallback', {
+          operation: 'job-analysis.analyze',
+        }, aiError);
+        
+        const fallbackResult = this.fallbackAnalysis(jobDescription, jobTitle);
+        
+        // Cache fallback result with shorter TTL
+        await cache.set(cacheKey, fallbackResult, cacheTTL.short);
+        
+        // Record failed rate limit usage
+        await rateLimiters.aiApi.recordRequest(identifier, false);
+        
+        return fallbackResult;
+      }
+    });
   }
 
   /**
@@ -109,55 +213,131 @@ Return ONLY the JSON object, no additional text or formatting.
   /**
    * Call the AI API with retry logic
    */
-  private async callAIWithRetry(prompt: string, retryCount = 0): Promise<any> {
-    try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${serverConfig.ai.openRouterApiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.BETTER_AUTH_URL || 'http://localhost:3000',
-          'X-Title': 'Interview Management System',
-        },
-        body: JSON.stringify({
-          model: this.aiModel,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
+  private async callAIWithRetry(prompt: string): Promise<any> {
+    return withRetry(
+      async () => {
+        const startTime = Date.now();
+        
+        try {
+          const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${serverConfig.ai.openRouterApiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+              'X-Title': 'Interview Management System',
+            },
+            body: JSON.stringify({
+              model: this.aiModel,
+              messages: [
+                {
+                  role: 'user',
+                  content: prompt
+                }
+              ],
+              temperature: 0.1,
+              max_tokens: 2000,
+            }),
+          });
+
+          const duration = Date.now() - startTime;
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            
+            // Handle specific HTTP status codes
+            if (response.status === 429) {
+              const retryAfter = response.headers.get('retry-after');
+              throw new ExternalServiceError(
+                `Rate limit exceeded. ${retryAfter ? `Retry after ${retryAfter} seconds.` : ''}`,
+                'moonshot-ai',
+                true
+              );
+            } else if (response.status >= 500) {
+              throw new ExternalServiceError(
+                `AI service temporarily unavailable: ${response.status} ${response.statusText}`,
+                'moonshot-ai',
+                true
+              );
+            } else if (response.status === 401) {
+              throw new ExternalServiceError(
+                'AI service authentication failed. Please check API key.',
+                'moonshot-ai',
+                false
+              );
+            } else {
+              throw new ExternalServiceError(
+                `AI API call failed: ${response.status} ${response.statusText} - ${errorText}`,
+                'moonshot-ai',
+                response.status >= 500
+              );
             }
-          ],
-          temperature: 0.1,
-          max_tokens: 2000,
-        }),
-      });
+          }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API call failed: ${response.status} ${response.statusText} - ${errorText}`);
-      }
+          const data = await response.json();
+          
+          if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new AIProcessingError(
+              'Invalid AI API response structure',
+              undefined,
+              false
+            );
+          }
 
-      const data = await response.json();
-      
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        throw new Error('Invalid API response structure');
-      }
+          logger.debug('AI API call successful', {
+            operation: 'ai.moonshot.call',
+            duration,
+            metadata: { 
+              model: this.aiModel,
+              tokensUsed: data.usage?.total_tokens 
+            },
+          });
 
-      return data.choices[0].message.content;
-    } catch (error) {
-      if (retryCount < this.maxRetries) {
-        console.warn(`AI API call failed (attempt ${retryCount + 1}/${this.maxRetries + 1}):`, error);
-        await this.delay(this.retryDelay * Math.pow(2, retryCount)); // Exponential backoff
-        return this.callAIWithRetry(prompt, retryCount + 1);
+          return data.choices[0].message.content;
+        } catch (error) {
+          const duration = Date.now() - startTime;
+          
+          if (error instanceof ExternalServiceError || error instanceof AIProcessingError) {
+            throw error;
+          }
+          
+          // Handle network errors
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new ExternalServiceError(
+              'Network error connecting to AI service',
+              'moonshot-ai',
+              true,
+              error as Error
+            );
+          }
+          
+          throw new AIProcessingError(
+            'Unexpected error during AI API call',
+            undefined,
+            false,
+            error as Error
+          );
+        }
+      },
+      {
+        maxAttempts: this.maxRetries,
+        delayMs: this.retryDelay,
+        backoffMultiplier: 2,
+        retryCondition: (error) => {
+          return error instanceof ExternalServiceError && error.retryable;
+        }
       }
-      throw error;
-    }
+    );
   }
 
   /**
    * Parse the AI response and extract structured data
    */
   private parseAIResponse(response: string): Partial<JobAnalysisResult> {
+    if (!response || typeof response !== 'string') {
+      throw new AIProcessingError('AI response is empty or invalid');
+    }
+
     try {
       // Clean the response - remove any markdown formatting or extra text
       const cleanedResponse = response
@@ -165,18 +345,46 @@ Return ONLY the JSON object, no additional text or formatting.
         .replace(/```\s*/g, '')
         .trim();
 
+      if (!cleanedResponse) {
+        throw new AIProcessingError('AI response is empty after cleaning');
+      }
+
       const parsed = JSON.parse(cleanedResponse);
       
       // Validate the structure
       if (typeof parsed !== 'object' || parsed === null) {
-        throw new Error('Response is not a valid object');
+        throw new AIProcessingError('AI response is not a valid object');
       }
+
+      logger.debug('AI response parsed successfully', {
+        operation: 'job-analysis.parse',
+        metadata: { 
+          hasExtractedSkills: Array.isArray(parsed.extractedSkills),
+          hasRequiredSkills: Array.isArray(parsed.requiredSkills),
+          confidence: parsed.confidence 
+        },
+      });
 
       return parsed;
     } catch (error) {
-      console.error('Failed to parse AI response:', error);
-      console.error('Raw response:', response);
-      throw new Error('Failed to parse AI analysis response');
+      logger.error('Failed to parse AI response', {
+        operation: 'job-analysis.parse',
+        metadata: { 
+          responseLength: response.length,
+          responsePreview: response.substring(0, 200) 
+        },
+      }, error as Error);
+      
+      if (error instanceof SyntaxError) {
+        throw new AIProcessingError(
+          'AI returned invalid JSON format',
+          undefined,
+          true,
+          error
+        );
+      }
+      
+      throw error;
     }
   }
 
@@ -408,6 +616,159 @@ Return ONLY the JSON object, no additional text or formatting.
   }
 
   /**
+   * Batch analyze multiple job postings for efficiency
+   */
+  async analyzeBatch(
+    jobs: Array<{ id: string; description: string; title?: string }>,
+    userId?: string
+  ): Promise<Array<{ id: string; result: JobAnalysisResult; error?: string }>> {
+    return withLogging('job-analysis.batch', async () => {
+      const results = await Promise.allSettled(
+        jobs.map(async (job) => {
+          try {
+            const result = await this.batchProcessor({
+              id: job.id,
+              description: job.description,
+              title: job.title,
+            });
+            return { id: job.id, result };
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error('Batch job analysis failed', {
+              operation: 'job-analysis.batch-item',
+              metadata: { jobId: job.id },
+            }, error as Error);
+            
+            // Return fallback result for failed items
+            const fallbackResult = this.fallbackAnalysis(job.description, job.title);
+            return { id: job.id, result: fallbackResult, error: errorMessage };
+          }
+        })
+      );
+
+      return results.map((result, index) => {
+        if (result.status === 'fulfilled') {
+          return result.value;
+        } else {
+          const job = jobs[index];
+          const fallbackResult = this.fallbackAnalysis(job.description, job.title);
+          return {
+            id: job.id,
+            result: fallbackResult,
+            error: result.reason?.message || 'Batch processing failed',
+          };
+        }
+      });
+    });
+  }
+
+  /**
+   * Process a batch of job analyses
+   */
+  private async processBatchAnalysis(
+    items: Array<{ id: string; description: string; title?: string }>
+  ): Promise<JobAnalysisResult[]> {
+    // For now, process items individually but with shared rate limiting
+    // In a more advanced implementation, we could combine multiple job descriptions
+    // into a single AI request for better efficiency
+    
+    const results = await Promise.all(
+      items.map(async (item) => {
+        try {
+          // Check cache first
+          const contentHash = cacheUtils.generateContentHash(item.description + (item.title || ''));
+          const cacheKey = cacheKeys.aiAnalysis(contentHash);
+          
+          const cachedResult = await cache.get<JobAnalysisResult>(cacheKey);
+          if (cachedResult) {
+            return cachedResult;
+          }
+
+          // Process with AI
+          const prompt = this.buildAnalysisPrompt(item.description, item.title);
+          const response = await this.circuitBreaker.execute(() => 
+            this.callAIWithRetry(prompt)
+          );
+          const result = this.parseAIResponse(response);
+          const finalResult = this.validateAndEnhanceResult(result, item.description);
+          
+          // Cache the result
+          await cache.set(cacheKey, finalResult, cacheTTL.long);
+          
+          return finalResult;
+        } catch (error) {
+          // Return fallback for failed items
+          return this.fallbackAnalysis(item.description, item.title);
+        }
+      })
+    );
+
+    return results;
+  }
+
+  /**
+   * Analyze job posting with caching and optimization
+   */
+  async analyzeJobPostingOptimized(
+    jobDescription: string,
+    jobTitle?: string,
+    userId?: string,
+    priority: 'high' | 'normal' | 'low' = 'normal'
+  ): Promise<JobAnalysisResult> {
+    // For high priority requests, bypass batching
+    if (priority === 'high') {
+      return this.analyzeJobPosting(jobDescription, jobTitle, userId);
+    }
+
+    // For normal and low priority, use batch processing
+    const result = await this.batchProcessor({
+      id: `${Date.now()}-${Math.random()}`,
+      description: jobDescription,
+      title: jobTitle,
+    });
+
+    return result;
+  }
+
+  /**
+   * Warm up cache with common job analysis patterns
+   */
+  async warmCache(commonJobDescriptions: string[]): Promise<void> {
+    return withLogging('job-analysis.warm-cache', async () => {
+      const warmupJobs = commonJobDescriptions.map((desc, index) => ({
+        id: `warmup-${index}`,
+        description: desc,
+      }));
+
+      await this.analyzeBatch(warmupJobs);
+      
+      logger.info('Job analysis cache warmed', {
+        operation: 'job-analysis.warm-cache',
+        metadata: { jobCount: warmupJobs.length },
+      });
+    });
+  }
+
+  /**
+   * Get analysis statistics for monitoring
+   */
+  async getAnalysisStats(): Promise<{
+    cacheHitRate: number;
+    totalAnalyses: number;
+    averageConfidence: number;
+    circuitBreakerStatus: string;
+  }> {
+    // This would be implemented with proper metrics collection
+    // For now, return mock data
+    return {
+      cacheHitRate: 0.75, // 75% cache hit rate
+      totalAnalyses: 1000,
+      averageConfidence: 0.82,
+      circuitBreakerStatus: this.circuitBreaker.getState(),
+    };
+  }
+
+  /**
    * Test the AI connection and return service status
    */
   async testConnection(): Promise<{ available: boolean; error?: string }> {
@@ -415,16 +776,29 @@ Return ONLY the JSON object, no additional text or formatting.
       return { available: false, error: 'API key not configured' };
     }
 
-    try {
-      const testPrompt = 'Respond with just the word "test" in JSON format: {"response": "test"}';
-      await this.callAIWithRetry(testPrompt);
-      return { available: true };
-    } catch (error) {
-      return { 
-        available: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      };
-    }
+    return withLogging('job-analysis.test-connection', async () => {
+      try {
+        const testPrompt = 'Respond with just the word "test" in JSON format: {"response": "test"}';
+        await this.callAIWithRetry(testPrompt);
+        
+        logger.info('AI service connection test successful', {
+          operation: 'job-analysis.test-connection',
+        });
+        
+        return { available: true };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        
+        logger.error('AI service connection test failed', {
+          operation: 'job-analysis.test-connection',
+        }, error as Error);
+        
+        return { 
+          available: false, 
+          error: errorMessage
+        };
+      }
+    });
   }
 }
 

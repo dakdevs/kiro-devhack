@@ -1,39 +1,109 @@
-import  { NextRequest, NextResponse } from 'next/server';
-import { db } from '~/db';
-import { userResponses, user as userTable } from '~/db/schema';
-import { embedOne } from '~/utils/embeddings';
-import { sql } from 'drizzle-orm';
+import { NextRequest, NextResponse } from 'next/server';
+import { CandidateMatchingService } from '~/services/candidate-matching';
+import { JobPostingService } from '~/services/job-posting';
+import { logger } from '~/lib/logger';
 
-const formatToPgVector = (vector: number[]) => `[${vector.join(',')}]`;
+export async function POST(req: NextRequest) {
+    try {
+        const body = await req.json();
+        const { jobDescription, jobId, limit = 10, minMatchScore = 30 } = body;
 
-export async function POST(req: NextRequest){
-    try{
-         const body = await req.json();
-         const jobDescription: string = body.jobDescription;
-         const limit: number = body.limit || 10;
+        if (!jobDescription && !jobId) {
+            return NextResponse.json({
+                error: 'Either jobDescription or jobId is required'
+            }, { status: 400 });
+        }
 
-         if (!jobDescription){
-            return NextResponse.json({ error: 'Job description required'}, { status: 400});
-         }
+        logger.info('Match API request received', {
+            operation: 'match-api',
+            metadata: {
+                hasJobDescription: !!jobDescription,
+                hasJobId: !!jobId,
+                limit,
+                minMatchScore
+            }
+        });
 
-         console.log(`Received match request for : ${jobDescription.substring(0, 50)}.....`);
+        const candidateMatchingService = new CandidateMatchingService();
+        const jobPostingService = new JobPostingService();
 
-         console.log('1. generating embedding for the job description...')
-         const jobEmbedding = await embedOne(jobDescription);
-         console.log('embedding generated');
+        let jobPosting;
 
-         const query = sql `
-         SELECT ur.id, ur.content, ur.user_id, u.name as "userName", u.email as "userEmail",
-         (ur.embedding <=> ${formatToPgVector(jobEmbedding)}) As distance from ${userResponses} ur join ${userTable} u on ur.user_id = u.id
-         order by distance asc limit ${limit}; `;
+        if (jobId) {
+            // Use existing job posting
+            jobPosting = await jobPostingService.getJobPosting(jobId);
+            if (!jobPosting) {
+                return NextResponse.json({
+                    error: 'Job posting not found'
+                }, { status: 404 });
+            }
+        } else {
+            // Create a temporary job posting from description
+            const extractedSkills = await jobPostingService.extractSkillsFromDescription(jobDescription);
 
-         const { rows: searchResults } = await db.execute(query);
+            jobPosting = {
+                id: 'temp-job',
+                title: 'Temporary Job for Matching',
+                rawDescription: jobDescription,
+                extractedSkills: extractedSkills.skills,
+                requiredSkills: extractedSkills.skills.filter(skill => skill.required),
+                preferredSkills: extractedSkills.skills.filter(skill => !skill.required),
+                recruiterId: 'temp-recruiter',
+                status: 'active',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+        }
 
-         console.log(`found ${searchResults.length} matching results.`);
+        // Find matching candidates using the real candidate matching service
+        const matchingCandidates = await candidateMatchingService.findMatchingCandidates(
+            jobPosting,
+            { minMatchScore },
+            { page: 1, limit }
+        );
 
-         return NextResponse.json({ results: searchResults });
-    } catch(error){
-        console.error('Match API Error: ', error);
-        return NextResponse.json({ error: 'Failed to perform similarity search.'}, { status: 500 });
+        logger.info('Match API completed successfully', {
+            operation: 'match-api',
+            metadata: {
+                jobId: jobPosting.id,
+                candidatesFound: matchingCandidates.data.length,
+                totalCandidates: matchingCandidates.pagination.total
+            }
+        });
+
+        return NextResponse.json({
+            success: true,
+            data: {
+                job: {
+                    id: jobPosting.id,
+                    title: jobPosting.title,
+                    requiredSkills: jobPosting.requiredSkills,
+                    preferredSkills: jobPosting.preferredSkills,
+                },
+                candidates: matchingCandidates.data,
+                pagination: matchingCandidates.pagination,
+                summary: {
+                    totalCandidates: matchingCandidates.pagination.total,
+                    matchedCandidates: matchingCandidates.data.length,
+                    averageMatchScore: matchingCandidates.data.length > 0
+                        ? Math.round(matchingCandidates.data.reduce((sum, c) => sum + c.match.score, 0) / matchingCandidates.data.length)
+                        : 0,
+                    topMatchScore: matchingCandidates.data.length > 0
+                        ? Math.max(...matchingCandidates.data.map(c => c.match.score))
+                        : 0,
+                }
+            }
+        });
+
+    } catch (error) {
+        logger.error('Match API error', {
+            operation: 'match-api'
+        }, error as Error);
+
+        return NextResponse.json({
+            success: false,
+            error: 'Failed to find matching candidates',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        }, { status: 500 });
     }
 }

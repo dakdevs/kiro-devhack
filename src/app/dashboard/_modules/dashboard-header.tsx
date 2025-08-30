@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, X, Bell, Search, User } from 'lucide-react'
+import { Menu, X, Search, User } from 'lucide-react'
 import Link from 'next/link'
 import { MobileMenu } from './mobile-menu'
 import { UserMenu } from './user-menu'
+import { NotificationBell } from '~/components/notification-bell'
 
 interface DashboardHeaderProps {
   user: {
@@ -77,12 +78,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               </svg>
             </Link>
             
-            <button className="p-2 text-gray-600 hover:text-gray-900 relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-                3
-              </span>
-            </button>
+            <NotificationBell />
             
             <UserMenu user={user} />
           </div>

@@ -163,6 +163,14 @@ export function JobPostingList({
             </div>
 
             <div className="flex items-center gap-2 ml-4">
+              <a
+                href={`/recruiter/jobs/${job.id}/candidates`}
+                className="px-3 py-2 text-[13px] font-medium bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150 ease-out"
+                title="View candidates for this job"
+              >
+                View Candidates
+              </a>
+              
               <JobStatusDropdown
                 currentStatus={job.status}
                 onStatusChange={(status) => onStatusChange?.(job.id, status)}

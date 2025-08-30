@@ -14,6 +14,7 @@ import {
   PaginatedResponse
 } from '~/types/interview-management';
 import { generateId } from '~/lib/utils';
+import { cacheUtils } from '~/lib/cache';
 
 /**
  * Service for managing job postings with AI analysis integration
@@ -27,8 +28,11 @@ export class JobPostingService {
     recruiterId: string, 
     data: CreateJobPostingRequest
   ): Promise<CreateJobPostingResponse> {
+
+    
     try {
       // Verify recruiter exists
+
       const recruiter = await db
         .select()
         .from(recruiterProfiles)
@@ -36,22 +40,73 @@ export class JobPostingService {
         .limit(1);
 
       if (recruiter.length === 0) {
+
         return {
           success: false,
           error: 'Recruiter profile not found',
         };
       }
 
+
       // Analyze the job posting with AI
-      const analysis = await jobAnalysisService.analyzeJobPosting(
-        data.description, 
-        data.title
-      );
+      console.log('[JOB-POSTING-SERVICE] Starting AI analysis for job posting');
+      let analysis;
+      try {
+        analysis = await jobAnalysisService.analyzeJobPosting(
+          data.description, 
+          data.title
+        );
+        console.log('[JOB-POSTING-SERVICE] AI analysis completed successfully:', analysis);
+      } catch (analysisError) {
+        console.error('[JOB-POSTING-SERVICE] AI analysis failed:', analysisError);
+        console.error('[JOB-POSTING-SERVICE] Error type:', analysisError?.constructor?.name);
+        console.error('[JOB-POSTING-SERVICE] Error has fallbackData:', !!(analysisError as any)?.fallbackData);
+        
+        // Check if the error has fallback data
+        if ((analysisError as any)?.fallbackData) {
+          console.log('[JOB-POSTING-SERVICE] Using fallback data from error');
+          analysis = (analysisError as any).fallbackData;
+        } else {
+          console.log('[JOB-POSTING-SERVICE] Creating basic fallback analysis');
+          // Create a basic fallback analysis
+          analysis = {
+            extractedSkills: [],
+            requiredSkills: data.requiredSkills ? 
+              data.requiredSkills.map(skill => ({ name: skill, required: true, category: 'technical' as const })) : [],
+            preferredSkills: data.preferredSkills ?
+              data.preferredSkills.map(skill => ({ name: skill, required: false, category: 'technical' as const })) : [],
+            experienceLevel: data.experienceLevel || 'mid',
+            salaryRange: data.salaryMin && data.salaryMax ? { min: data.salaryMin, max: data.salaryMax } : undefined,
+            keyTerms: [],
+            confidence: 0.3,
+            summary: 'Job posting created without AI analysis due to service unavailability.'
+          };
+        }
+      }
+
+      // Ensure analysis is never null
+      if (!analysis) {
+        console.log('[JOB-POSTING-SERVICE] Analysis is null, creating emergency fallback');
+        analysis = {
+          extractedSkills: [],
+          requiredSkills: [],
+          preferredSkills: [],
+          experienceLevel: 'mid',
+          salaryRange: undefined,
+          keyTerms: [],
+          confidence: 0.1,
+          summary: 'Emergency fallback: Job posting created without analysis.'
+        };
+      }
+
+      console.log('[JOB-POSTING-SERVICE] Final analysis object:', analysis);
 
       // Generate unique ID for the job posting
       const jobId = generateId();
+      console.log('[JOB-POSTING-SERVICE] Generated job ID:', jobId);
 
       // Prepare job posting data
+      console.log('[JOB-POSTING-SERVICE] Preparing job data for database insertion');
       const jobData = {
         id: jobId,
         recruiterId,
@@ -67,30 +122,52 @@ export class JobPostingService {
         experienceLevel: data.experienceLevel || analysis.experienceLevel,
         salaryMin: data.salaryMin || analysis.salaryRange?.min,
         salaryMax: data.salaryMax || analysis.salaryRange?.max,
-        location: data.location,
+        location: data.location || null,
         remoteAllowed: data.remoteAllowed || false,
         employmentType: data.employmentType || 'full-time',
         status: 'active' as JobPostingStatus,
-        aiConfidenceScore: analysis.confidence.toString(),
+        aiConfidenceScore: analysis.confidence.toFixed(2),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       // Insert into database
-      const [createdJob] = await db
-        .insert(jobPostings)
-        .values(jobData)
-        .returning();
+      console.log('[JOB-POSTING-SERVICE] Inserting job posting into database');
+      console.log('[JOB-POSTING-SERVICE] Job data to insert:', JSON.stringify(jobData, null, 2));
+      
+      let createdJob;
+      try {
+        [createdJob] = await db
+          .insert(jobPostings)
+          .values(jobData)
+          .returning();
+        console.log('[JOB-POSTING-SERVICE] Database insertion successful, job ID:', createdJob?.id);
+      } catch (dbError) {
+        console.error('[JOB-POSTING-SERVICE] Database insertion failed:', dbError);
+        throw dbError;
+      }
 
       if (!createdJob) {
+        console.log('[JOB-POSTING-SERVICE] ERROR: Failed to create job posting in database');
         return {
           success: false,
           error: 'Failed to create job posting',
         };
       }
+      console.log('[JOB-POSTING-SERVICE] Job posting created successfully with ID:', createdJob.id);
 
       // Convert database result to JobPosting interface
+      console.log('[JOB-POSTING-SERVICE] Converting database result to JobPosting interface');
       const jobPosting = this.mapDbJobToJobPosting(createdJob);
+
+      // Invalidate related caches
+      console.log('[JOB-POSTING-SERVICE] Invalidating dashboard caches for recruiter:', recruiterId);
+      try {
+        await cacheUtils.invalidateRecruiterDashboardCaches(recruiterId);
+      } catch (cacheError) {
+        console.warn('[JOB-POSTING-SERVICE] Cache invalidation failed:', cacheError);
+        // Don't fail the job creation if cache invalidation fails
+      }
 
       return {
         success: true,
@@ -161,14 +238,30 @@ export class JobPostingService {
     } = {}
   ): Promise<JobPostingsResponse> {
     try {
+      console.log('[JOB-POSTING-SERVICE] getJobPostings called with:', { recruiterId, options });
       const { page = 1, limit = 10, status, search } = options;
       const offset = (page - 1) * limit;
 
+      // First, let's check if there are ANY jobs in the database for debugging
+      const allJobsCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(jobPostings);
+      console.log('[JOB-POSTING-SERVICE] Total jobs in database:', allJobsCount[0]?.count || 0);
+
+      // Check jobs for this specific recruiter
+      const recruiterJobsCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(jobPostings)
+        .where(eq(jobPostings.recruiterId, recruiterId));
+      console.log('[JOB-POSTING-SERVICE] Jobs for recruiter', recruiterId, ':', recruiterJobsCount[0]?.count || 0);
+
       // Build where conditions
       const conditions = [eq(jobPostings.recruiterId, recruiterId)];
+      console.log('[JOB-POSTING-SERVICE] Base condition: recruiterId =', recruiterId);
 
       if (status) {
         conditions.push(eq(jobPostings.status, status));
+        console.log('[JOB-POSTING-SERVICE] Added status condition:', status);
       }
 
       if (search) {
@@ -179,15 +272,19 @@ export class JobPostingService {
             like(jobPostings.location, `%${search}%`)
           )
         );
+        console.log('[JOB-POSTING-SERVICE] Added search condition:', search);
       }
 
       // Get total count
+      console.log('[JOB-POSTING-SERVICE] Executing count query with conditions:', conditions.length);
       const [{ count }] = await db
         .select({ count: sql<number>`count(*)` })
         .from(jobPostings)
         .where(and(...conditions));
+      console.log('[JOB-POSTING-SERVICE] Total count result:', count);
 
       // Get paginated results
+      console.log('[JOB-POSTING-SERVICE] Executing select query with limit:', limit, 'offset:', offset);
       const jobs = await db
         .select()
         .from(jobPostings)
@@ -195,6 +292,11 @@ export class JobPostingService {
         .orderBy(desc(jobPostings.createdAt))
         .limit(limit)
         .offset(offset);
+      console.log('[JOB-POSTING-SERVICE] Raw jobs from database:', jobs.length, 'jobs found');
+      
+      if (jobs.length > 0) {
+        console.log('[JOB-POSTING-SERVICE] First job raw data:', JSON.stringify(jobs[0], null, 2));
+      }
 
       const totalPages = Math.ceil(count / limit);
 
@@ -395,6 +497,8 @@ export class JobPostingService {
     };
     error?: string;
   }> {
+    console.log('[JOB-POSTING-SERVICE] Getting stats for recruiter:', recruiterId);
+    
     try {
       const stats = await db
         .select({
@@ -405,6 +509,8 @@ export class JobPostingService {
         .where(eq(jobPostings.recruiterId, recruiterId))
         .groupBy(jobPostings.status);
 
+      console.log('[JOB-POSTING-SERVICE] Raw stats from database:', stats);
+
       const result = {
         total: 0,
         active: 0,
@@ -414,13 +520,16 @@ export class JobPostingService {
       };
 
       stats.forEach(stat => {
-        result.total += stat.count;
-        if (stat.status === 'active') result.active = stat.count;
-        else if (stat.status === 'paused') result.paused = stat.count;
-        else if (stat.status === 'closed') result.closed = stat.count;
-        else if (stat.status === 'draft') result.draft = stat.count;
+        const count = parseInt(stat.count.toString(), 10);
+        result.total += count;
+        if (stat.status === 'active') result.active = count;
+        else if (stat.status === 'paused') result.paused = count;
+        else if (stat.status === 'closed') result.closed = count;
+        else if (stat.status === 'draft') result.draft = count;
       });
 
+      console.log('[JOB-POSTING-SERVICE] Calculated stats:', result);
+      
       return {
         success: true,
         data: result,
@@ -533,24 +642,54 @@ export class JobPostingService {
    * Map database job posting to JobPosting interface
    */
   private mapDbJobToJobPosting(dbJob: any): JobPosting {
+    console.log('[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface');
+    console.log('[JOB-POSTING-SERVICE] dbJob object:', JSON.stringify(dbJob, null, 2));
+    
+    if (!dbJob) {
+      console.error('[JOB-POSTING-SERVICE] ERROR: dbJob is null or undefined');
+      throw new Error('Database job object is null or undefined');
+    }
+    
+    // Handle both camelCase and snake_case property names
+    const title = dbJob.title || dbJob.title;
+    const recruiterId = dbJob.recruiterId || dbJob.recruiter_id;
+    const rawDescription = dbJob.rawDescription || dbJob.raw_description;
+    const extractedSkills = dbJob.extractedSkills || dbJob.extracted_skills || [];
+    const requiredSkills = dbJob.requiredSkills || dbJob.required_skills || [];
+    const preferredSkills = dbJob.preferredSkills || dbJob.preferred_skills || [];
+    const experienceLevel = dbJob.experienceLevel || dbJob.experience_level;
+    const salaryMin = dbJob.salaryMin || dbJob.salary_min;
+    const salaryMax = dbJob.salaryMax || dbJob.salary_max;
+    const remoteAllowed = dbJob.remoteAllowed || dbJob.remote_allowed || false;
+    const employmentType = dbJob.employmentType || dbJob.employment_type || 'full-time';
+    const aiConfidenceScore = dbJob.aiConfidenceScore || dbJob.ai_confidence_score;
+    const createdAt = dbJob.createdAt || dbJob.created_at;
+    const updatedAt = dbJob.updatedAt || dbJob.updated_at;
+    
+    if (!title) {
+      console.error('[JOB-POSTING-SERVICE] ERROR: Job title is missing');
+      console.error('[JOB-POSTING-SERVICE] Available properties:', Object.keys(dbJob));
+      throw new Error('Job title is missing from database result');
+    }
+    
     return {
       id: dbJob.id,
-      recruiterId: dbJob.recruiterId,
-      title: dbJob.title,
-      rawDescription: dbJob.rawDescription,
-      extractedSkills: dbJob.extractedSkills || [],
-      requiredSkills: dbJob.requiredSkills || [],
-      preferredSkills: dbJob.preferredSkills || [],
-      experienceLevel: dbJob.experienceLevel,
-      salaryMin: dbJob.salaryMin,
-      salaryMax: dbJob.salaryMax,
+      recruiterId,
+      title,
+      rawDescription,
+      extractedSkills,
+      requiredSkills,
+      preferredSkills,
+      experienceLevel,
+      salaryMin,
+      salaryMax,
       location: dbJob.location,
-      remoteAllowed: dbJob.remoteAllowed || false,
-      employmentType: dbJob.employmentType || 'full-time',
+      remoteAllowed,
+      employmentType,
       status: dbJob.status as JobPostingStatus,
-      aiConfidenceScore: dbJob.aiConfidenceScore ? parseFloat(dbJob.aiConfidenceScore) : undefined,
-      createdAt: dbJob.createdAt,
-      updatedAt: dbJob.updatedAt,
+      aiConfidenceScore: aiConfidenceScore ? parseFloat(aiConfidenceScore) : undefined,
+      createdAt,
+      updatedAt,
     };
   }
 }

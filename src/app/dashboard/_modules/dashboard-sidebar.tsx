@@ -3,8 +3,9 @@ import { SidebarLink } from './sidebar-link'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: 'Home' },
   { name: 'Job Applications', href: '/dashboard/applications', icon: 'Briefcase' },
-  { name: 'Interviews', href: '/dashboard/interviews', icon: 'Calendar' },
   { name: 'Interview Availability', href: '/dashboard/availability', icon: 'Clock' },
+  { name: 'Interview Management', href: '/dashboard/interview-management', icon: 'Calendar' },
+  { name: 'Interviews', href: '/dashboard/interviews', icon: 'Calendar' },
   { name: 'Browse Jobs', href: '/dashboard/jobs', icon: 'Search' },
   { name: 'My Profile', href: '/dashboard/profile', icon: 'User' },
   { name: 'Resume Builder', href: '/dashboard/resume', icon: 'FileText' },

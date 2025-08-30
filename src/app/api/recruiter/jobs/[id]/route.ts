@@ -5,9 +5,9 @@ import { recruiterProfileService } from '~/services/recruiter-profile';
 import { 
   UpdateJobPostingRequest,
   JobPostingResponse,
-  ApiResponse,
-  updateJobPostingSchema
+  ApiResponse
 } from '~/types/interview-management';
+import { jobPostingUpdateSchema } from '~/lib/validation';
 
 /**
  * GET /api/recruiter/jobs/[id]
@@ -94,7 +94,7 @@ export async function PUT(
     let requestData: UpdateJobPostingRequest;
     try {
       const rawData = await request.json();
-      requestData = updateJobPostingSchema.parse(rawData);
+      requestData = jobPostingUpdateSchema.parse(rawData);
     } catch (error) {
       console.error('Validation error:', error);
       return NextResponse.json(

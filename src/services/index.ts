@@ -20,3 +20,6 @@ export { ConversationGradingSystem } from './ConversationGradingSystem';
 export { ConversationGradingSystemWithSessions } from './ConversationGradingSystemWithSessions';
 export { SessionManager } from './SessionManager';
 export { InMemoryPersistenceAdapter } from './InMemoryPersistenceAdapter';
+
+// Interview Management Services
+export { notificationService, NotificationService } from './notification';

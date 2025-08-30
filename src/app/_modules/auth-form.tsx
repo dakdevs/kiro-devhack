@@ -51,7 +51,6 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
     setIsSigningIn(true)
     try {
       console.log("Initiating Google sign in...")
-      console.log("Auth client base URL:", authClient.options?.baseURL)
       
       const result = await authClient.signIn.social({ 
         provider: "google",
@@ -77,7 +76,7 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
     )
   }
 
-  if (session && session.data.user) {
+  if (session?.data?.user) {
     return (
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 shadow-xl backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/80">

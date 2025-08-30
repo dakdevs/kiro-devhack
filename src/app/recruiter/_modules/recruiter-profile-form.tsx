@@ -33,17 +33,21 @@ export function RecruiterProfileForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = (): boolean => {
+    console.log('[RECRUITER-PROFILE-FORM] Validating form data:', formData);
     const newErrors: Record<string, string> = {};
 
     if (!formData.organizationName.trim()) {
+      console.log('[RECRUITER-PROFILE-FORM] Validation error: Organization name is required');
       newErrors.organizationName = 'Organization name is required';
     }
 
     if (!formData.recruitingFor.trim()) {
+      console.log('[RECRUITER-PROFILE-FORM] Validation error: Recruiting for field is required');
       newErrors.recruitingFor = 'Recruiting for field is required';
     }
 
     if (formData.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
+      console.log('[RECRUITER-PROFILE-FORM] Validation error: Invalid email format');
       newErrors.contactEmail = 'Please enter a valid email address';
     }
 
@@ -57,10 +61,13 @@ export function RecruiterProfileForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[RECRUITER-PROFILE-FORM] Form submitted, mode:', mode);
     
     if (!validateForm()) {
+      console.log('[RECRUITER-PROFILE-FORM] Form validation failed');
       return;
     }
+    console.log('[RECRUITER-PROFILE-FORM] Form validation passed');
 
     try {
       const submitData = {
@@ -71,9 +78,11 @@ export function RecruiterProfileForm({
         timezone: formData.timezone,
       };
 
+      console.log('[RECRUITER-PROFILE-FORM] Submitting data:', submitData);
       await onSubmit(submitData);
+      console.log('[RECRUITER-PROFILE-FORM] Form submission successful');
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error('[RECRUITER-PROFILE-FORM] Form submission error:', error);
     }
   };
 

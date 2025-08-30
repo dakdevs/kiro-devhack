@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   CreateJobPostingRequest, 
   CreateJobPostingResponse,
@@ -34,6 +34,7 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
   const [showAnalysis, setShowAnalysis] = useState(false);
 
   const handleInputChange = (field: keyof CreateJobPostingRequest, value: any) => {
+    console.log('[JOB-POSTING-FORM] Field changed:', field, 'value:', value);
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -42,25 +43,68 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
   };
 
   const handleSkillsChange = (field: 'requiredSkills' | 'preferredSkills', value: string) => {
-    const skills = value.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+    // Split by comma and clean up each skill
+    const skills = value
+      .split(',')
+      .map(skill => skill.trim())
+      .filter(skill => skill.length > 0 && skill.length <= 100); // Validate length per skill
+    
+    console.log('[JOB-POSTING-FORM] Skills changed for', field, ':', skills);
     handleInputChange(field, skills);
+    
+    // Clear any validation errors for this field
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const validateForm = (): boolean => {
+    console.log('[JOB-POSTING-FORM] Validating form data:', formData);
     const newErrors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
       newErrors.title = 'Job title is required';
+    } else if (formData.title.trim().length > 200) {
+      newErrors.title = 'Job title must be less than 200 characters';
     }
 
     if (!formData.description.trim()) {
       newErrors.description = 'Job description is required';
     } else if (formData.description.trim().length < 10) {
       newErrors.description = 'Job description must be at least 10 characters';
+    } else if (formData.description.trim().length > 10000) {
+      newErrors.description = 'Job description must be less than 10,000 characters';
+    }
+
+    if (formData.location && formData.location.length > 200) {
+      newErrors.location = 'Location must be less than 200 characters';
     }
 
     if (formData.salaryMin && formData.salaryMax && formData.salaryMin > formData.salaryMax) {
       newErrors.salaryMax = 'Maximum salary must be greater than minimum salary';
+    }
+
+    if (formData.requiredSkills && formData.requiredSkills.length > 50) {
+      newErrors.requiredSkills = 'Too many required skills (maximum 50)';
+    }
+
+    if (formData.preferredSkills && formData.preferredSkills.length > 50) {
+      newErrors.preferredSkills = 'Too many preferred skills (maximum 50)';
+    }
+
+    // Validate individual skill lengths
+    if (formData.requiredSkills) {
+      const longSkills = formData.requiredSkills.filter(skill => skill.length > 100);
+      if (longSkills.length > 0) {
+        newErrors.requiredSkills = 'Some required skills are too long (maximum 100 characters each)';
+      }
+    }
+
+    if (formData.preferredSkills) {
+      const longSkills = formData.preferredSkills.filter(skill => skill.length > 100);
+      if (longSkills.length > 0) {
+        newErrors.preferredSkills = 'Some preferred skills are too long (maximum 100 characters each)';
+      }
     }
 
     setErrors(newErrors);
@@ -69,21 +113,29 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[JOB-POSTING-FORM] Form submitted');
     
     if (!validateForm()) {
+      console.log('[JOB-POSTING-FORM] Form validation failed');
       return;
     }
+    console.log('[JOB-POSTING-FORM] Form validation passed, submitting data:', formData);
 
     try {
+      console.log('[JOB-POSTING-FORM] Calling onSubmit with form data');
       const result = await onSubmit(formData);
+      console.log('[JOB-POSTING-FORM] Submit result:', result);
       
       if (result.success && result.data) {
+        console.log('[JOB-POSTING-FORM] Job posting created successfully, showing analysis');
         setAnalysisResult(result.data.analysis);
         setShowAnalysis(true);
       } else {
+        console.log('[JOB-POSTING-FORM] Job posting creation failed:', result.error);
         setErrors({ submit: result.error || 'Failed to create job posting' });
       }
     } catch (error) {
+      console.error('[JOB-POSTING-FORM] Unexpected error during submission:', error);
       setErrors({ submit: 'An unexpected error occurred' });
     }
   };
@@ -199,6 +251,9 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
             placeholder="e.g. San Francisco, CA"
             disabled={isLoading}
           />
+          {errors.location && (
+            <p className="mt-1 text-[13px] text-apple-red">{errors.location}</p>
+          )}
         </div>
 
         <div className="flex items-center">
@@ -315,6 +370,9 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
           <p className="mt-1 text-[13px] text-gray-600 dark:text-gray-400">
             Separate skills with commas. Leave blank to let AI extract from description.
           </p>
+          {errors.requiredSkills && (
+            <p className="mt-1 text-[13px] text-apple-red">{errors.requiredSkills}</p>
+          )}
         </div>
 
         <div>
@@ -333,6 +391,9 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
           <p className="mt-1 text-[13px] text-gray-600 dark:text-gray-400">
             Nice-to-have skills that would be a bonus.
           </p>
+          {errors.preferredSkills && (
+            <p className="mt-1 text-[13px] text-apple-red">{errors.preferredSkills}</p>
+          )}
         </div>
       </div>
 
