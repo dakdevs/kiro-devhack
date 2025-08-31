@@ -22,7 +22,7 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
         setSession(sessionData)
         
         // Redirect to dashboard if user is authenticated
-        if (sessionData?.user) {
+        if (sessionData?.data?.user) {
           router.push(redirectTo || '/dashboard')
         }
       } catch (error) {
@@ -50,10 +50,14 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true)
     try {
-      await authClient.signIn.social({ 
+      console.log("Initiating Google sign in...")
+      
+      const result = await authClient.signIn.social({ 
         provider: "google",
         callbackURL: redirectTo || "/dashboard"
       })
+      
+      console.log("Google sign in result:", result)
     } catch (error) {
       console.error("Google sign in error:", error)
       setIsSigningIn(false)
@@ -72,23 +76,23 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
     )
   }
 
-  if (session && session.user) {
+  if (session?.data?.user) {
     return (
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 shadow-xl backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/80">
           {/* Profile Section */}
           <div className="mb-8 text-center">
             <div className="relative mb-4 inline-block">
-              {session.user?.image ? (
+              {session.data.user?.image ? (
                 <img
-                  src={session.user.image}
+                  src={session.data.user.image}
                   alt="Profile"
                   className="h-20 w-20 rounded-full border-4 border-white shadow-lg dark:border-slate-700"
                 />
               ) : (
                 <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg dark:border-slate-700">
                   <span className="text-2xl font-bold text-white">
-                    {session.user?.name?.charAt(0) || session.user?.email?.charAt(0) || "U"}
+                    {session.data.user?.name?.charAt(0) || session.data.user?.email?.charAt(0) || "U"}
                   </span>
                 </div>
               )}
@@ -98,10 +102,10 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
               Welcome back!
             </h2>
             <p className="mb-1 text-lg font-medium text-slate-700 dark:text-slate-200">
-              {session.user?.name || "User"}
+              {session.data.user?.name || "User"}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {session.user?.email || "No email"}
+              {session.data.user?.email || "No email"}
             </p>
           </div>
 

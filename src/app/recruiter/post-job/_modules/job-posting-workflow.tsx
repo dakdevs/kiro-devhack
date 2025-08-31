@@ -1,53 +1,19 @@
 "use client";
 
 import { useState } from 'react';
-import { URLImportStep } from './url-import-step';
-import { JobDetailsStep } from './job-details-step';
-import { AvailabilityStep } from './availability-step';
-import { CompletionStep } from './completion-step';
+import { SimpleJobPostingForm } from './simple-job-posting-form';
+import { JobPostingSuccess } from './job-posting-success';
+import { JobAnalysisResult } from '~/types/interview-management';
 
-export type WorkflowStep = 'url-import' | 'job-details' | 'availability' | 'completion';
-
-export interface JobData {
-  jobTitle: string;
-  primaryTech: string[];
-  secondaryTech: string[];
-  jobDescription: string;
-  teamDescription: string;
-  salaryMin: string;
-  salaryMax: string;
-  companyDescription: string;
-}
-
-export interface AvailabilitySlot {
-  day: string;
-  startTime: string;
-  endTime: string;
-  enabled: boolean;
-}
+export type WorkflowStep = 'posting' | 'success';
 
 export function JobPostingWorkflow() {
-  const [currentStep, setCurrentStep] = useState<WorkflowStep>('url-import');
+  const [currentStep, setCurrentStep] = useState<WorkflowStep>('posting');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [jobData, setJobData] = useState<JobData>({
-    jobTitle: '',
-    primaryTech: [],
-    secondaryTech: [],
-    jobDescription: '',
-    teamDescription: '',
-    salaryMin: '',
-    salaryMax: '',
-    companyDescription: '',
-  });
-  const [availability, setAvailability] = useState<AvailabilitySlot[]>([
-    { day: 'Sunday', startTime: '09:00', endTime: '17:00', enabled: false },
-    { day: 'Monday', startTime: '09:00', endTime: '17:00', enabled: true },
-    { day: 'Tuesday', startTime: '09:00', endTime: '17:00', enabled: true },
-    { day: 'Wednesday', startTime: '09:00', endTime: '17:00', enabled: true },
-    { day: 'Thursday', startTime: '09:00', endTime: '17:00', enabled: true },
-    { day: 'Friday', startTime: '09:00', endTime: '17:00', enabled: true },
-    { day: 'Saturday', startTime: '09:00', endTime: '17:00', enabled: false },
-  ]);
+  const [jobResult, setJobResult] = useState<{
+    job: any;
+    analysis: JobAnalysisResult;
+  } | null>(null);
 
   const transitionToStep = (nextStep: WorkflowStep) => {
     setIsTransitioning(true);
@@ -57,51 +23,146 @@ export function JobPostingWorkflow() {
     }, 300);
   };
 
-  const handleJobDataUpdate = (data: Partial<JobData>) => {
-    setJobData(prev => ({ ...prev, ...data }));
+  const handleJobPostingSuccess = (result: any) => {
+    console.log('[JOB-POSTING-WORKFLOW] handleJobPostingSuccess called with:', result);
+    console.log('[JOB-POSTING-WORKFLOW] result type:', typeof result);
+    console.log('[JOB-POSTING-WORKFLOW] result keys:', result ? Object.keys(result) : 'null');
+    
+    // Handle API response structure - need to unwrap nested success/data objects
+    let jobData;
+    
+    // Start with the result and keep unwrapping until we find the actual job data
+    let current = result;
+    while (current?.success && current?.data && !current.job) {
+      console.log('[JOB-POSTING-WORKFLOW] Unwrapping layer, current keys:', Object.keys(current));
+      current = current.data;
+    }
+    
+    // Now current should be the actual job data with { job, analysis }
+    if (current?.job) {
+      console.log('[JOB-POSTING-WORKFLOW] Found job data:', current);
+      jobData = current;
+    } else if (current?.success && current?.data?.job) {
+      // One more level of unwrapping if needed
+      console.log('[JOB-POSTING-WORKFLOW] Found job data one level deeper');
+      jobData = current.data;
+    } else {
+      console.error('[JOB-POSTING-WORKFLOW] ERROR: Could not find job data in response');
+      console.error('[JOB-POSTING-WORKFLOW] Final current object:', current);
+      console.error('[JOB-POSTING-WORKFLOW] Current keys:', current ? Object.keys(current) : 'null');
+      return;
+    }
+    
+    console.log('[JOB-POSTING-WORKFLOW] Final jobData:', jobData);
+    console.log('[JOB-POSTING-WORKFLOW] jobData.job:', jobData?.job);
+    console.log('[JOB-POSTING-WORKFLOW] jobData.analysis:', jobData?.analysis);
+    
+    // Validate the job data structure
+    if (!jobData || typeof jobData !== 'object') {
+      console.error('[JOB-POSTING-WORKFLOW] ERROR: Invalid job data structure');
+      return;
+    }
+    
+    if (!jobData.job) {
+      console.error('[JOB-POSTING-WORKFLOW] ERROR: Missing job in job data');
+      console.error('[JOB-POSTING-WORKFLOW] Available jobData keys:', Object.keys(jobData));
+      return;
+    }
+    
+    // Analysis can be null, that's okay - we handle it in the success component
+    if (jobData.analysis === undefined) {
+      console.warn('[JOB-POSTING-WORKFLOW] WARNING: Analysis is undefined, setting to null');
+      jobData.analysis = null;
+    }
+    
+    console.log('[JOB-POSTING-WORKFLOW] Setting job result and transitioning to success');
+    setJobResult(jobData);
+    transitionToStep('success');
   };
 
-  const handleAvailabilityUpdate = (newAvailability: AvailabilitySlot[]) => {
-    setAvailability(newAvailability);
+  const handleStartOver = () => {
+    setJobResult(null);
+    transitionToStep('posting');
+  };
+
+  // Test function to simulate successful job posting
+  const handleTestSuccess = () => {
+    const mockResult = {
+      job: {
+        id: 'test-job-id',
+        title: 'Test Software Engineer',
+        rawDescription: 'Test job description',
+        recruiterId: 'test-recruiter-id',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        extractedSkills: [
+          { name: 'JavaScript', category: 'technical', required: true },
+          { name: 'React', category: 'technical', required: true }
+        ],
+        requiredSkills: [
+          { name: 'JavaScript', category: 'technical', required: true },
+          { name: 'React', category: 'technical', required: true }
+        ],
+        preferredSkills: [],
+        experienceLevel: 'mid',
+        salaryMin: 100000,
+        salaryMax: 150000,
+        location: 'San Francisco, CA',
+        remoteAllowed: true,
+        employmentType: 'full-time',
+        aiConfidenceScore: 0.8
+      },
+      analysis: {
+        extractedSkills: [
+          { name: 'JavaScript', category: 'technical', required: true },
+          { name: 'React', category: 'technical', required: true }
+        ],
+        requiredSkills: [
+          { name: 'JavaScript', category: 'technical', required: true },
+          { name: 'React', category: 'technical', required: true }
+        ],
+        preferredSkills: [],
+        experienceLevel: 'mid',
+        salaryRange: { min: 100000, max: 150000 },
+        keyTerms: ['JavaScript', 'React', 'Software Engineer'],
+        confidence: 0.8,
+        summary: 'Software engineering position requiring JavaScript and React skills'
+      }
+    };
+    
+    console.log('[JOB-POSTING-WORKFLOW] Testing with mock data:', mockResult);
+    handleJobPostingSuccess(mockResult);
   };
 
   const renderCurrentStep = () => {
+    console.log('[JOB-POSTING-WORKFLOW] Rendering step:', currentStep);
     switch (currentStep) {
-      case 'url-import':
+      case 'posting':
+        console.log('[JOB-POSTING-WORKFLOW] Rendering SimpleJobPostingForm');
         return (
-          <URLImportStep
-            onContinue={(importedData) => {
-              if (importedData) {
-                handleJobDataUpdate(importedData);
-              }
-              transitionToStep('job-details');
-            }}
-          />
+          <div>
+            {/* Test button for debugging */}
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 mb-2">Debug: Test success component with mock data</p>
+              <button
+                onClick={handleTestSuccess}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+              >
+                Test Success Component
+              </button>
+            </div>
+            
+            <SimpleJobPostingForm
+              onSuccess={handleJobPostingSuccess}
+            />
+          </div>
         );
-      case 'job-details':
+      case 'success':
         return (
-          <JobDetailsStep
-            jobData={jobData}
-            onUpdate={handleJobDataUpdate}
-            onContinue={() => transitionToStep('availability')}
-            onBack={() => transitionToStep('url-import')}
-          />
-        );
-      case 'availability':
-        return (
-          <AvailabilityStep
-            availability={availability}
-            onUpdate={handleAvailabilityUpdate}
-            onContinue={() => transitionToStep('completion')}
-            onBack={() => transitionToStep('job-details')}
-          />
-        );
-      case 'completion':
-        return (
-          <CompletionStep
-            jobData={jobData}
-            availability={availability}
-            onBack={() => transitionToStep('availability')}
+          <JobPostingSuccess
+            jobResult={jobResult!}
+            onStartOver={handleStartOver}
           />
         );
       default:
@@ -111,51 +172,22 @@ export function JobPostingWorkflow() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Progress Indicator */}
+      {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-semibold text-black dark:text-white">
-            Post New Job
-          </h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            Step {currentStep === 'url-import' ? 1 : currentStep === 'job-details' ? 2 : currentStep === 'availability' ? 3 : 4} of 4
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {['url-import', 'job-details', 'availability', 'completion'].map((step, index) => (
-            <div key={step} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors duration-200 ${
-                currentStep === step
-                  ? 'bg-apple-blue text-white'
-                  : index < ['url-import', 'job-details', 'availability', 'completion'].indexOf(currentStep)
-                  ? 'bg-apple-green text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-              }`}>
-                {index < ['url-import', 'job-details', 'availability', 'completion'].indexOf(currentStep) ? (
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  index + 1
-                )}
-              </div>
-              {index < 3 && (
-                <div className={`w-12 h-0.5 mx-2 transition-colors duration-200 ${
-                  index < ['url-import', 'job-details', 'availability', 'completion'].indexOf(currentStep)
-                    ? 'bg-apple-green'
-                    : 'bg-gray-200 dark:bg-gray-700'
-                }`} />
-              )}
-            </div>
-          ))}
-        </div>
+        <h1 className="text-3xl font-semibold text-black dark:text-white mb-2">
+          Post New Job
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          {currentStep === 'posting'
+            ? 'Simply paste your job posting and let AI extract all the details automatically.'
+            : 'Your job has been posted successfully!'
+          }
+        </p>
       </div>
 
       {/* Step Content */}
-      <div className={`transition-all duration-300 ease-out ${
-        isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-      }`}>
+      <div className={`transition-all duration-300 ease-out ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+        }`}>
         {renderCurrentStep()}
       </div>
     </div>

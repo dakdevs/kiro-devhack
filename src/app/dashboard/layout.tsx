@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardHeader } from './_modules/dashboard-header'
 import { DashboardSidebar } from './_modules/dashboard-sidebar'
+import { ErrorBoundary } from '~/components/error-boundary'
 
 export default async function DashboardLayout({
   children,
@@ -18,13 +19,19 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader user={session.user} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <ErrorBoundary>
+        <DashboardHeader user={session.user} />
+      </ErrorBoundary>
       <div className="flex">
-        <DashboardSidebar />
+        <ErrorBoundary>
+          <DashboardSidebar />
+        </ErrorBoundary>
         <main className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, vector, boolean, jsonb, index, bigserial, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, vector, boolean, jsonb, index, bigserial, integer, decimal } from 'drizzle-orm/pg-core';
 
 // Better Auth required tables
 export const user = pgTable('user', {
@@ -151,3 +151,127 @@ export const embeddings = pgTable('embeddings', {
 }));
 
 
+
+// Interview Management System Tables
+
+// Recruiter profiles table
+export const recruiterProfiles = pgTable('recruiter_profiles', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  organizationName: text('organization_name').notNull(),
+  recruitingFor: text('recruiting_for').notNull(),
+  contactEmail: text('contact_email'),
+  phoneNumber: text('phone_number'),
+  timezone: text('timezone').notNull().default('UTC'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userIndex: index('recruiter_profiles_user_idx').on(table.userId),
+  organizationIndex: index('recruiter_profiles_organization_idx').on(table.organizationName),
+}));
+
+// Job postings table
+export const jobPostings = pgTable('job_postings', {
+  id: text('id').primaryKey(),
+  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  rawDescription: text('raw_description').notNull(),
+  extractedSkills: jsonb('extracted_skills'),
+  requiredSkills: jsonb('required_skills'),
+  preferredSkills: jsonb('preferred_skills'),
+  experienceLevel: text('experience_level'),
+  salaryMin: integer('salary_min'),
+  salaryMax: integer('salary_max'),
+  location: text('location'),
+  remoteAllowed: boolean('remote_allowed').default(false),
+  employmentType: text('employment_type').default('full-time'),
+  status: text('status').notNull().default('active'),
+  aiConfidenceScore: decimal('ai_confidence_score', { precision: 3, scale: 2 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  recruiterIndex: index('job_postings_recruiter_idx').on(table.recruiterId),
+  statusIndex: index('job_postings_status_idx').on(table.status),
+  titleIndex: index('job_postings_title_idx').on(table.title),
+  locationIndex: index('job_postings_location_idx').on(table.location),
+  experienceLevelIndex: index('job_postings_experience_level_idx').on(table.experienceLevel),
+}));
+
+// Candidate availability table
+export const candidateAvailability = pgTable('candidate_availability', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time').notNull(),
+  timezone: text('timezone').notNull().default('UTC'),
+  isRecurring: boolean('is_recurring').default(false),
+  recurrencePattern: jsonb('recurrence_pattern'),
+  status: text('status').notNull().default('available'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userIndex: index('candidate_availability_user_idx').on(table.userId),
+  timeRangeIndex: index('candidate_availability_time_range_idx').on(table.startTime, table.endTime),
+  statusIndex: index('candidate_availability_status_idx').on(table.status),
+}));
+
+// Interview sessions for scheduling (separate from conversation sessions)
+export const interviewSessionsScheduled = pgTable('interview_sessions_scheduled', {
+  id: text('id').primaryKey(),
+  jobPostingId: text('job_posting_id').notNull().references(() => jobPostings.id, { onDelete: 'cascade' }),
+  candidateId: text('candidate_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
+  scheduledStart: timestamp('scheduled_start').notNull(),
+  scheduledEnd: timestamp('scheduled_end').notNull(),
+  timezone: text('timezone').notNull().default('UTC'),
+  status: text('status').notNull().default('scheduled'),
+  interviewType: text('interview_type').default('video'),
+  meetingLink: text('meeting_link'),
+  notes: text('notes'),
+  candidateConfirmed: boolean('candidate_confirmed').default(false),
+  recruiterConfirmed: boolean('recruiter_confirmed').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  jobPostingIndex: index('interview_sessions_scheduled_job_posting_idx').on(table.jobPostingId),
+  candidateIndex: index('interview_sessions_scheduled_candidate_idx').on(table.candidateId),
+  recruiterIndex: index('interview_sessions_scheduled_recruiter_idx').on(table.recruiterId),
+  statusIndex: index('interview_sessions_scheduled_status_idx').on(table.status),
+  scheduledTimeIndex: index('interview_sessions_scheduled_time_idx').on(table.scheduledStart),
+}));
+
+// Candidate job matches table
+export const candidateJobMatches = pgTable('candidate_job_matches', {
+  id: text('id').primaryKey(),
+  jobPostingId: text('job_posting_id').notNull().references(() => jobPostings.id, { onDelete: 'cascade' }),
+  candidateId: text('candidate_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  matchScore: decimal('match_score', { precision: 5, scale: 2 }).notNull(),
+  matchingSkills: jsonb('matching_skills'),
+  skillGaps: jsonb('skill_gaps'),
+  overallFit: text('overall_fit'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  jobPostingIndex: index('candidate_job_matches_job_posting_idx').on(table.jobPostingId),
+  candidateIndex: index('candidate_job_matches_candidate_idx').on(table.candidateId),
+  matchScoreIndex: index('candidate_job_matches_match_score_idx').on(table.matchScore),
+  overallFitIndex: index('candidate_job_matches_overall_fit_idx').on(table.overallFit),
+}));
+
+// Notifications table
+export const interviewNotifications = pgTable('interview_notifications', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  data: jsonb('data'),
+  read: boolean('read').default(false),
+  sentAt: timestamp('sent_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIndex: index('interview_notifications_user_idx').on(table.userId),
+  typeIndex: index('interview_notifications_type_idx').on(table.type),
+  readIndex: index('interview_notifications_read_idx').on(table.read),
+  createdAtIndex: index('interview_notifications_created_at_idx').on(table.createdAt),
+}));

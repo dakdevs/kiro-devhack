@@ -19,7 +19,11 @@
     "db:studio": "dotenvx run -f .env.local -- drizzle-kit studio",
     "db:drop": "dotenvx run -f .env.local -- drizzle-kit drop",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "deploy": "bash scripts/deploy.sh",
+    "monitor": "bash scripts/monitor-performance.sh",
+    "monitor:continuous": "bash scripts/monitor-performance.sh continuous",
+    "health-check": "bash scripts/monitor-performance.sh health-only"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.3",
@@ -44,13 +48,18 @@
     "@dotenvx/dotenvx": "^1.48.4",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^20",
     "@types/pg": "^8.15.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/supertest": "^6.0.3",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
+    "jsdom": "^26.1.0",
+    "supertest": "^7.1.4",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"

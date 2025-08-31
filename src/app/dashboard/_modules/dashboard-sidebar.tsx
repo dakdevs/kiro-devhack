@@ -3,6 +3,8 @@ import { SidebarLink } from './sidebar-link'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: 'Home' },
   { name: 'Job Applications', href: '/dashboard/applications', icon: 'Briefcase' },
+  { name: 'Interview Availability', href: '/dashboard/availability', icon: 'Clock' },
+  { name: 'Interview Management', href: '/dashboard/interview-management', icon: 'Calendar' },
   { name: 'Interviews', href: '/dashboard/interviews', icon: 'Calendar' },
   { name: 'Browse Jobs', href: '/dashboard/jobs', icon: 'Search' },
   { name: 'My Profile', href: '/dashboard/profile', icon: 'User' },
@@ -18,7 +20,7 @@ const secondaryNavigation = [
 
 export function DashboardSidebar() {
   return (
-    <aside className="hidden w-64 bg-white border-r border-gray-200 md:block">
+    <aside className="hidden w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-gray-700 md:block">
       <nav className="flex h-full flex-col">
         <div className="flex-1 space-y-1 px-3 py-4">
           <div className="space-y-1">

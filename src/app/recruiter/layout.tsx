@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { auth } from '~/lib/auth';
 import { headers } from 'next/headers';
 import Link from 'next/link';
+import { NotificationBell } from '~/components/notification-bell';
+import { ErrorBoundary } from '~/components/error-boundary';
 
 export default async function RecruiterLayout({
     children,
@@ -27,6 +29,18 @@ export default async function RecruiterLayout({
                             </h1>
                             <nav className="flex gap-6">
                                 <Link
+                                    href="/recruiter/profile"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Profile
+                                </Link>
+                                <Link
+                                    href="/recruiter/jobs"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Jobs
+                                </Link>
+                                <Link
                                     href="/recruiter/post-job"
                                     className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
                                 >
@@ -39,6 +53,12 @@ export default async function RecruiterLayout({
                                     Calendar
                                 </Link>
                                 <Link
+                                    href="/recruiter/interviews"
+                                    className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
+                                >
+                                    Interviews
+                                </Link>
+                                <Link
                                     href="/recruiter/applications"
                                     className="text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white transition-colors duration-150"
                                 >
@@ -47,6 +67,7 @@ export default async function RecruiterLayout({
                             </nav>
                         </div>
                         <div className="flex items-center gap-4">
+                            <NotificationBell />
                             <span className="text-sm text-gray-600 dark:text-gray-400">
                                 {session.user.name}
                             </span>
@@ -61,7 +82,9 @@ export default async function RecruiterLayout({
                 </div>
             </header>
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {children}
+                <ErrorBoundary>
+                    {children}
+                </ErrorBoundary>
             </main>
         </div>
     );
