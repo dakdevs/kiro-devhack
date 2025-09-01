@@ -65,9 +65,13 @@ export function AvailabilityManagementPage() {
 
   // Handle creating new availability
   const handleCreateAvailability = async (data: CreateAvailabilityRequest) => {
+    console.log('handleCreateAvailability called with:', data);
+    
     try {
       setIsSubmitting(true);
       setError(null);
+      
+      console.log('Making POST request to /api/availability');
       
       const response = await fetch('/api/availability', {
         method: 'POST',
@@ -77,11 +81,16 @@ export function AvailabilityManagementPage() {
         body: JSON.stringify(data),
       });
       
+      console.log('Response status:', response.status);
+      
       const result: AvailabilityResponse = await response.json();
+      console.log('Response data:', result);
       
       if (!result.success) {
-        throw new Error(result.error || 'Failed to create availability');
+        throw new Error(result.error || result.message || 'Failed to create availability');
       }
+      
+      console.log('Availability created successfully');
       
       // Reload availability data
       await loadAvailability();

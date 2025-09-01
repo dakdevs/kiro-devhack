@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from 'react';
-import { CreateJobPostingRequest, JobAnalysisResult } from '~/types/interview-management';
+import { CreateJobPostingRequest } from '~/types/interview-management';
 import { useCSRFToken, secureApiRequest } from '~/hooks/use-csrf-token';
+
 
 interface SimpleJobPostingFormProps {
   onSuccess: (result: any) => void;
@@ -13,6 +14,8 @@ export function SimpleJobPostingForm({ onSuccess }: SimpleJobPostingFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [importUrl, setImportUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
 
   // Initialize CSRF token
   const csrfToken = useCSRFToken();
@@ -21,9 +24,9 @@ export function SimpleJobPostingForm({ onSuccess }: SimpleJobPostingFormProps) {
     try {
       const response = await fetch('/api/recruiter/profile');
       const data = await response.json();
-      
+
       setDebugInfo(`Status: ${response.status}, Auth: ${response.ok ? 'OK' : 'Failed'}, Profile: ${data.success ? 'Exists' : 'Missing'}, Error: ${data.error || 'None'}`);
-      
+
       // If profile is missing, show helpful error
       if (response.status === 404) {
         setError('You need to create a recruiter profile before posting jobs. Please set up your profile first.');
@@ -36,7 +39,12 @@ export function SimpleJobPostingForm({ onSuccess }: SimpleJobPostingFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     console.log('[SIMPLE-JOB-FORM] handleSubmit called');
     e.preventDefault();
-    
+
+    // Add debugging info
+    console.log('[SIMPLE-JOB-FORM] Current URL:', window.location.href);
+    console.log('[SIMPLE-JOB-FORM] User agent:', navigator.userAgent);
+    console.log('[SIMPLE-JOB-FORM] Cookies:', document.cookie);
+
     if (!jobPosting.trim()) {
       console.log('[SIMPLE-JOB-FORM] Error: Empty job posting');
       setError('Please enter a job posting');
@@ -51,14 +59,20 @@ export function SimpleJobPostingForm({ onSuccess }: SimpleJobPostingFormProps) {
     setIsLoading(true);
     setError(null);
 
-    // Wait for CSRF token to be available
-    if (!csrfToken) {
-      setError('Security token not ready. Please wait a moment and try again.');
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      // Wait for CSRF token to be available with timeout
+      let attempts = 0;
+      const maxAttempts = 10;
+      while (!csrfToken && attempts < maxAttempts) {
+        console.log(`[SIMPLE-JOB-FORM] Waiting for CSRF token, attempt ${attempts + 1}/${maxAttempts}`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
+      }
+
+      if (!csrfToken) {
+        throw new Error('Security token not available. Please refresh the page and try again.');
+      }
+
       // Extract a basic title from the first line or first few words
       const lines = jobPosting.trim().split('\n');
       const firstLine = lines[0].trim();
@@ -84,91 +98,69 @@ export function SimpleJobPostingForm({ onSuccess }: SimpleJobPostingFormProps) {
 
       if (!response.ok) {
         let errorMessage = 'Failed to create job posting';
-        let errorData = null;
-        
+
         try {
           const responseText = await response.text();
           console.log('[SIMPLE-JOB-FORM] Error response text:', responseText);
-          console.log('[SIMPLE-JOB-FORM] Response status:', response.status);
-          console.log('[SIMPLE-JOB-FORM] Response status text:', response.statusText);
-          
+
           if (responseText) {
             try {
-              errorData = JSON.parse(responseText);
+              const errorData = JSON.parse(responseText);
               console.log('[SIMPLE-JOB-FORM] Parsed error data:', errorData);
               errorMessage = errorData.error || errorData.message || errorMessage;
             } catch (jsonError) {
-              console.log('[SIMPLE-JOB-FORM] Response is not JSON:', jsonError);
-              errorMessage = responseText || `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
+              console.log('[SIMPLE-JOB-FORM] Response is not JSON, using raw text');
+              errorMessage = responseText;
             }
-          } else {
-            errorMessage = `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
           }
         } catch (parseError) {
           console.log('[SIMPLE-JOB-FORM] Error reading response:', parseError);
           errorMessage = `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
         }
-        
-        console.log('[SIMPLE-JOB-FORM] Final error message:', errorMessage);
-        console.log('[SIMPLE-JOB-FORM] Error message type:', typeof errorMessage);
-        
-        // Handle object errors properly
-        if (typeof errorMessage === 'object') {
-          const errorObj = errorMessage as any;
-          errorMessage = errorObj.message || errorObj.error || 'Server error occurred';
+
+        // Handle specific HTTP status codes
+        if (response.status === 401) {
+          errorMessage = 'Authentication required. Please sign in and try again.';
+        } else if (response.status === 403) {
+          errorMessage = 'Access denied. Please check your permissions or create a recruiter profile.';
+        } else if (response.status === 404) {
+          errorMessage = 'Recruiter profile not found. Please create your profile first.';
+        } else if (response.status >= 500) {
+          errorMessage = 'Server error occurred. Please try again in a moment.';
         }
-        
-        // Provide more specific error messages
-        if (String(errorMessage).includes('AI analysis')) {
-          errorMessage = 'AI analysis failed. The job posting was not created. Please try again or contact support if the issue persists.';
-        } else if (String(errorMessage).includes('Database')) {
-          errorMessage = 'Database error occurred. Please try again.';
-        } else if (String(errorMessage).includes('Network')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
-        }
-        
-        throw new Error(String(errorMessage));
+
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       console.log('[SIMPLE-JOB-FORM] API response result:', result);
-      console.log('[SIMPLE-JOB-FORM] result.data:', result.data);
-      console.log('[SIMPLE-JOB-FORM] result.data type:', typeof result.data);
-      console.log('[SIMPLE-JOB-FORM] result.data keys:', result.data ? Object.keys(result.data) : 'null');
-      console.log('[SIMPLE-JOB-FORM] result.data.job:', result.data?.job);
-      console.log('[SIMPLE-JOB-FORM] result.data.analysis:', result.data?.analysis);
-      
+
       if (result.success && result.data) {
-        console.log('[SIMPLE-JOB-FORM] Calling onSuccess with entire result:', result);
-        onSuccess(result); // Pass the entire API response
+        console.log('[SIMPLE-JOB-FORM] Job posting created successfully');
+        onSuccess(result);
       } else {
         throw new Error(result.error || 'Failed to create job posting');
       }
     } catch (err) {
       console.error('[SIMPLE-JOB-FORM] Error creating job posting:', err);
-      console.error('[SIMPLE-JOB-FORM] Error type:', err?.constructor?.name);
-      console.error('[SIMPLE-JOB-FORM] Error message:', err instanceof Error ? err.message : String(err));
-      console.error('[SIMPLE-JOB-FORM] Error stack:', err instanceof Error ? err.stack : 'No stack');
-      
+
       let errorMessage = 'An unexpected error occurred';
       if (err instanceof Error) {
         errorMessage = err.message;
-        
-        // Show raw error for debugging
-        console.log('[SIMPLE-JOB-FORM] Raw error message:', errorMessage);
-        
+
         // Provide helpful guidance for common errors
         if (errorMessage.includes('Recruiter profile not found')) {
           errorMessage = 'Please create your recruiter profile first before posting jobs. Go to Profile → Create Profile to get started.';
-        } else if (errorMessage.includes('CSRF token')) {
+        } else if (errorMessage.includes('CSRF') || errorMessage.includes('Security token')) {
           errorMessage = 'Security token expired. Please refresh the page and try again.';
         } else if (errorMessage.includes('Authentication required')) {
           errorMessage = 'Please sign in to post jobs.';
+        } else if (errorMessage.includes('Network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
         }
       }
-      
-      // For debugging, show the raw error in the UI temporarily
-      setError(`${errorMessage} (Raw: ${err instanceof Error ? err.message : 'Unknown'})`);
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -180,6 +172,51 @@ export function SimpleJobPostingForm({ onSuccess }: SimpleJobPostingFormProps) {
       setError(null);
     }, 0);
   };
+
+  const handleImportFromUrl = async () => {
+    if (!importUrl.trim()) {
+      setError('Please enter a URL to import from');
+      return;
+    }
+
+    setIsImporting(true);
+    setError(null);
+
+    try {
+      // Use the API route to fetch and convert the JSON data
+      const apiUrl = `/api/convert_from_json?url=${encodeURIComponent(importUrl)}`;
+      const response = await fetch(apiUrl);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to fetch data: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // The API returns the extracted content in the 'text' field
+      const extractedContent = data.text;
+
+      if (!extractedContent || extractedContent.trim().length === 0) {
+        throw new Error('Could not extract job posting content from the provided JSON');
+      }
+
+      // Set the extracted content in the textarea
+      setJobPosting(extractedContent);
+      setImportUrl(''); // Clear the URL field
+
+      // Show success message briefly
+      setDebugInfo(`Successfully imported job data from URL (${extractedContent.length} characters)`);
+      setTimeout(() => setDebugInfo(null), 3000);
+
+    } catch (err) {
+      console.error('Error importing from URL:', err);
+      setError(err instanceof Error ? err.message : 'Failed to import from URL');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
 
   const exampleJobPosting = `Senior Software Engineer - Full Stack
 
@@ -211,7 +248,7 @@ Type: Full-time`;
   return (
     <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
       {/* Profile Required Notice */}
-      {debugInfo && debugInfo.includes('Profile: Missing') && (
+      {debugInfo?.includes('Profile: Missing') && (
         <div className="mb-6 px-4 py-4 rounded-lg border border-apple-orange bg-apple-orange/10 text-apple-orange">
           <div className="flex items-start gap-3">
             <div className="w-5 h-5 flex-shrink-0 mt-0.5">
@@ -224,8 +261,8 @@ Type: Full-time`;
               <p className="text-[15px] mb-3">
                 You need to create a recruiter profile before you can post jobs. This helps candidates learn about your company and contact you.
               </p>
-              <a 
-                href="/recruiter/profile" 
+              <a
+                href="/recruiter/profile"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-apple-orange text-white rounded-lg text-[15px] font-medium hover:bg-orange-600 transition-colors duration-150"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,6 +295,92 @@ Type: Full-time`;
                 <li>• Job type and location details</li>
                 <li>• Key responsibilities and requirements</li>
               </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* URL Import Section */}
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-5 h-5 flex-shrink-0 mt-0.5">
+              <svg className="w-5 h-5 text-apple-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-black dark:text-white mb-1">Import from URL</h3>
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 mb-3">
+                Import job posting data from a JSON URL. The system will automatically extract job details and populate the form below.
+              </p>
+
+              <div className="mb-3">
+                <p className="text-[12px] text-gray-500 dark:text-gray-500 mb-1">Test URLs:</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setImportUrl(`${window.location.origin}/test-job-data.json`)}
+                    className="text-[11px] px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-150"
+                    disabled={isImporting || isLoading}
+                  >
+                    Frontend Dev
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImportUrl(`${window.location.origin}/test-job-data-alt.json`)}
+                    className="text-[11px] px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-150"
+                    disabled={isImporting || isLoading}
+                  >
+                    Product Manager
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImportUrl(`${window.location.origin}/test-job-data-html.json`)}
+                    className="text-[11px] px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-150"
+                    disabled={isImporting || isLoading}
+                  >
+                    HTML Test
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImportUrl(`${window.location.origin}/test-greenhouse-job.json`)}
+                    className="text-[11px] px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-150"
+                    disabled={isImporting || isLoading}
+                  >
+                    Greenhouse
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={importUrl}
+                  onChange={(e) => setImportUrl(e.target.value)}
+                  placeholder="https://example.com/job-data.json"
+                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-black text-black dark:text-white font-system text-[14px] transition-colors duration-150 ease-out outline-none focus:border-apple-blue focus:shadow-[0_0_0_3px_rgba(0,122,255,0.1)] placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  disabled={isImporting || isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={handleImportFromUrl}
+                  disabled={isImporting || isLoading || !importUrl.trim()}
+                  className="px-4 py-2 bg-apple-blue text-white rounded-lg text-[14px] font-medium transition-all duration-150 ease-out hover:bg-[#0056CC] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-apple-blue flex items-center gap-2"
+                >
+                  {isImporting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                      </svg>
+                      Import
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -305,8 +428,8 @@ Type: Full-time`;
               <p className="text-[14px] opacity-90">{error}</p>
               {error.includes('recruiter profile') && (
                 <div className="mt-2">
-                  <a 
-                    href="/recruiter/profile" 
+                  <a
+                    href="/recruiter/profile"
                     className="inline-flex items-center gap-1 text-[13px] text-apple-blue hover:text-blue-600 transition-colors duration-150"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,10 +459,10 @@ Type: Full-time`;
           >
             Check Status
           </button>
-          
+
           <button
             type="submit"
-            disabled={isLoading || !jobPosting.trim() || jobPosting.trim().length < 50 || (debugInfo && debugInfo.includes('Profile: Missing'))}
+            disabled={isLoading || !jobPosting.trim() || jobPosting.trim().length < 50 || (debugInfo?.includes('Profile: Missing') ?? false)}
             className="flex-1 min-h-[44px] px-6 py-3 bg-apple-blue text-white rounded-lg font-system text-[17px] font-semibold transition-all duration-150 ease-out hover:bg-[#0056CC] hover:-translate-y-px active:bg-[#004499] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-apple-blue disabled:hover:translate-y-0 flex items-center justify-center gap-2"
           >
             {isLoading ? (

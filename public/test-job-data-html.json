@@ -1,0 +1,8 @@
+{
+  "title": "Full Stack Developer",
+  "company": "WebTech Solutions",
+  "location": {"name": "Austin, TX"},
+  "employment_type": "Full-time",
+  "description": "<div class='job-description'><h2>About the Role</h2><p>We are looking for a <strong>talented Full Stack Developer</strong> to join our growing team. You will be responsible for developing both <em>frontend</em> and <em>backend</em> components of our web applications.</p><h3>Requirements:</h3><ul><li>3+ years of experience in <span style='color: blue;'>web development</span></li><li>Proficiency in <b>JavaScript</b>, <b>Python</b>, and <b>SQL</b></li><li>Experience with <strong>React</strong> and <strong>Node.js</strong></li><li>Knowledge of <em>database design</em> and <em>API development</em></li></ul><h3>Nice to Have:</h3><ul><li>Experience with <span class='highlight'>Docker</span> and <span class='highlight'>Kubernetes</span></li><li>Knowledge of <a href='#'>cloud platforms</a> (AWS, GCP)</li><li>Previous <strong>startup experience</strong></li></ul><h3>Benefits:</h3><ul><li>Competitive salary: <span style='font-weight: bold;'>$90,000 - $130,000</span></li><li>Health insurance and <em>dental coverage</em></li><li>Remote work flexibility</li><li>Professional development budget</li></ul><p>Join us in building the <strong>next generation</strong> of web applications!</p></div>",
+  "content": "<p>This is additional content with <strong>HTML tags</strong> that should be <em>stripped</em> properly. It includes <a href='#'>links</a>, <span style='color: red;'>styled spans</span>, and other <b>formatting</b> elements.</p>"
+}

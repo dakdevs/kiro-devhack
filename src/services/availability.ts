@@ -21,21 +21,29 @@ export class AvailabilityService {
     userId: string, 
     request: CreateAvailabilityRequest
   ): Promise<CandidateAvailability> {
+    console.log('AvailabilityService.createAvailability called', { userId, request });
+    
     const startTime = new Date(request.startTime);
     const endTime = new Date(request.endTime);
     
+    console.log('Parsed times:', { startTime, endTime });
+    
     // Validate time slot
+    console.log('Validating time slot...');
     this.validateTimeSlot(startTime, endTime, request.timezone);
     
     // Check for conflicts with existing availability
+    console.log('Checking for conflicts...');
     const conflicts = await this.checkAvailabilityConflicts(userId, startTime, endTime);
     if (conflicts.length > 0) {
+      console.log('Conflicts found:', conflicts);
       throw new Error(`Availability conflicts with existing slots: ${conflicts.map(c => c.description).join(', ')}`);
     }
     
     const availabilityId = nanoid();
+    console.log('Generated availability ID:', availabilityId);
     
-    const [newAvailability] = await db.insert(candidateAvailability).values({
+    const insertData = {
       id: availabilityId,
       userId,
       startTime,
@@ -43,15 +51,25 @@ export class AvailabilityService {
       timezone: request.timezone,
       isRecurring: request.isRecurring || false,
       recurrencePattern: request.recurrencePattern || null,
-      status: 'available',
-    }).returning();
+      status: 'available' as const,
+    };
+    
+    console.log('Inserting into database:', insertData);
+    
+    const [newAvailability] = await db.insert(candidateAvailability).values(insertData).returning();
+    
+    console.log('Database insert successful:', newAvailability);
     
     // If recurring, generate additional slots
     if (request.isRecurring && request.recurrencePattern) {
+      console.log('Generating recurring slots...');
       await this.generateRecurringSlots(userId, newAvailability, request.recurrencePattern);
     }
     
-    return this.mapDbToAvailability(newAvailability);
+    const result = this.mapDbToAvailability(newAvailability);
+    console.log('Mapped result:', result);
+    
+    return result;
   }
   
   /**

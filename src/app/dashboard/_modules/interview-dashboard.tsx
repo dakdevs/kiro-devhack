@@ -76,6 +76,8 @@ export function InterviewDashboard({ userId }: InterviewDashboardProps) {
   };
 
   const handleAvailabilitySubmit = async (data: any) => {
+    console.log('handleAvailabilitySubmit called with:', data);
+    
     try {
       const url = editingAvailability 
         ? `/api/availability/${editingAvailability.id}`
@@ -83,18 +85,24 @@ export function InterviewDashboard({ userId }: InterviewDashboardProps) {
       
       const method = editingAvailability ? 'PUT' : 'POST';
       
+      console.log('Making request to:', url, 'with method:', method);
+      
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
 
+      console.log('Response status:', response.status);
+      
       const result = await response.json();
+      console.log('Response data:', result);
       
       if (!result.success) {
-        throw new Error(result.error || 'Failed to save availability');
+        throw new Error(result.error || result.message || 'Failed to save availability');
       }
 
+      console.log('Availability saved successfully');
       setShowAvailabilityForm(false);
       setSelectedSlot(null);
       setEditingAvailability(null);
@@ -102,7 +110,8 @@ export function InterviewDashboard({ userId }: InterviewDashboardProps) {
       
     } catch (error) {
       console.error('Failed to save availability:', error);
-      // You might want to show a toast notification here
+      setError(error instanceof Error ? error.message : 'Failed to save availability');
+      // Don't close the form on error so user can retry
     }
   };
 

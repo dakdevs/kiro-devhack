@@ -135,6 +135,17 @@ export class JobPostingService {
       console.log('[JOB-POSTING-SERVICE] Inserting job posting into database');
       console.log('[JOB-POSTING-SERVICE] Job data to insert:', JSON.stringify(jobData, null, 2));
       
+      // Validate required fields before insertion
+      if (!jobData.id || !jobData.recruiterId || !jobData.title || !jobData.rawDescription) {
+        console.error('[JOB-POSTING-SERVICE] Missing required fields:', {
+          id: !!jobData.id,
+          recruiterId: !!jobData.recruiterId,
+          title: !!jobData.title,
+          rawDescription: !!jobData.rawDescription
+        });
+        throw new Error('Missing required fields for job posting');
+      }
+      
       let createdJob;
       try {
         [createdJob] = await db
@@ -142,9 +153,14 @@ export class JobPostingService {
           .values(jobData)
           .returning();
         console.log('[JOB-POSTING-SERVICE] Database insertion successful, job ID:', createdJob?.id);
+        console.log('[JOB-POSTING-SERVICE] Created job object:', JSON.stringify(createdJob, null, 2));
       } catch (dbError) {
         console.error('[JOB-POSTING-SERVICE] Database insertion failed:', dbError);
-        throw dbError;
+        console.error('[JOB-POSTING-SERVICE] Error name:', (dbError as any)?.name);
+        console.error('[JOB-POSTING-SERVICE] Error code:', (dbError as any)?.code);
+        console.error('[JOB-POSTING-SERVICE] Error detail:', (dbError as any)?.detail);
+        console.error('[JOB-POSTING-SERVICE] Error constraint:', (dbError as any)?.constraint);
+        throw new Error(`Database error: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
       }
 
       if (!createdJob) {

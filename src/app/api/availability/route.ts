@@ -11,7 +11,10 @@ import { ZodError } from 'zod';
 // GET /api/availability - Get candidate availability
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: request.headers
+    });
+    
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -75,9 +78,17 @@ export async function GET(request: NextRequest) {
 
 // POST /api/availability - Create new availability slot
 export async function POST(request: NextRequest) {
+  console.log('POST /api/availability called');
+  
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: request.headers
+    });
+    
+    console.log('Session check:', { userId: session?.user?.id, hasSession: !!session });
+    
     if (!session?.user?.id) {
+      console.log('Unauthorized: No session or user ID');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -85,14 +96,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('Request body:', body);
     
     // Validate request body
+    console.log('Validating request body...');
     const validatedData = createAvailabilitySchema.parse(body);
+    console.log('Validation successful:', validatedData);
     
+    console.log('Creating availability with service...');
     const availability = await availabilityService.createAvailability(
       session.user.id,
       validatedData as CreateAvailabilityRequest
     );
+    
+    console.log('Availability created successfully:', availability);
 
     return NextResponse.json({
       success: true,
@@ -102,11 +119,13 @@ export async function POST(request: NextRequest) {
     console.error('Error creating availability:', error);
     
     if (error instanceof ZodError) {
+      console.log('Validation error details:', error.issues);
       return NextResponse.json(
         { 
           success: false, 
           error: 'Validation error',
-          message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+          message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+          details: error.issues
         },
         { status: 400 }
       );

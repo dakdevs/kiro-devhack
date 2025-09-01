@@ -153,14 +153,23 @@ export function AvailabilitySlotForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submission started', { formData });
+    
     if (!validateForm()) {
+      console.log('Form validation failed', { errors });
       return;
     }
 
     try {
+      // Convert datetime-local strings to ISO format
+      const startTimeISO = new Date(formData.startTime).toISOString();
+      const endTimeISO = new Date(formData.endTime).toISOString();
+      
+      console.log('Converted times:', { startTimeISO, endTimeISO });
+
       const baseData = {
-        startTime: formData.startTime,
-        endTime: formData.endTime,
+        startTime: startTimeISO,
+        endTime: endTimeISO,
         timezone: formData.timezone,
         ...(availability && { status: formData.status })
       };
@@ -188,9 +197,13 @@ export function AvailabilitySlotForm({
         };
       }
 
+      console.log('Submitting data:', submitData);
       await onSubmit(submitData);
+      console.log('Form submission completed successfully');
     } catch (error) {
       console.error('Form submission error:', error);
+      // Show error to user
+      setErrors(prev => ({ ...prev, submit: error instanceof Error ? error.message : 'Failed to save availability' }));
     }
   };
 
@@ -412,6 +425,13 @@ export function AvailabilitySlotForm({
                 />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Submission Error */}
+        {errors.submit && (
+          <div className="px-4 py-3 bg-apple-red/10 border border-apple-red/20 text-apple-red rounded-lg">
+            {errors.submit}
           </div>
         )}
 

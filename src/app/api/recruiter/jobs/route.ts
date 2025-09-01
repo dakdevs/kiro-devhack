@@ -153,11 +153,33 @@ export const POST = createSecureAPIRoute(
       result = await jobPostingService.createJobPosting(recruiterProfile.id, jobData);
     } catch (serviceError) {
       console.error('[RECRUITER-JOBS-POST] Job posting service threw error:', serviceError);
+      console.error('[RECRUITER-JOBS-POST] Error type:', serviceError?.constructor?.name);
+      console.error('[RECRUITER-JOBS-POST] Error message:', serviceError instanceof Error ? serviceError.message : String(serviceError));
       console.error('[RECRUITER-JOBS-POST] Error stack:', serviceError instanceof Error ? serviceError.stack : 'No stack');
-      return createSecureErrorResponse(
-        serviceError instanceof Error ? serviceError.message : 'Job posting service error', 
-        500
-      );
+      
+      // Provide more specific error messages based on error type
+      let errorMessage = 'Failed to create job posting';
+      let statusCode = 500;
+      
+      if (serviceError instanceof Error) {
+        if (serviceError.message.includes('Database error')) {
+          errorMessage = 'Database error occurred while creating job posting. Please try again.';
+          statusCode = 500;
+        } else if (serviceError.message.includes('Missing required fields')) {
+          errorMessage = 'Invalid job posting data. Please check all required fields.';
+          statusCode = 400;
+        } else if (serviceError.message.includes('Rate limit')) {
+          errorMessage = 'Too many requests. Please wait a moment and try again.';
+          statusCode = 429;
+        } else if (serviceError.message.includes('AI analysis')) {
+          errorMessage = 'AI analysis failed, but job posting was created with basic information.';
+          statusCode = 500;
+        } else {
+          errorMessage = serviceError.message;
+        }
+      }
+      
+      return createSecureErrorResponse(errorMessage, statusCode);
     }
     
     if (!result.success) {

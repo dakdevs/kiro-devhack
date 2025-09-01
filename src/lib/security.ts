@@ -54,19 +54,23 @@ export class CSRFProtection {
 
 // Input sanitization and validation
 export class InputSanitizer {
-  // SQL injection prevention patterns
+  // SQL injection prevention patterns - more specific to avoid false positives
   private static readonly SQL_INJECTION_PATTERNS = [
-    // Dangerous SQL keywords in suspicious contexts
-    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b.*\b(FROM|INTO|TABLE|DATABASE)\b)/gi,
-    // SQL comments that could be used for injection
-    /(--\s*$|\/\*.*\*\/)/gm,
-    // Classic SQL injection patterns
-    /(\bOR\b|\bAND\b)\s+\d+\s*=\s*\d+/gi,
-    /\b(WAITFOR|DELAY)\b\s+(DELAY|TIME)/gi,
-    // Union-based injection attempts
-    /\bUNION\b\s+(ALL\s+)?SELECT\b/gi,
-    // Hex-encoded or char-based injections
-    /\b(CHAR|ASCII|HEX)\s*\(/gi,
+    // Dangerous SQL keywords in suspicious contexts (more specific)
+    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC)\b\s+(FROM|INTO|TABLE|DATABASE|SCHEMA)\b)/gi,
+    // SQL comments that could be used for injection (but not in normal text)
+    /(--\s*['";\s]|\/\*.*\*\/)/gm,
+    // Classic SQL injection patterns with operators
+    /(\bOR\b|\bAND\b)\s+\d+\s*[=<>!]+\s*\d+/gi,
+    /\b(WAITFOR|DELAY)\b\s+(DELAY|TIME)\s*\(/gi,
+    // Union-based injection attempts (more specific)
+    /\bUNION\b\s+(ALL\s+)?SELECT\b\s+/gi,
+    // Hex-encoded or char-based injections with function calls
+    /\b(CHAR|ASCII|HEX)\s*\(\s*\d+/gi,
+    // Suspicious SQL function patterns
+    /\b(EXEC|EXECUTE)\s*\(/gi,
+    // Multiple SQL statements (semicolon followed by SQL keywords)
+    /;\s*(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b/gi,
   ];
 
   // XSS prevention patterns
