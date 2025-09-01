@@ -1,20 +1,27 @@
 import { NextResponse } from 'next/server';
 import { convert } from 'html-to-text';
 
-function turnUrlToJsonUrl(url: any): string {
-    if (url.includes('greenhouse.io')) {
-        const regex = /jobs\/(\d+)/;
-        const match = url.match(regex);
-        var jobIdString = ''
-        if (match && match[1]) {
-            jobIdString = match[1];
-        }
-        else {
-            throw Error("something got messed up during regex matching");
-        }
-        return `https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs/${jobIdString}?questions=true&pay_transparency=true`;
+function turnUrlToJsonUrl(url: string): string {
+    
+    if (!url.includes('greenhouse.io')) {
+        return '';
     }
-    return '';
+
+    
+    const regex = /greenhouse\.io\/([^/]+)\/jobs\/(\d+)|greenhouse\.io\/jobs\/(\d+)/;
+    const match = url.match(regex);
+
+    if (!match) {
+        throw new Error("Could not parse the company name or job ID from the Greenhouse URL.");
+    }
+
+    // If the 1st capture group exists, use it as the company name. Otherwise, default to 'greenhouse'.
+    const companyName = match[1] || 'greenhouse';
+    
+    // The job ID will be in either the 2nd or 3rd capture group, depending on which pattern matched.
+    const jobId = match[2] || match[3];
+
+    return `https://boards-api.greenhouse.io/v1/boards/${companyName}/jobs/${jobId}?questions=true&pay_transparency=true`;
 }
 
 function stripHtmlTags(html: string): string {
@@ -150,8 +157,9 @@ export async function GET(request: Request) {
         if (!targetUrl) {
             return NextResponse.json({ error: 'Missing "url" parameter' }, { status: 400 });
         }
+        const urlToFetch = turnUrlToJsonUrl(targetUrl);
 
-        const response = await fetch(targetUrl);
+        const response = await fetch(urlToFetch);
 
         if (!response.ok) {
             throw Error(`Failed to fetch data from external URL: ${response.statusText}`);
