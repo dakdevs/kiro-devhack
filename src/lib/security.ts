@@ -177,12 +177,23 @@ export class SecurityAuth {
   ): Promise<{ userId: string; email: string; role: string }> {
     const user = await this.requireAuth(request);
     
-    // For now, we'll determine role based on profile existence
-    // In a more complex system, this would check a roles table
+    // Check role based on profile existence
+    if (requiredRole === 'recruiter') {
+      // Import here to avoid circular dependency
+      const { recruiterProfileService } = await import('~/services/recruiter-profile');
+      const hasRecruiterProfile = await recruiterProfileService.hasProfile(user.userId);
+      
+      if (!hasRecruiterProfile) {
+        throw new AuthorizationError('Recruiter profile required. Please create a recruiter profile first.');
+      }
+    }
+    
+    // For candidates and admins, we can add similar checks later
+    // For now, just validate that the user is authenticated
     
     return {
       ...user,
-      role: requiredRole, // Placeholder - implement proper role checking
+      role: requiredRole,
     };
   }
 

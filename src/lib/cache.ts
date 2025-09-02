@@ -182,6 +182,7 @@ export const cacheKeys = {
   
   // AI analysis caches
   aiAnalysis: (contentHash: string) => `ai:analysis:${contentHash}`,
+  skillExtraction: (text: string, context?: string) => `skills:extract:${cacheUtils.generateContentHash(text + (context || ''))}`,
   candidateMatching: (jobId: string, candidateId: string) => `match:${jobId}:${candidateId}`,
   
   // Notification caches

@@ -122,6 +122,15 @@ export function RecruiterDashboard({ userId }: RecruiterDashboardProps) {
         console.log('[RECRUITER-DASHBOARD] Jobs response status:', jobsResponse.status);
         console.log('[RECRUITER-DASHBOARD] Jobs response headers:', Object.fromEntries(jobsResponse.headers.entries()));
         
+        if (jobsResponse.status === 403 || jobsResponse.status === 404) {
+          // User doesn't have a recruiter profile
+          const errorData = await jobsResponse.json();
+          if (errorData.error?.includes('Recruiter profile')) {
+            setError('profile_required');
+            return;
+          }
+        }
+        
         if (jobsResponse.ok) {
           const contentType = jobsResponse.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
@@ -171,6 +180,16 @@ export function RecruiterDashboard({ userId }: RecruiterDashboardProps) {
       try {
         const refreshParam = forceRefresh ? '?refresh=true' : '';
         const statsResponse = await fetch(`/api/recruiter/jobs/stats${refreshParam}`);
+        
+        if (statsResponse.status === 403 || statsResponse.status === 404) {
+          // User doesn't have a recruiter profile
+          const errorData = await statsResponse.json();
+          if (errorData.error?.includes('Recruiter profile')) {
+            setError('profile_required');
+            return;
+          }
+        }
+        
         if (statsResponse.ok) {
           const contentType = statsResponse.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
@@ -370,6 +389,55 @@ export function RecruiterDashboard({ userId }: RecruiterDashboardProps) {
     );
   }
 
+  if (error === 'profile_required') {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-semibold text-black dark:text-white mb-2">
+            Welcome to Recruiter Dashboard
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Get started by creating your recruiter profile
+          </p>
+        </div>
+
+        <div className="bg-apple-blue/10 border border-apple-blue/20 rounded-xl p-8 text-center">
+          <div className="w-16 h-16 bg-apple-blue/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Briefcase className="w-8 h-8 text-apple-blue" />
+          </div>
+          
+          <h2 className="text-xl font-semibold text-black dark:text-white mb-2">
+            Create Your Recruiter Profile
+          </h2>
+          
+          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+            To start posting jobs and managing candidates, you need to set up your recruiter profile first.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/recruiter/profile"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150 font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              Create Profile
+            </Link>
+            
+            <button
+              onClick={() => fetchDashboardData(true)}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150 font-medium"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
@@ -432,26 +500,26 @@ export function RecruiterDashboard({ userId }: RecruiterDashboardProps) {
           <button
             onClick={async () => {
               try {
-                const response = await fetch('/api/debug/create-test-candidates', { method: 'POST' });
+                const response = await fetch('/api/debug/create-mock-candidates', { method: 'POST' });
                 const data = await response.json();
-                console.log('[RECRUITER-DASHBOARD] Test candidates data:', data);
+                console.log('[RECRUITER-DASHBOARD] Mock candidates data:', data);
                 if (data.success) {
-                  alert(`Created ${data.data.candidates.length} test candidates with skills!`);
+                  alert(`Successfully created ${data.data.summary.totalCandidates} mock candidates with ${data.data.summary.totalSkills} skills!\n\nAverage skills per candidate: ${data.data.summary.averageSkillsPerCandidate}\n\nThese candidates are now available for job matching.`);
+                  // Refresh dashboard data
+                  fetchDashboardData(true);
                 } else {
-                  alert(`Failed to create test candidates: ${data.error}`);
+                  alert(`Failed to create mock candidates: ${data.error}`);
                 }
               } catch (error) {
-                console.error('[RECRUITER-DASHBOARD] Create test candidates failed:', error);
-                alert('Failed to create test candidates - check console');
+                console.error('[RECRUITER-DASHBOARD] Create mock candidates failed:', error);
+                alert('Failed to create mock candidates - check console');
               }
             }}
             className="inline-flex items-center gap-2 px-3 py-2 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 border border-green-200 dark:border-green-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-150"
-            title="Create test candidates with skills"
+            title="Create 25 realistic mock candidates with diverse skills"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Create Test Candidates
+            <Users className="w-4 h-4" />
+            Create 25 Mock Candidates
           </button>
           
           <button
@@ -484,6 +552,38 @@ export function RecruiterDashboard({ userId }: RecruiterDashboardProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             Clear Test Data
+          </button>
+          
+          <button
+            onClick={async () => {
+              if (!confirm('This will remove all 25 mock candidates and their skills from the database. Are you sure?')) {
+                return;
+              }
+              
+              try {
+                const response = await fetch('/api/debug/clear-mock-candidates', { method: 'POST' });
+                const data = await response.json();
+                console.log('[RECRUITER-DASHBOARD] Clear mock candidates result:', data);
+                
+                if (data.success) {
+                  alert(`Mock Candidates Cleared!\n\n- Removed Users: ${data.data.removedUsers}\n- Removed Skills: ${data.data.removedSkills}\n\nThe database now only contains real users.`);
+                  // Refresh dashboard data
+                  fetchDashboardData(true);
+                } else {
+                  alert(`Failed to clear mock candidates: ${data.error}`);
+                }
+              } catch (error) {
+                console.error('[RECRUITER-DASHBOARD] Clear mock candidates failed:', error);
+                alert('Clear mock candidates failed - check console');
+              }
+            }}
+            className="inline-flex items-center gap-2 px-3 py-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 border border-red-200 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150"
+            title="Remove all mock candidates from database"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Clear Mock Candidates
           </button>
           
           <button

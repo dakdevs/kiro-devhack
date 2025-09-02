@@ -634,7 +634,29 @@ async function createSkillMention(params: {
     }
 }
 
-function extractSkillsFromText(text: string): Array<{ skill: string; evidence: string; confidence: number }> {
+async function extractSkillsFromText(text: string): Promise<Array<{ skill: string; evidence: string; confidence: number }>> {
+    try {
+        // Import the new comprehensive skill extraction service
+        const { skillExtractionService } = await import('~/services/skill-extraction');
+        
+        // Use the comprehensive skill extraction
+        const result = await skillExtractionService.extractSkills(text, 'interview');
+        
+        // Convert to the expected format
+        return result.skills.map(skill => ({
+            skill: skill.name,
+            evidence: skill.evidence,
+            confidence: skill.confidence
+        }));
+    } catch (error) {
+        console.warn('⚠️ Comprehensive skill extraction failed, using fallback:', error);
+        
+        // Fallback to basic extraction if the service fails
+        return extractSkillsFromTextFallback(text);
+    }
+}
+
+function extractSkillsFromTextFallback(text: string): Array<{ skill: string; evidence: string; confidence: number }> {
     const knownSkills = [
         'react', 'reactjs', 'typescript', 'node', 'next', 'tailwind', 'sql', 'postgres', 'docker', 'graphql', 'jest'
     ];
@@ -879,7 +901,7 @@ export async function POST(req: NextRequest) {
 
                 // Skill extraction and persistence
                 console.log('🔍 Extracting skills from user response...');
-                const skills = extractSkillsFromText(latestUserMessage.content);
+                const skills = await extractSkillsFromText(latestUserMessage.content);
                 for (const { skill, evidence, confidence } of skills) {
                     console.log(`📌 Detected skill: ${skill} (confidence: ${confidence})`);
 
