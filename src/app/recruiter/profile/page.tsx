@@ -249,6 +249,31 @@ export default function RecruiterProfilePage() {
         </div>
       )}
 
+      {/* Debug Section (only in development) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-400 mb-2">
+            Debug Information
+          </h3>
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/debug/user-session');
+                const data = await response.json();
+                console.log('Debug user session:', data);
+                alert(`Debug Info:\nUser ID: ${data.debug?.session?.userId || 'None'}\nUser exists in DB: ${data.debug?.userExists || false}\nTotal users: ${data.debug?.totalUsers || 0}`);
+              } catch (error) {
+                console.error('Debug failed:', error);
+                alert('Debug failed - check console');
+              }
+            }}
+            className="px-3 py-1 text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-200 dark:hover:bg-yellow-700"
+          >
+            Debug User Session
+          </button>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         {viewMode === 'view' && profile && (

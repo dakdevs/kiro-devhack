@@ -639,6 +639,56 @@ export class JobPostingService {
   }
 
   /**
+   * Extract skills from job description using comprehensive skill extraction
+   */
+  async extractSkillsFromDescription(description: string, title?: string): Promise<{
+    skills: Array<{ name: string; required: boolean; category: string }>;
+    confidence: number;
+  }> {
+    try {
+      // Import the comprehensive skill extraction service
+      const { skillExtractionService } = await import('./skill-extraction');
+      
+      // Use the comprehensive skill extraction
+      const result = await skillExtractionService.extractSkills(description, 'job_posting');
+      
+      // Convert to the expected format for job postings
+      const skills = result.skills.map(skill => ({
+        name: skill.name,
+        required: skill.confidence > 0.7, // High confidence skills are considered required
+        category: skill.category
+      }));
+
+      return {
+        skills,
+        confidence: result.confidence
+      };
+    } catch (error) {
+      console.warn('⚠️ Comprehensive skill extraction failed, using fallback:', error);
+      
+      // Fallback to basic job analysis service
+      try {
+        const analysis = await jobAnalysisService.analyzeJobPosting(description, title);
+        const skills = [
+          ...analysis.requiredSkills.map(skill => ({ ...skill, required: true })),
+          ...analysis.preferredSkills.map(skill => ({ ...skill, required: false }))
+        ];
+        
+        return {
+          skills,
+          confidence: analysis.confidence
+        };
+      } catch (fallbackError) {
+        console.error('Both skill extraction methods failed:', fallbackError);
+        return {
+          skills: [],
+          confidence: 0.1
+        };
+      }
+    }
+  }
+
+  /**
    * Map database job posting to JobPosting interface
    */
   private mapDbJobToJobPosting(dbJob: any): JobPosting {

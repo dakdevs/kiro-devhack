@@ -1,0 +1,5112 @@
+nohup: ignoring input
+
+> better-profile-app@0.1.0 dev /home/meow/Desktop/kiro-devhack
+> docker compose up -d && next dev
+
+ Container postgres-pgvector  Running
+   ▲ Next.js 15.4.5
+   - Local:        http://localhost:3000
+   - Network:      http://100.69.32.71:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 2.3s
+ ○ Compiling /api/test-jobs ...
+ ✓ Compiled /api/test-jobs in 2s (524 modules)
+[JOB-POSTING-SERVICE] getJobPostings called with: {
+  recruiterId: '21b448edfc635d367b1d9216654d74f5',
+  options: { page: 1, limit: 25 }
+}
+[JOB-POSTING-SERVICE] Total jobs in database: 25
+[JOB-POSTING-SERVICE] Jobs for recruiter 21b448edfc635d367b1d9216654d74f5 : 25
+[JOB-POSTING-SERVICE] Base condition: recruiterId = 21b448edfc635d367b1d9216654d74f5
+[JOB-POSTING-SERVICE] Executing count query with conditions: 1
+[JOB-POSTING-SERVICE] Total count result: 25
+[JOB-POSTING-SERVICE] Executing select query with limit: 25 offset: 0
+[JOB-POSTING-SERVICE] Raw jobs from database: 25 jobs found
+[JOB-POSTING-SERVICE] First job raw data: {
+  "id": "cea77dd9f8fcba8f9780e7264030c71b",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Quality Engineer",
+  "rawDescription": "Ensure product quality and compliance through comprehensive quality assurance programs and testing procedures.\n    \n    We're looking for a detail-oriented engineer who is passionate about quality and continuous improvement.\n    \n    Required Skills:\n    - Bachelor's degree in Engineering or related field\n    - 2+ years of quality engineering experience\n    - Knowledge of quality management systems (ISO 9001)\n    - Experience with statistical analysis and quality tools\n    - Strong problem-solving and analytical skills\n    \n    Preferred Skills:\n    - Six Sigma certification\n    - Supplier quality management\n    - Regulatory compliance experience\n    - Root cause analysis methodologies\n    - Audit and inspection experience\n    \n    Compensation: $65,000 - $85,000 with quality impact opportunities.",
+  "extractedSkills": [
+    {
+      "name": "quality assurance",
+      "context": "comprehensive quality assurance programs",
+      "category": "technical",
+      "synonyms": [
+        "QA"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "testing procedures",
+      "context": "testing procedures",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "quality management systems",
+      "context": "knowledge of quality management systems (ISO 9001)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "statistical analysis",
+      "context": "experience with statistical analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "quality tools",
+      "context": "experience with quality tools",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "problem-solving",
+      "context": "strong problem-solving and analytical skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "analytical skills",
+      "context": "strong problem-solving and analytical skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Six Sigma",
+      "context": "Six Sigma certification",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "supplier quality management",
+      "context": "Supplier quality management",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "regulatory compliance",
+      "context": "Regulatory compliance experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "root cause analysis",
+      "context": "Root cause analysis methodologies",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "audit",
+      "context": "Audit and inspection experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "inspection",
+      "context": "Audit and inspection experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Bachelor's degree in Engineering or related field",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "2+ years of quality engineering experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Knowledge of quality management systems (ISO 9001)",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Experience with statistical analysis and quality tools",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Strong problem-solving and analytical skills",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Six Sigma certification",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "Supplier quality management",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Regulatory compliance experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Root cause analysis methodologies",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Audit and inspection experience",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 65000,
+  "salaryMax": 85000,
+  "location": "Cincinnati, OH",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T06:00:17.701Z",
+  "updatedAt": "2025-09-02T06:00:17.701Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "cea77dd9f8fcba8f9780e7264030c71b",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Quality Engineer",
+  "rawDescription": "Ensure product quality and compliance through comprehensive quality assurance programs and testing procedures.\n    \n    We're looking for a detail-oriented engineer who is passionate about quality and continuous improvement.\n    \n    Required Skills:\n    - Bachelor's degree in Engineering or related field\n    - 2+ years of quality engineering experience\n    - Knowledge of quality management systems (ISO 9001)\n    - Experience with statistical analysis and quality tools\n    - Strong problem-solving and analytical skills\n    \n    Preferred Skills:\n    - Six Sigma certification\n    - Supplier quality management\n    - Regulatory compliance experience\n    - Root cause analysis methodologies\n    - Audit and inspection experience\n    \n    Compensation: $65,000 - $85,000 with quality impact opportunities.",
+  "extractedSkills": [
+    {
+      "name": "quality assurance",
+      "context": "comprehensive quality assurance programs",
+      "category": "technical",
+      "synonyms": [
+        "QA"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "testing procedures",
+      "context": "testing procedures",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "quality management systems",
+      "context": "knowledge of quality management systems (ISO 9001)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "statistical analysis",
+      "context": "experience with statistical analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "quality tools",
+      "context": "experience with quality tools",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "problem-solving",
+      "context": "strong problem-solving and analytical skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "analytical skills",
+      "context": "strong problem-solving and analytical skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Six Sigma",
+      "context": "Six Sigma certification",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "supplier quality management",
+      "context": "Supplier quality management",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "regulatory compliance",
+      "context": "Regulatory compliance experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "root cause analysis",
+      "context": "Root cause analysis methodologies",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "audit",
+      "context": "Audit and inspection experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "inspection",
+      "context": "Audit and inspection experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Bachelor's degree in Engineering or related field",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "2+ years of quality engineering experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Knowledge of quality management systems (ISO 9001)",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Experience with statistical analysis and quality tools",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Strong problem-solving and analytical skills",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Six Sigma certification",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "Supplier quality management",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Regulatory compliance experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Root cause analysis methodologies",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Audit and inspection experience",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 65000,
+  "salaryMax": 85000,
+  "location": "Cincinnati, OH",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T06:00:17.701Z",
+  "updatedAt": "2025-09-02T06:00:17.701Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "b9ddbe3041f00f83f4390dd54f295bde",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Manufacturing Engineer",
+  "rawDescription": "Optimize manufacturing processes and improve production efficiency in our state-of-the-art facility.\n    \n    This role offers the opportunity to work with advanced manufacturing technologies and continuous improvement initiatives.\n    \n    Required Skills:\n    - Bachelor's degree in Manufacturing, Industrial, or Mechanical Engineering\n    - 3+ years of manufacturing engineering experience\n    - Knowledge of lean manufacturing principles\n    - Experience with process improvement methodologies\n    - Familiarity with automation and robotics\n    \n    Preferred Skills:\n    - Six Sigma certification (Green Belt or higher)\n    - CAD software proficiency (AutoCAD, SolidWorks)\n    - Statistical process control (SPC)\n    - ERP system experience (SAP, Oracle)\n    - Project management skills\n    \n    Salary: $70,000 - $95,000 with process improvement impact.",
+  "extractedSkills": [
+    {
+      "name": "lean manufacturing principles",
+      "context": "Knowledge of lean manufacturing principles",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "process improvement methodologies",
+      "context": "Experience with process improvement methodologies",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "automation",
+      "context": "Familiarity with automation and robotics",
+      "category": "technical",
+      "synonyms": [
+        "robotics"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Six Sigma certification",
+      "context": "Six Sigma certification (Green Belt or higher)",
+      "category": "certification",
+      "synonyms": [
+        "Green Belt"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "CAD software proficiency",
+      "context": "CAD software proficiency (AutoCAD, SolidWorks)",
+      "category": "technical",
+      "synonyms": [
+        "AutoCAD",
+        "SolidWorks"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Statistical process control",
+      "context": "Statistical process control (SPC)",
+      "category": "technical",
+      "synonyms": [
+        "SPC"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "ERP system experience",
+      "context": "ERP system experience (SAP, Oracle)",
+      "category": "technical",
+      "synonyms": [
+        "SAP",
+        "Oracle"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "project management skills",
+      "context": "Project management skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Bachelor's degree in Manufacturing, Industrial, or Mechanical Engineering",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "3+ years of manufacturing engineering experience",
+      "category": "domain",
+      "required": true
+    }
+  ],
+  "preferredSkills": [],
+  "experienceLevel": "mid",
+  "salaryMin": 70000,
+  "salaryMax": 95000,
+  "location": "Milwaukee, WI",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T06:00:06.976Z",
+  "updatedAt": "2025-09-02T06:00:06.976Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "ad4efed3f885f8a40ac041ee02852db4",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Electrical Engineer",
+  "rawDescription": "Design and develop electrical systems and components for our innovative technology products.\n    \n    We're seeking an experienced engineer who can work on complex electrical designs and systems integration.\n    \n    Required Skills:\n    - Bachelor's degree in Electrical Engineering\n    - 4+ years of electrical design experience\n    - Proficiency with circuit design and PCB layout\n    - Knowledge of embedded systems and microcontrollers\n    - Experience with testing and validation procedures\n    \n    Preferred Skills:\n    - Power electronics and motor control\n    - RF and wireless communication systems\n    - FPGA programming and digital signal processing\n    - Regulatory compliance (FCC, UL, CE)\n    - Project management experience\n    \n    Compensation: $80,000 - $110,000 with cutting-edge technology exposure.",
+  "extractedSkills": [
+    {
+      "name": "Electrical Engineering",
+      "context": "Bachelor's degree in Electrical Engineering",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Circuit Design",
+      "context": "Proficiency with circuit design and PCB layout",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "PCB Layout",
+      "context": "Proficiency with circuit design and PCB layout",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Embedded Systems",
+      "context": "Knowledge of embedded systems and microcontrollers",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Microcontrollers",
+      "context": "Knowledge of embedded systems and microcontrollers",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Testing",
+      "context": "Experience with testing and validation procedures",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Validation Procedures",
+      "context": "Experience with testing and validation procedures",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Power Electronics",
+      "context": "Power electronics and motor control",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "Motor Control",
+      "context": "Power electronics and motor control",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "RF",
+      "context": "RF and wireless communication systems",
+      "category": "technical",
+      "synonyms": [
+        "Radio Frequency"
+      ],
+      "confidence": 0.6
+    },
+    {
+      "name": "Wireless Communication Systems",
+      "context": "RF and wireless communication systems",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "FPGA Programming",
+      "context": "FPGA programming and digital signal processing",
+      "category": "technical",
+      "synonyms": [
+        "Field-Programmable Gate Array Programming"
+      ],
+      "confidence": 0.6
+    },
+    {
+      "name": "Digital Signal Processing",
+      "context": "FPGA programming and digital signal processing",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "Regulatory Compliance",
+      "context": "Regulatory compliance (FCC, UL, CE)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "Project Management",
+      "context": "Project management experience",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.6
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Electrical Engineering",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Circuit Design",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "PCB Layout",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Embedded Systems",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Microcontrollers",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Testing",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Power Electronics",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Motor Control",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "RF",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Wireless Communication Systems",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "FPGA Programming",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Digital Signal Processing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Regulatory Compliance",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Project Management",
+      "category": "soft",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 80000,
+  "salaryMax": 110000,
+  "location": "San Jose, CA",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T06:00:01.603Z",
+  "updatedAt": "2025-09-02T06:00:01.603Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "aa396afb1032239a1f1e8377d5c2f9b5",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Mechanical Engineer - Product Development",
+  "rawDescription": "Join our innovative product development team as a Mechanical Engineer and help design the next generation of consumer products.\n    \n    We're looking for a creative engineer with strong technical skills and a passion for bringing ideas to life.\n    \n    Responsibilities:\n    - Design and develop mechanical components and systems\n    - Create detailed CAD models and technical drawings\n    - Conduct engineering analysis and simulations\n    - Collaborate with cross-functional teams throughout product lifecycle\n    - Support manufacturing and quality processes\n    \n    Required Skills:\n    - Bachelor's degree in Mechanical Engineering\n    - 3+ years of product development experience\n    - Proficiency with SolidWorks or similar CAD software\n    - Experience with finite element analysis (FEA)\n    - Knowledge of manufacturing processes and materials\n    \n    Preferred Skills:\n    - MATLAB/Simulink experience\n    - AutoCAD proficiency\n    - Six Sigma or Lean Manufacturing knowledge\n    - Quality control and testing experience\n    - Project management skills\n    - Experience with consumer product development\n    \n    We offer a competitive salary ($75,000 - $100,000), excellent benefits, and the opportunity to work on exciting new products.",
+  "extractedSkills": [
+    {
+      "name": "Mechanical Engineering",
+      "context": "Bachelor's degree in Mechanical Engineering",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "CAD",
+      "context": "Proficiency with SolidWorks or similar CAD software",
+      "category": "technical",
+      "synonyms": [
+        "Computer-Aided Design"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Finite Element Analysis",
+      "context": "Experience with finite element analysis (FEA)",
+      "category": "technical",
+      "synonyms": [
+        "FEA"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Manufacturing Processes",
+      "context": "Knowledge of manufacturing processes and materials",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "MATLAB/Simulink",
+      "context": "MATLAB/Simulink experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "AutoCAD",
+      "context": "AutoCAD proficiency",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Six Sigma",
+      "context": "Six Sigma or Lean Manufacturing knowledge",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Lean Manufacturing",
+      "context": "Six Sigma or Lean Manufacturing knowledge",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Quality Control",
+      "context": "Quality control and testing experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Project Management",
+      "context": "Project management skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Consumer Product Development",
+      "context": "Experience with consumer product development",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Mechanical Engineering",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "CAD",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Finite Element Analysis",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Manufacturing Processes",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Bachelor's degree in Mechanical Engineering",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "3+ years of product development experience",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "MATLAB/Simulink",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "AutoCAD",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Six Sigma",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "Lean Manufacturing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Quality Control",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Project Management",
+      "category": "soft",
+      "required": false
+    },
+    {
+      "name": "Consumer Product Development",
+      "category": "domain",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 75000,
+  "salaryMax": 100000,
+  "location": "Detroit, MI",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:59:51.964Z",
+  "updatedAt": "2025-09-02T05:59:51.964Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "bfa8b6663940f279d4886fe888f2f248",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Financial Planning Analyst",
+  "rawDescription": "Support strategic planning and budgeting processes through comprehensive financial analysis and forecasting.\n    \n    This role offers the opportunity to work closely with senior management on key business decisions.\n    \n    Required Skills:\n    - Bachelor's degree in Finance or Accounting\n    - 3+ years of financial planning experience\n    - Advanced Excel and financial modeling skills\n    - Experience with budgeting and forecasting\n    - Strong analytical and communication skills\n    \n    Preferred Skills:\n    - MBA or advanced degree\n    - Experience with planning software (Hyperion, Anaplan)\n    - Variance analysis and reporting\n    - Business intelligence tools\n    - Cross-functional collaboration experience\n    \n    Salary: $75,000 - $95,000 with strategic impact opportunities.",
+  "extractedSkills": [
+    {
+      "name": "Financial Analysis",
+      "context": "comprehensive financial analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Forecasting",
+      "context": "financial analysis and forecasting",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Excel",
+      "context": "Advanced Excel",
+      "category": "technical",
+      "synonyms": [
+        "Advanced Excel"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Financial Modeling",
+      "context": "financial modeling skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Budgeting",
+      "context": "budgeting and forecasting",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Communication",
+      "context": "Strong analytical and communication skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "MBA",
+      "context": "MBA or advanced degree",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Hyperion",
+      "context": "Experience with planning software (Hyperion, Anaplan)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Anaplan",
+      "context": "Experience with planning software (Hyperion, Anaplan)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Variance Analysis",
+      "context": "Variance analysis and reporting",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Business Intelligence",
+      "context": "Business intelligence tools",
+      "category": "technical",
+      "synonyms": [
+        "BI"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Collaboration",
+      "context": "Cross-functional collaboration experience",
+      "category": "soft",
+      "synonyms": [
+        "Cross-functional collaboration"
+      ],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Finance",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "Accounting",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "Financial Planning",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "Bachelor's degree",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "3+ years of experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Advanced Excel",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Budgeting",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Forecasting",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Analytical Skills",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "Communication Skills",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "MBA",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "Hyperion",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Anaplan",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Variance Analysis",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Business Intelligence",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Collaboration",
+      "category": "soft",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 75000,
+  "salaryMax": 95000,
+  "location": "Houston, TX",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:59:43.203Z",
+  "updatedAt": "2025-09-02T05:59:43.203Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "052521ee8b4ba6116abc67a4af4b4e35",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Investment Analyst",
+  "rawDescription": "Analyze investment opportunities and support portfolio management decisions for our investment firm.\n    \n    We're looking for a detail-oriented analyst with strong research skills and financial acumen.\n    \n    Required Skills:\n    - Bachelor's degree in Finance, Economics, or related field\n    - 2+ years of investment analysis experience\n    - Financial modeling and valuation skills\n    - Knowledge of capital markets and investment products\n    - Strong research and analytical abilities\n    \n    Preferred Skills:\n    - CFA Level I or higher\n    - Experience with Bloomberg or FactSet\n    - Equity research experience\n    - Risk assessment and management\n    - Presentation and communication skills\n    \n    Compensation: $70,000 - $95,000 plus performance-based bonuses.",
+  "extractedSkills": [
+    {
+      "name": "Financial modeling",
+      "context": "Financial modeling and valuation skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Valuation",
+      "context": "Financial modeling and valuation skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Capital markets",
+      "context": "Knowledge of capital markets and investment products",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Investment products",
+      "context": "Knowledge of capital markets and investment products",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Research",
+      "context": "Strong research and analytical abilities",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "CFA",
+      "context": "CFA Level I or higher",
+      "category": "certification",
+      "synonyms": [
+        "Chartered Financial Analyst"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Bloomberg",
+      "context": "Experience with Bloomberg or FactSet",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "FactSet",
+      "context": "Experience with Bloomberg or FactSet",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Equity research",
+      "context": "Equity research experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Risk assessment",
+      "context": "Risk assessment and management",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Management",
+      "context": "Risk assessment and management",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Presentation",
+      "context": "Presentation and communication skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Communication",
+      "context": "Presentation and communication skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.9
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Bachelor's degree in Finance, Economics, or related field",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "2+ years of investment analysis experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Financial modeling and valuation skills",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Knowledge of capital markets and investment products",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Strong research and analytical abilities",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "CFA Level I or higher",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "Experience with Bloomberg or FactSet",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Equity research experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Risk assessment and management",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Presentation and communication skills",
+      "category": "soft",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 70000,
+  "salaryMax": 95000,
+  "location": "Charlotte, NC",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:59:35.208Z",
+  "updatedAt": "2025-09-02T05:59:35.208Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "0421af47c089ef4100a6407845a63684",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Staff Accountant",
+  "rawDescription": "Join our accounting team to support day-to-day financial operations and ensure accurate financial reporting.\n    \n    This is an excellent opportunity for an accounting professional to grow their career in a dynamic environment.\n    \n    Required Skills:\n    - Bachelor's degree in Accounting or Finance\n    - 2+ years of accounting experience\n    - Knowledge of GAAP and financial reporting\n    - Proficiency in Excel and accounting software (QuickBooks, SAP)\n    - Strong attention to detail and accuracy\n    \n    Preferred Skills:\n    - CPA certification or progress toward CPA\n    - Experience with month-end and year-end close processes\n    - Accounts payable and receivable management\n    - Tax preparation experience\n    - ERP system experience\n    \n    Salary: $50,000 - $65,000 with professional development opportunities.",
+  "extractedSkills": [
+    {
+      "name": "GAAP",
+      "context": "Knowledge of GAAP and financial reporting",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Excel",
+      "context": "Proficiency in Excel and accounting software (QuickBooks, SAP)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "QuickBooks",
+      "context": "Proficiency in Excel and accounting software (QuickBooks, SAP)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "SAP",
+      "context": "Proficiency in Excel and accounting software (QuickBooks, SAP)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "CPA",
+      "context": "CPA certification or progress toward CPA",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "ERP",
+      "context": "ERP system experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "financial reporting",
+      "context": "Knowledge of GAAP and financial reporting",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "accounts payable",
+      "context": "Accounts payable and receivable management",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "accounts receivable",
+      "context": "Accounts payable and receivable management",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "tax preparation",
+      "context": "Tax preparation experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Bachelor's degree in Accounting or Finance",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "2+ years of accounting experience",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "Knowledge of GAAP and financial reporting",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Proficiency in Excel and accounting software (QuickBooks, SAP)",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Strong attention to detail and accuracy",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "CPA certification or progress toward CPA",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "Experience with month-end and year-end close processes",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "Accounts payable and receivable management",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Tax preparation experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "ERP system experience",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 50000,
+  "salaryMax": 65000,
+  "location": "Dallas, TX",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.85",
+  "createdAt": "2025-09-02T05:59:28.272Z",
+  "updatedAt": "2025-09-02T05:59:28.272Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "1383d7ab1794359b8c59e81f58b2b91f",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Senior Financial Analyst",
+  "rawDescription": "We are seeking a Senior Financial Analyst to join our finance team and support strategic decision-making through comprehensive financial analysis.\n    \n    The successful candidate will be responsible for financial modeling, budgeting, forecasting, and providing insights to senior management.\n    \n    Key Responsibilities:\n    - Develop and maintain complex financial models\n    - Conduct valuation analysis and investment evaluations\n    - Prepare monthly, quarterly, and annual financial reports\n    - Support budgeting and forecasting processes\n    - Analyze market trends and competitive landscape\n    \n    Required Skills:\n    - Bachelor's degree in Finance, Accounting, or Economics\n    - 4+ years of financial analysis experience\n    - Advanced Excel skills and financial modeling expertise\n    - Knowledge of GAAP and financial reporting standards\n    - Strong analytical and problem-solving abilities\n    \n    Preferred Skills:\n    - CFA designation or progress toward CFA\n    - Bloomberg Terminal experience\n    - Experience with financial databases and tools\n    - Risk management knowledge\n    - Portfolio management experience\n    - MBA or advanced degree in finance\n    \n    Compensation: $85,000 - $110,000 plus annual bonus potential.",
+  "extractedSkills": [
+    {
+      "name": "financial modeling",
+      "context": "financial modeling",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "budgeting",
+      "context": "budgeting",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "forecasting",
+      "context": "forecasting",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "valuation analysis",
+      "context": "valuation analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "financial reporting",
+      "context": "financial reporting standards",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "GAAP",
+      "context": "GAAP",
+      "category": "technical",
+      "synonyms": [
+        "Generally Accepted Accounting Principles"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "name": "Excel",
+      "context": "Advanced Excel skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "CFA",
+      "context": "CFA designation",
+      "category": "certification",
+      "synonyms": [
+        "Chartered Financial Analyst"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Bloomberg Terminal",
+      "context": "Bloomberg Terminal experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "financial databases",
+      "context": "financial databases and tools",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "risk management",
+      "context": "Risk management knowledge",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "portfolio management",
+      "context": "Portfolio management experience",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "MBA",
+      "context": "MBA or advanced degree in finance",
+      "category": "certification",
+      "synonyms": [
+        "Master of Business Administration"
+      ],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Bachelor's degree in Finance, Accounting, or Economics",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "4+ years of financial analysis experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Advanced Excel skills and financial modeling expertise",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Knowledge of GAAP and financial reporting standards",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Strong analytical and problem-solving abilities",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "CFA designation or progress toward CFA",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "Bloomberg Terminal experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Experience with financial databases and tools",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Risk management knowledge",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "Portfolio management experience",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "MBA or advanced degree in finance",
+      "category": "certification",
+      "required": false
+    }
+  ],
+  "experienceLevel": "senior",
+  "salaryMin": 85000,
+  "salaryMax": 110000,
+  "location": "New York, NY",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:59:21.569Z",
+  "updatedAt": "2025-09-02T05:59:21.569Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "ceb5a7e1360739f355c4d5db81317dd0",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Healthcare Data Analyst",
+  "rawDescription": "Analyze healthcare data to improve patient outcomes and operational efficiency.\n    \n    We're seeking an analytical professional who can work with complex healthcare datasets and provide actionable insights.\n    \n    Required Skills:\n    - 3+ years of healthcare data analysis experience\n    - Proficiency in SQL and statistical analysis\n    - Knowledge of healthcare regulations (HIPAA, HITECH)\n    - Experience with healthcare databases and EMR systems\n    - Strong attention to detail and accuracy\n    \n    Preferred Skills:\n    - Python or R programming skills\n    - Tableau or Power BI for visualization\n    - Clinical research experience\n    - Quality improvement methodologies\n    - Healthcare coding knowledge (ICD-10, CPT)\n    \n    Compensation: $65,000 - $85,000 with healthcare industry impact.",
+  "extractedSkills": [
+    {
+      "name": "SQL",
+      "context": "Proficiency in SQL",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "statistical analysis",
+      "context": "Proficiency in SQL and statistical analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "healthcare regulations",
+      "context": "Knowledge of healthcare regulations (HIPAA, HITECH)",
+      "category": "domain",
+      "synonyms": [
+        "HIPAA",
+        "HITECH"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "healthcare databases",
+      "context": "Experience with healthcare databases and EMR systems",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "EMR systems",
+      "context": "Experience with healthcare databases and EMR systems",
+      "category": "technical",
+      "synonyms": [
+        "Electronic Medical Record systems"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Python",
+      "context": "Python or R programming skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "R programming",
+      "context": "Python or R programming skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Tableau",
+      "context": "Tableau or Power BI for visualization",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Power BI",
+      "context": "Tableau or Power BI for visualization",
+      "category": "technical",
+      "synonyms": [
+        "Power Business Intelligence"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "name": "clinical research",
+      "context": "Clinical research experience",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "quality improvement methodologies",
+      "context": "Quality improvement methodologies",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "healthcare coding",
+      "context": "Healthcare coding knowledge (ICD-10, CPT)",
+      "category": "domain",
+      "synonyms": [
+        "ICD-10",
+        "CPT"
+      ],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "healthcare data analysis",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "SQL",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "statistical analysis",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "healthcare regulations",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "healthcare databases",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "EMR systems",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Python",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "R programming",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Tableau",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Power BI",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "clinical research",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "quality improvement methodologies",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "healthcare coding",
+      "category": "domain",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 65000,
+  "salaryMax": 85000,
+  "location": "Minneapolis, MN",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:59:14.256Z",
+  "updatedAt": "2025-09-02T05:59:14.256Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "798c389cba6fc0323452c5e1dff1dd18",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Medical Assistant",
+  "rawDescription": "Support our healthcare team by providing clinical and administrative assistance in a busy medical practice.\n    \n    This role offers the opportunity to make a direct impact on patient care while developing your healthcare career.\n    \n    Required Qualifications:\n    - Medical Assistant certification or equivalent training\n    - 1+ years of clinical experience\n    - Knowledge of medical terminology and procedures\n    - Proficiency with EMR systems\n    - Strong organizational and communication skills\n    \n    Preferred Qualifications:\n    - Phlebotomy certification\n    - EKG and vital signs experience\n    - Insurance verification and coding knowledge\n    - Bilingual capabilities\n    - Customer service experience\n    \n    Starting salary: $35,000 - $45,000 with growth opportunities and benefits.",
+  "extractedSkills": [
+    {
+      "name": "Medical Assistant certification",
+      "context": "Medical Assistant certification or equivalent training",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "clinical experience",
+      "context": "1+ years of clinical experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "medical terminology",
+      "context": "Knowledge of medical terminology and procedures",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "EMR systems",
+      "context": "Proficiency with EMR systems",
+      "category": "technical",
+      "synonyms": [
+        "Electronic Medical Record systems"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Phlebotomy certification",
+      "context": "Phlebotomy certification",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "EKG",
+      "context": "EKG and vital signs experience",
+      "category": "technical",
+      "synonyms": [
+        "Electrocardiogram"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "vital signs experience",
+      "context": "EKG and vital signs experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "insurance verification",
+      "context": "Insurance verification and coding knowledge",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "coding knowledge",
+      "context": "Insurance verification and coding knowledge",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "bilingual",
+      "context": "Bilingual capabilities",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "customer service experience",
+      "context": "Customer service experience",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Medical Assistant certification",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "clinical experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "medical terminology",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "EMR systems",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "organizational skills",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "communication skills",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Phlebotomy certification",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "EKG",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "vital signs experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "insurance verification",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "coding knowledge",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "bilingual",
+      "category": "language",
+      "required": false
+    },
+    {
+      "name": "customer service experience",
+      "category": "soft",
+      "required": false
+    }
+  ],
+  "experienceLevel": "entry",
+  "salaryMin": 35000,
+  "salaryMax": 45000,
+  "location": "San Antonio, TX",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.85",
+  "createdAt": "2025-09-02T05:59:05.704Z",
+  "updatedAt": "2025-09-02T05:59:05.704Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "114fd17c47a0c0ba0759f058cb893477",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Physical Therapist",
+  "rawDescription": "Help patients recover and improve their quality of life as a Physical Therapist in our rehabilitation center.\n    \n    We're looking for a compassionate professional who is dedicated to patient care and evidence-based practice.\n    \n    Required Qualifications:\n    - Doctor of Physical Therapy (DPT) degree\n    - Current state PT license\n    - 1+ years of clinical experience\n    - Knowledge of anatomy, physiology, and kinesiology\n    - Strong communication and interpersonal skills\n    \n    Preferred Qualifications:\n    - Orthopedic or sports medicine experience\n    - Manual therapy certification\n    - Experience with EMR systems\n    - Continuing education in specialized techniques\n    - Bilingual capabilities (Spanish preferred)\n    \n    Salary: $70,000 - $90,000 with excellent benefits and continuing education support.",
+  "extractedSkills": [
+    {
+      "name": "Doctor of Physical Therapy (DPT)",
+      "context": "Doctor of Physical Therapy (DPT) degree",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "state PT license",
+      "context": "Current state PT license",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "anatomy",
+      "context": "Knowledge of anatomy, physiology, and kinesiology",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "physiology",
+      "context": "Knowledge of anatomy, physiology, and kinesiology",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "kinesiology",
+      "context": "Knowledge of anatomy, physiology, and kinesiology",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "communication",
+      "context": "Strong communication and interpersonal skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "interpersonal skills",
+      "context": "Strong communication and interpersonal skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Orthopedic",
+      "context": "Orthopedic or sports medicine experience",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "sports medicine",
+      "context": "Orthopedic or sports medicine experience",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Manual therapy certification",
+      "context": "Manual therapy certification",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "EMR systems",
+      "context": "Experience with EMR systems",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Continuing education",
+      "context": "Continuing education in specialized techniques",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Bilingual",
+      "context": "Bilingual capabilities (Spanish preferred)",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Doctor of Physical Therapy (DPT)",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "state PT license",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "1+ years of clinical experience",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "anatomy",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "physiology",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "kinesiology",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "communication",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "interpersonal skills",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Orthopedic",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "sports medicine",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "Manual therapy certification",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "EMR systems",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Continuing education",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "Bilingual",
+      "category": "language",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 70000,
+  "salaryMax": 90000,
+  "location": "Phoenix, AZ",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:58:58.315Z",
+  "updatedAt": "2025-09-02T05:58:58.315Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "74a113ae6d7085d4ff5981f12ea4a1ea",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Registered Nurse - ICU",
+  "rawDescription": "Our hospital is seeking a dedicated Registered Nurse to join our Intensive Care Unit team.\n    \n    This is an excellent opportunity for an experienced nurse to provide critical care in a state-of-the-art facility with a supportive team environment.\n    \n    Responsibilities:\n    - Provide direct patient care in the ICU setting\n    - Conduct comprehensive patient assessments\n    - Administer medications and treatments as prescribed\n    - Collaborate with multidisciplinary healthcare team\n    - Maintain accurate patient records in EMR system\n    \n    Required Qualifications:\n    - Current RN license in good standing\n    - Minimum 2 years of ICU or critical care experience\n    - BLS and ACLS certification required\n    - Proficiency with Epic EMR system\n    - Strong knowledge of pharmacology and medical terminology\n    \n    Preferred Qualifications:\n    - Experience with Cerner EMR system\n    - Medical coding knowledge (ICD-10)\n    - HIPAA compliance training\n    - Critical care certification (CCRN)\n    - Bachelor's degree in Nursing (BSN)\n    \n    We offer competitive compensation ($75,000 - $95,000), comprehensive benefits, and opportunities for professional development.",
+  "extractedSkills": [
+    {
+      "name": "ICU",
+      "context": "ICU setting",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "patient care",
+      "context": "Provide direct patient care",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "patient assessments",
+      "context": "Conduct comprehensive patient assessments",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "medications",
+      "context": "Administer medications",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "EMR system",
+      "context": "Maintain accurate patient records in EMR system",
+      "category": "technical",
+      "synonyms": [
+        "Epic EMR system"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "pharmacology",
+      "context": "Strong knowledge of pharmacology",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "medical terminology",
+      "context": "Strong knowledge of medical terminology",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "BLS",
+      "context": "BLS and ACLS certification required",
+      "category": "certification",
+      "synonyms": [
+        "Basic Life Support"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "ACLS",
+      "context": "BLS and ACLS certification required",
+      "category": "certification",
+      "synonyms": [
+        "Advanced Cardiovascular Life Support"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Cerner EMR system",
+      "context": "Experience with Cerner EMR system",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "ICD-10",
+      "context": "Medical coding knowledge (ICD-10)",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "HIPAA",
+      "context": "HIPAA compliance training",
+      "category": "certification",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "CCRN",
+      "context": "Critical care certification (CCRN)",
+      "category": "certification",
+      "synonyms": [
+        "Critical Care Registered Nurse"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "BSN",
+      "context": "Bachelor's degree in Nursing (BSN)",
+      "category": "certification",
+      "synonyms": [
+        "Bachelor's degree in Nursing"
+      ],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "RN license",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "ICU experience",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "2 years experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "BLS certification",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "ACLS certification",
+      "category": "certification",
+      "required": true
+    },
+    {
+      "name": "EMR system proficiency",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "pharmacology knowledge",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Cerner EMR experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "ICD-10 knowledge",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "HIPAA training",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "CCRN certification",
+      "category": "certification",
+      "required": false
+    },
+    {
+      "name": "BSN degree",
+      "category": "certification",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 75000,
+  "salaryMax": 95000,
+  "location": "Boston, MA",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:58:50.296Z",
+  "updatedAt": "2025-09-02T05:58:50.296Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "1a4d39ae867aae4473754282c5ca0d49",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Brand Manager",
+  "rawDescription": "Shape and protect our brand identity while driving brand awareness and customer loyalty.\n    \n    We're seeking a strategic thinker who can manage brand initiatives across multiple touchpoints and channels.\n    \n    Required Skills:\n    - 3+ years of brand management experience\n    - Strong understanding of brand strategy and positioning\n    - Experience with brand research and consumer insights\n    - Project management and cross-functional collaboration\n    - Creative brief development and campaign oversight\n    \n    Preferred Skills:\n    - Consumer goods or retail experience\n    - Digital brand management\n    - Influencer and partnership marketing\n    - Budget management and ROI tracking\n    - Crisis communication experience\n    \n    Compensation: $75,000 - $100,000 with brand building opportunities.",
+  "extractedSkills": [
+    {
+      "name": "brand management",
+      "context": "brand management experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "brand strategy",
+      "context": "brand strategy and positioning",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "brand research",
+      "context": "brand research and consumer insights",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "project management",
+      "context": "project management and cross-functional collaboration",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "creative brief development",
+      "context": "creative brief development and campaign oversight",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "consumer goods",
+      "context": "Consumer goods or retail experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "digital brand management",
+      "context": "Digital brand management",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "influencer marketing",
+      "context": "Influencer and partnership marketing",
+      "category": "technical",
+      "synonyms": [
+        "partnership marketing"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "name": "budget management",
+      "context": "Budget management and ROI tracking",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "crisis communication",
+      "context": "Crisis communication experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "brand management",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "brand strategy",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "brand research",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "project management",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "creative brief development",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "consumer goods",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "digital brand management",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "influencer marketing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "budget management",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "crisis communication",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 75000,
+  "salaryMax": 100000,
+  "location": "Atlanta, GA",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:58:41.415Z",
+  "updatedAt": "2025-09-02T05:58:41.415Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "9bbdd4f38b70bd2cb1bbbd3065306c57",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Marketing Analytics Manager",
+  "rawDescription": "Turn marketing data into actionable insights that drive strategic decision-making.\n    \n    We're looking for an analytical professional who can bridge the gap between marketing activities and business outcomes.\n    \n    Required Skills:\n    - 4+ years of marketing analytics experience\n    - Advanced Excel and SQL skills\n    - Experience with analytics platforms (Google Analytics, Adobe Analytics)\n    - Statistical analysis and data visualization\n    - Marketing attribution and ROI measurement\n    \n    Preferred Skills:\n    - Python or R for data analysis\n    - Tableau or Power BI for visualization\n    - A/B testing and experimentation\n    - Customer segmentation and lifetime value analysis\n    - Marketing mix modeling experience\n    \n    Salary: $85,000 - $115,000 with data-driven impact opportunities.",
+  "extractedSkills": [
+    {
+      "name": "Excel",
+      "context": "Advanced Excel skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "SQL",
+      "context": "Advanced SQL skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Google Analytics",
+      "context": "Experience with analytics platforms (Google Analytics)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Adobe Analytics",
+      "context": "Experience with analytics platforms (Adobe Analytics)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Statistical analysis",
+      "context": "Statistical analysis and data visualization",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Data visualization",
+      "context": "Statistical analysis and data visualization",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Marketing attribution",
+      "context": "Marketing attribution and ROI measurement",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "ROI measurement",
+      "context": "Marketing attribution and ROI measurement",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Python",
+      "context": "Python or R for data analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "R",
+      "context": "Python or R for data analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Tableau",
+      "context": "Tableau or Power BI for visualization",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Power BI",
+      "context": "Tableau or Power BI for visualization",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "A/B testing",
+      "context": "A/B testing and experimentation",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Experimentation",
+      "context": "A/B testing and experimentation",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Customer segmentation",
+      "context": "Customer segmentation and lifetime value analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Lifetime value analysis",
+      "context": "Customer segmentation and lifetime value analysis",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Marketing mix modeling",
+      "context": "Marketing mix modeling experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Marketing analytics experience",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Advanced Excel",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "SQL",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Google Analytics",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Adobe Analytics",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Statistical analysis",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Data visualization",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Marketing attribution",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "ROI measurement",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Python",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "R",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Tableau",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Power BI",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "A/B testing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Experimentation",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Customer segmentation",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Lifetime value analysis",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Marketing mix modeling",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "senior",
+  "salaryMin": 85000,
+  "salaryMax": 115000,
+  "location": "Boston, MA",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:58:34.583Z",
+  "updatedAt": "2025-09-02T05:58:34.583Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "96c92a87f91481a4b44dd20303a77aeb",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Sales Development Representative",
+  "rawDescription": "Drive revenue growth by identifying and qualifying potential customers for our sales team.\n    \n    This is an excellent opportunity for someone looking to start or advance their career in B2B sales.\n    \n    Required Skills:\n    - 1+ years of sales or customer service experience\n    - Strong communication and interpersonal skills\n    - Experience with CRM systems (Salesforce preferred)\n    - Goal-oriented mindset and resilience\n    - Ability to work in a fast-paced environment\n    \n    Preferred Skills:\n    - B2B sales experience\n    - Lead generation and prospecting techniques\n    - Social selling and LinkedIn proficiency\n    - Sales automation tools knowledge\n    - Industry-specific knowledge\n    \n    Base salary: $45,000 - $60,000 plus uncapped commission potential.",
+  "extractedSkills": [
+    {
+      "name": "sales",
+      "context": "sales team",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "customer service",
+      "context": "customer service experience",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "communication",
+      "context": "Strong communication",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "interpersonal skills",
+      "context": "Strong communication and interpersonal skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "CRM systems",
+      "context": "Experience with CRM systems (Salesforce preferred)",
+      "category": "technical",
+      "synonyms": [
+        "Salesforce"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "goal-oriented mindset",
+      "context": "Goal-oriented mindset",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "resilience",
+      "context": "Goal-oriented mindset and resilience",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "fast-paced environment",
+      "context": "Ability to work in a fast-paced environment",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "B2B sales",
+      "context": "B2B sales experience",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "lead generation",
+      "context": "Lead generation and prospecting techniques",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "prospecting techniques",
+      "context": "Lead generation and prospecting techniques",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "social selling",
+      "context": "Social selling and LinkedIn proficiency",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "LinkedIn proficiency",
+      "context": "Social selling and LinkedIn proficiency",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "sales automation tools",
+      "context": "Sales automation tools knowledge",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "industry-specific knowledge",
+      "context": "Industry-specific knowledge",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "sales or customer service experience",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "communication",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "interpersonal skills",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "CRM systems",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "goal-oriented mindset",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "resilience",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "fast-paced environment",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "B2B sales experience",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "lead generation",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "prospecting techniques",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "social selling",
+      "category": "domain",
+      "required": false
+    },
+    {
+      "name": "LinkedIn proficiency",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "sales automation tools",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "industry-specific knowledge",
+      "category": "domain",
+      "required": false
+    }
+  ],
+  "experienceLevel": "entry",
+  "salaryMin": 45000,
+  "salaryMax": 60000,
+  "location": "Miami, FL",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:58:24.923Z",
+  "updatedAt": "2025-09-02T05:58:24.923Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "943751bd84efdb70f77213e2e23f2167",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Content Marketing Specialist",
+  "rawDescription": "Create compelling content that engages our audience and drives business growth.\n    \n    We're seeking a creative storyteller who can develop content strategies across multiple channels and formats.\n    \n    Required Skills:\n    - 2+ years of content marketing experience\n    - Excellent writing and editing skills\n    - Experience with content management systems (WordPress, Drupal)\n    - Social media content creation and management\n    - Basic SEO knowledge and keyword research\n    \n    Preferred Skills:\n    - Video content creation and editing\n    - Graphic design skills (Canva, Adobe Creative Suite)\n    - Email marketing platforms (Mailchimp, Constant Contact)\n    - Analytics and performance tracking\n    - Influencer marketing experience\n    \n    Compensation: $55,000 - $75,000 with creative freedom and growth opportunities.",
+  "extractedSkills": [
+    {
+      "name": "content marketing",
+      "context": "content marketing experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "writing",
+      "context": "Excellent writing and editing skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "editing",
+      "context": "Excellent writing and editing skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "content management systems",
+      "context": "Experience with content management systems (WordPress, Drupal)",
+      "category": "technical",
+      "synonyms": [
+        "WordPress",
+        "Drupal"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "social media",
+      "context": "Social media content creation and management",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "SEO",
+      "context": "Basic SEO knowledge and keyword research",
+      "category": "technical",
+      "synonyms": [
+        "search engine optimization"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "video content creation",
+      "context": "Video content creation and editing",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "graphic design",
+      "context": "Graphic design skills (Canva, Adobe Creative Suite)",
+      "category": "technical",
+      "synonyms": [
+        "Canva",
+        "Adobe Creative Suite"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "email marketing",
+      "context": "Email marketing platforms (Mailchimp, Constant Contact)",
+      "category": "technical",
+      "synonyms": [
+        "Mailchimp",
+        "Constant Contact"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "analytics",
+      "context": "Analytics and performance tracking",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "influencer marketing",
+      "context": "Influencer marketing experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "content marketing",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "writing",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "editing",
+      "category": "soft",
+      "required": true
+    },
+    {
+      "name": "content management systems",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "social media",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "SEO",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "video content creation",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "graphic design",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "email marketing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "analytics",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "influencer marketing",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 55000,
+  "salaryMax": 75000,
+  "location": "Nashville, TN",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:58:16.672Z",
+  "updatedAt": "2025-09-02T05:58:16.672Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "f563d34af27e90e875ebde6b7bce4579",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Digital Marketing Manager",
+  "rawDescription": "Join our marketing team as a Digital Marketing Manager and drive our online presence to new heights!\n    \n    We're looking for a creative and analytical marketing professional to lead our digital marketing initiatives across multiple channels.\n    \n    Key Responsibilities:\n    - Develop and execute comprehensive digital marketing strategies\n    - Manage SEO/SEM campaigns and optimize for performance\n    - Create and manage social media marketing campaigns\n    - Analyze campaign performance using Google Analytics and other tools\n    - Collaborate with content team on marketing materials\n    \n    Required Skills:\n    - 3+ years of digital marketing experience\n    - Proficiency with Google Analytics, Google Ads, Facebook Ads\n    - Strong SEO/SEM knowledge\n    - Experience with marketing automation platforms (HubSpot preferred)\n    - Excellent analytical and communication skills\n    \n    Preferred Skills:\n    - Salesforce CRM experience\n    - Content marketing experience\n    - Email marketing automation\n    - Social media management tools\n    - Creative design skills\n    \n    Salary: $70,000 - $95,000 plus performance bonuses.",
+  "extractedSkills": [
+    {
+      "name": "SEO/SEM",
+      "context": "Manage SEO/SEM campaigns and optimize for performance",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Google Analytics",
+      "context": "Analyze campaign performance using Google Analytics and other tools",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Google Ads",
+      "context": "Proficiency with Google Analytics, Google Ads, Facebook Ads",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Facebook Ads",
+      "context": "Proficiency with Google Analytics, Google Ads, Facebook Ads",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "HubSpot",
+      "context": "Experience with marketing automation platforms (HubSpot preferred)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Salesforce CRM",
+      "context": "Salesforce CRM experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Content marketing",
+      "context": "Content marketing experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Email marketing automation",
+      "context": "Email marketing automation",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Social media management tools",
+      "context": "Social media management tools",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Creative design skills",
+      "context": "Creative design skills",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "analytical skills",
+      "context": "Excellent analytical and communication skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "communication skills",
+      "context": "Excellent analytical and communication skills",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "3+ years of digital marketing experience",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "Proficiency with Google Analytics, Google Ads, Facebook Ads",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Strong SEO/SEM knowledge",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Experience with marketing automation platforms (HubSpot preferred)",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Excellent analytical and communication skills",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Salesforce CRM experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Content marketing experience",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Email marketing automation",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Social media management tools",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Creative design skills",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 70000,
+  "salaryMax": 95000,
+  "location": "Austin, TX",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:58:10.232Z",
+  "updatedAt": "2025-09-02T05:58:10.232Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "4b13669cac2e0b6e54aca9f0629d4598",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Junior Software Developer",
+  "rawDescription": "Start your career in software development with our supportive team environment and mentorship program.\n    \n    We're looking for recent graduates or career changers who are eager to learn and grow in software development.\n    \n    Required Skills:\n    - Bachelor's degree in Computer Science or related field\n    - Basic programming knowledge in any language (Java, Python, JavaScript)\n    - Understanding of fundamental programming concepts\n    - Familiarity with version control (Git)\n    - Strong problem-solving abilities\n    \n    Preferred Skills:\n    - Internship or project experience\n    - Knowledge of web development basics (HTML, CSS, JavaScript)\n    - Database fundamentals (SQL)\n    - Agile methodology awareness\n    - Open source contribution experience\n    \n    Starting salary: $65,000 - $80,000 with excellent learning opportunities.",
+  "extractedSkills": [
+    {
+      "name": "Computer Science",
+      "context": "Bachelor's degree in Computer Science",
+      "category": "domain",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Programming",
+      "context": "Basic programming knowledge in any language",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Java",
+      "context": "Basic programming knowledge in any language (Java, Python, JavaScript)",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Python",
+      "context": "Basic programming knowledge in any language (Java, Python, JavaScript)",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "JavaScript",
+      "context": "Basic programming knowledge in any language (Java, Python, JavaScript)",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Programming Concepts",
+      "context": "Understanding of fundamental programming concepts",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Version Control",
+      "context": "Familiarity with version control (Git)",
+      "category": "technical",
+      "synonyms": [
+        "Git"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Problem-Solving",
+      "context": "Strong problem-solving abilities",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Web Development",
+      "context": "Knowledge of web development basics (HTML, CSS, JavaScript)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "HTML",
+      "context": "Knowledge of web development basics (HTML, CSS, JavaScript)",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "CSS",
+      "context": "Knowledge of web development basics (HTML, CSS, JavaScript)",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "SQL",
+      "context": "Database fundamentals (SQL)",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Agile Methodology",
+      "context": "Agile methodology awareness",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Open Source Contribution",
+      "context": "Open source contribution experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Computer Science",
+      "category": "domain",
+      "required": true
+    },
+    {
+      "name": "Programming",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Java",
+      "category": "language",
+      "required": true
+    },
+    {
+      "name": "Python",
+      "category": "language",
+      "required": true
+    },
+    {
+      "name": "JavaScript",
+      "category": "language",
+      "required": true
+    },
+    {
+      "name": "Programming Concepts",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Version Control",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Problem-Solving",
+      "category": "soft",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Web Development",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "HTML",
+      "category": "language",
+      "required": false
+    },
+    {
+      "name": "CSS",
+      "category": "language",
+      "required": false
+    },
+    {
+      "name": "SQL",
+      "category": "language",
+      "required": false
+    },
+    {
+      "name": "Agile Methodology",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Open Source Contribution",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "entry",
+  "salaryMin": 65000,
+  "salaryMax": 80000,
+  "location": "Portland, OR",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:58:00.865Z",
+  "updatedAt": "2025-09-02T05:58:00.865Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "53757843e992e82553a0b8a4f6417047",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "QA Automation Engineer",
+  "rawDescription": "Ensure the quality of our software products through comprehensive testing strategies and automation frameworks.\n    \n    We're looking for a detail-oriented engineer who is passionate about quality and continuous improvement.\n    \n    Required Skills:\n    - 3+ years of QA automation experience\n    - Proficiency in test automation tools (Selenium, Cypress)\n    - Programming skills in Java, Python, or JavaScript\n    - Experience with API testing (Postman, REST Assured)\n    - Knowledge of testing frameworks and methodologies\n    \n    Preferred Skills:\n    - Performance testing tools (JMeter, LoadRunner)\n    - Mobile testing automation (Appium)\n    - CI/CD integration for automated testing\n    - Behavior-driven development (BDD)\n    - Security testing knowledge\n    \n    Compensation: $80,000 - $110,000 with comprehensive benefits.",
+  "extractedSkills": [
+    {
+      "name": "QA automation",
+      "context": "QA automation experience",
+      "category": "technical",
+      "synonyms": [
+        "Quality Assurance automation"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Selenium",
+      "context": "Proficiency in test automation tools (Selenium, Cypress)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Cypress",
+      "context": "Proficiency in test automation tools (Selenium, Cypress)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Java",
+      "context": "Programming skills in Java, Python, or JavaScript",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Python",
+      "context": "Programming skills in Java, Python, or JavaScript",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "JavaScript",
+      "context": "Programming skills in Java, Python, or JavaScript",
+      "category": "language",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "API testing",
+      "context": "Experience with API testing (Postman, REST Assured)",
+      "category": "technical",
+      "synonyms": [
+        "Application Programming Interface testing"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Postman",
+      "context": "Experience with API testing (Postman, REST Assured)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "REST Assured",
+      "context": "Experience with API testing (Postman, REST Assured)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "testing frameworks",
+      "context": "Knowledge of testing frameworks and methodologies",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "JMeter",
+      "context": "Performance testing tools (JMeter, LoadRunner)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "LoadRunner",
+      "context": "Performance testing tools (JMeter, LoadRunner)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Appium",
+      "context": "Mobile testing automation (Appium)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "CI/CD",
+      "context": "CI/CD integration for automated testing",
+      "category": "technical",
+      "synonyms": [
+        "Continuous Integration/Continuous Deployment"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "name": "Behavior-driven development",
+      "context": "Behavior-driven development (BDD)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Security testing",
+      "context": "Security testing knowledge",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "QA automation",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Selenium",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Java",
+      "category": "language",
+      "required": true
+    },
+    {
+      "name": "Python",
+      "category": "language",
+      "required": true
+    },
+    {
+      "name": "API testing",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Postman",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "testing frameworks",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "JMeter",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "LoadRunner",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Appium",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "CI/CD",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Behavior-driven development",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Security testing",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 80000,
+  "salaryMax": 110000,
+  "location": "Phoenix, AZ",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:57:52.148Z",
+  "updatedAt": "2025-09-02T05:57:52.148Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "046b4763710f7837f6df7a0facafb3bd",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Data Engineer",
+  "rawDescription": "Build and maintain data pipelines that power our analytics and machine learning initiatives.\n    \n    You'll work with large-scale data processing systems and help transform raw data into actionable insights.\n    \n    Required Skills:\n    - 3+ years of data engineering experience\n    - Proficiency in Python and SQL\n    - Experience with data pipeline tools (Apache Airflow, Luigi)\n    - Knowledge of big data technologies (Spark, Hadoop)\n    - Cloud data services (AWS Redshift, Google BigQuery)\n    \n    Preferred Skills:\n    - Stream processing (Kafka, Kinesis)\n    - Data warehouse design and optimization\n    - ETL/ELT process development\n    - Docker and Kubernetes\n    - Machine learning pipeline experience\n    \n    Salary: $105,000 - $145,000 with stock options.",
+  "extractedSkills": [
+    {
+      "name": "Python",
+      "context": "Proficiency in Python",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "SQL",
+      "context": "Proficiency in SQL",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Apache Airflow",
+      "context": "Experience with data pipeline tools (Apache Airflow, Luigi)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Luigi",
+      "context": "Experience with data pipeline tools (Apache Airflow, Luigi)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Spark",
+      "context": "Knowledge of big data technologies (Spark, Hadoop)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Hadoop",
+      "context": "Knowledge of big data technologies (Spark, Hadoop)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "AWS Redshift",
+      "context": "Cloud data services (AWS Redshift, Google BigQuery)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Google BigQuery",
+      "context": "Cloud data services (AWS Redshift, Google BigQuery)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Kafka",
+      "context": "Stream processing (Kafka, Kinesis)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Kinesis",
+      "context": "Stream processing (Kafka, Kinesis)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Docker",
+      "context": "Docker and Kubernetes",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Kubernetes",
+      "context": "Docker and Kubernetes",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Machine learning",
+      "context": "Machine learning pipeline experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Data engineering",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "3+ years of experience",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Stream processing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Data warehouse design and optimization",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "ETL/ELT process development",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 105000,
+  "salaryMax": 145000,
+  "location": "Chicago, IL",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:57:41.506Z",
+  "updatedAt": "2025-09-02T05:57:41.506Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "f2c74246930fe9085eaf03f953727ffd",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Mobile Developer - iOS/Swift",
+  "rawDescription": "Create amazing mobile experiences for iOS users with our innovative mobile development team.\n    \n    We're building the next generation of mobile applications and need a skilled iOS developer to join our journey.\n    \n    Required Skills:\n    - 3+ years of iOS development experience\n    - Proficiency in Swift and Objective-C\n    - Experience with UIKit and SwiftUI\n    - Knowledge of iOS frameworks and APIs\n    - App Store submission and review process\n    \n    Preferred Skills:\n    - Core Data and CloudKit experience\n    - Push notifications and background processing\n    - Third-party SDK integration\n    - Unit testing and UI testing\n    - Reactive programming (Combine, RxSwift)\n    \n    Compensation: $90,000 - $125,000 plus performance bonuses.",
+  "extractedSkills": [
+    {
+      "name": "iOS development",
+      "context": "3+ years of iOS development experience",
+      "category": "technical",
+      "synonyms": [
+        "iOS app development"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Swift",
+      "context": "Proficiency in Swift and Objective-C",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Objective-C",
+      "context": "Proficiency in Swift and Objective-C",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "UIKit",
+      "context": "Experience with UIKit and SwiftUI",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "SwiftUI",
+      "context": "Experience with UIKit and SwiftUI",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "iOS frameworks",
+      "context": "Knowledge of iOS frameworks and APIs",
+      "category": "technical",
+      "synonyms": [
+        "iOS APIs"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "name": "App Store submission",
+      "context": "App Store submission and review process",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Core Data",
+      "context": "Core Data and CloudKit experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "CloudKit",
+      "context": "Core Data and CloudKit experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "Push notifications",
+      "context": "Push notifications and background processing",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "background processing",
+      "context": "Push notifications and background processing",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.6
+    },
+    {
+      "name": "Third-party SDK integration",
+      "context": "Third-party SDK integration",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Unit testing",
+      "context": "Unit testing and UI testing",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "UI testing",
+      "context": "Unit testing and UI testing",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Reactive programming",
+      "context": "Reactive programming (Combine, RxSwift)",
+      "category": "technical",
+      "synonyms": [
+        "Combine",
+        "RxSwift"
+      ],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "iOS development",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Swift",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Objective-C",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "UIKit",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "SwiftUI",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "iOS frameworks",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "App Store submission",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Core Data",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "CloudKit",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Push notifications",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "background processing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Third-party SDK integration",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Unit testing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "UI testing",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Reactive programming",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 90000,
+  "salaryMax": 125000,
+  "location": "Los Angeles, CA",
+  "remoteAllowed": false,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:57:34.999Z",
+  "updatedAt": "2025-09-02T05:57:34.999Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "45fda02514bfa55667abd3b8b8e14646",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "DevOps Engineer",
+  "rawDescription": "Join our infrastructure team to build and maintain scalable, reliable systems that power our applications.\n    \n    We're looking for someone passionate about automation, monitoring, and continuous improvement.\n    \n    Required Skills:\n    - 3+ years of DevOps or infrastructure experience\n    - Proficiency with AWS, Azure, or GCP\n    - Experience with Infrastructure as Code (Terraform, CloudFormation)\n    - Container orchestration (Docker, Kubernetes)\n    - CI/CD pipeline design and implementation\n    \n    Preferred Skills:\n    - Monitoring tools (Prometheus, Grafana, DataDog)\n    - Configuration management (Ansible, Chef, Puppet)\n    - Scripting languages (Python, Bash, Go)\n    - Security best practices and compliance\n    - Experience with microservices architecture\n    \n    Salary: $100,000 - $140,000 with comprehensive benefits.",
+  "extractedSkills": [
+    {
+      "name": "DevOps",
+      "context": "DevOps or infrastructure experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "AWS",
+      "context": "Proficiency with AWS, Azure, or GCP",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Azure",
+      "context": "Proficiency with AWS, Azure, or GCP",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "GCP",
+      "context": "Proficiency with AWS, Azure, or GCP",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Terraform",
+      "context": "Experience with Infrastructure as Code (Terraform, CloudFormation)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "CloudFormation",
+      "context": "Experience with Infrastructure as Code (Terraform, CloudFormation)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Docker",
+      "context": "Container orchestration (Docker, Kubernetes)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Kubernetes",
+      "context": "Container orchestration (Docker, Kubernetes)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "CI/CD",
+      "context": "CI/CD pipeline design and implementation",
+      "category": "technical",
+      "synonyms": [
+        "Continuous Integration/Continuous Deployment"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Prometheus",
+      "context": "Monitoring tools (Prometheus, Grafana, DataDog)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Grafana",
+      "context": "Monitoring tools (Prometheus, Grafana, DataDog)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "DataDog",
+      "context": "Monitoring tools (Prometheus, Grafana, DataDog)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Ansible",
+      "context": "Configuration management (Ansible, Chef, Puppet)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Chef",
+      "context": "Configuration management (Ansible, Chef, Puppet)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Puppet",
+      "context": "Configuration management (Ansible, Chef, Puppet)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Python",
+      "context": "Scripting languages (Python, Bash, Go)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Bash",
+      "context": "Scripting languages (Python, Bash, Go)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Go",
+      "context": "Scripting languages (Python, Bash, Go)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Security",
+      "context": "Security best practices and compliance",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "microservices",
+      "context": "Experience with microservices architecture",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "DevOps",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "AWS",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Terraform",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Docker",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Kubernetes",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "CI/CD",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Prometheus",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Grafana",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "DataDog",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Ansible",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Chef",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Puppet",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Python",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Bash",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Go",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Security",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "microservices",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 100000,
+  "salaryMax": 140000,
+  "location": "Denver, CO",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:57:25.841Z",
+  "updatedAt": "2025-09-02T05:57:25.841Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "357769f6b5f2e7da50d3c6b011aebfb7",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Backend Engineer - Python/Django",
+  "rawDescription": "We're seeking a skilled Backend Engineer to design and implement robust server-side applications using Python and Django.\n    \n    You'll work on high-performance APIs, database optimization, and scalable architecture solutions.\n    \n    Required Skills:\n    - 4+ years of Python development experience\n    - Strong Django or Flask framework knowledge\n    - Database design and optimization (PostgreSQL, MySQL)\n    - RESTful API design and implementation\n    - Experience with caching solutions (Redis, Memcached)\n    \n    Preferred Skills:\n    - Celery for task queues\n    - Docker and Kubernetes\n    - AWS or GCP cloud services\n    - Elasticsearch for search functionality\n    - GraphQL API development\n    \n    Compensation: $95,000 - $130,000 plus equity options.",
+  "extractedSkills": [
+    {
+      "name": "Python",
+      "context": "Python development experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Django",
+      "context": "Strong Django or Flask framework knowledge",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Flask",
+      "context": "Strong Django or Flask framework knowledge",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "PostgreSQL",
+      "context": "Database design and optimization (PostgreSQL, MySQL)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "MySQL",
+      "context": "Database design and optimization (PostgreSQL, MySQL)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "RESTful API",
+      "context": "RESTful API design and implementation",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Redis",
+      "context": "Experience with caching solutions (Redis, Memcached)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Memcached",
+      "context": "Experience with caching solutions (Redis, Memcached)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Celery",
+      "context": "Celery for task queues",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Docker",
+      "context": "Docker and Kubernetes",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Kubernetes",
+      "context": "Docker and Kubernetes",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "AWS",
+      "context": "AWS or GCP cloud services",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "GCP",
+      "context": "AWS or GCP cloud services",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Elasticsearch",
+      "context": "Elasticsearch for search functionality",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "GraphQL",
+      "context": "GraphQL API development",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "Python",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Django",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "PostgreSQL",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "RESTful API",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Redis",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Celery",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Docker",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Kubernetes",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "AWS",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "GCP",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Elasticsearch",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "GraphQL",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 95000,
+  "salaryMax": 130000,
+  "location": "Austin, TX",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:57:15.663Z",
+  "updatedAt": "2025-09-02T05:57:15.663Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "fc8ffc61e915f68efd0306117a589bbb",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Frontend Developer - React Specialist",
+  "rawDescription": "Join our frontend team to build beautiful, responsive user interfaces using React and modern web technologies.\n    \n    We're looking for a passionate developer who loves creating exceptional user experiences and has a keen eye for design.\n    \n    Required Skills:\n    - 3+ years of React development experience\n    - Proficiency in JavaScript ES6+ and TypeScript\n    - Experience with CSS3, SASS/SCSS, and responsive design\n    - Knowledge of state management (Redux, Context API)\n    - Familiarity with testing frameworks (Jest, React Testing Library)\n    \n    Preferred Skills:\n    - Next.js framework experience\n    - Tailwind CSS or styled-components\n    - Webpack and build tools\n    - Figma or Adobe XD for design collaboration\n    - Performance optimization techniques\n    \n    Salary: $85,000 - $115,000 with excellent growth opportunities.",
+  "extractedSkills": [
+    {
+      "name": "React",
+      "context": "React development experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "JavaScript",
+      "context": "Proficiency in JavaScript ES6+",
+      "category": "technical",
+      "synonyms": [
+        "JS"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "TypeScript",
+      "context": "Proficiency in JavaScript ES6+ and TypeScript",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "CSS3",
+      "context": "Experience with CSS3",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "SASS",
+      "context": "Experience with SASS/SCSS",
+      "category": "technical",
+      "synonyms": [
+        "SCSS"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Redux",
+      "context": "Knowledge of state management (Redux, Context API)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Jest",
+      "context": "Familiarity with testing frameworks (Jest, React Testing Library)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "React Testing Library",
+      "context": "Familiarity with testing frameworks (Jest, React Testing Library)",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Next.js",
+      "context": "Next.js framework experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Tailwind CSS",
+      "context": "Tailwind CSS or styled-components",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "styled-components",
+      "context": "Tailwind CSS or styled-components",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Webpack",
+      "context": "Webpack and build tools",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Figma",
+      "context": "Figma or Adobe XD for design collaboration",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Adobe XD",
+      "context": "Figma or Adobe XD for design collaboration",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Performance optimization",
+      "context": "Performance optimization techniques",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "React",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "JavaScript",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "TypeScript",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "CSS3",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "SASS",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Redux",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Jest",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "Next.js",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Tailwind CSS",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "styled-components",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Webpack",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Figma",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Adobe XD",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Performance optimization",
+      "category": "technical",
+      "required": false
+    }
+  ],
+  "experienceLevel": "mid",
+  "salaryMin": 85000,
+  "salaryMax": 115000,
+  "location": "Seattle, WA",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.80",
+  "createdAt": "2025-09-02T05:57:07.240Z",
+  "updatedAt": "2025-09-02T05:57:07.240Z"
+}
+[JOB-POSTING-SERVICE] Mapping database job to JobPosting interface
+[JOB-POSTING-SERVICE] dbJob object: {
+  "id": "9c814f277bc789ef33daf6ef43ff5890",
+  "recruiterId": "21b448edfc635d367b1d9216654d74f5",
+  "title": "Senior Full Stack Developer",
+  "rawDescription": "We are seeking a Senior Full Stack Developer to join our growing engineering team. \n    \n    The ideal candidate will have extensive experience with React, TypeScript, and Node.js. You'll be responsible for building scalable web applications, designing APIs, and mentoring junior developers.\n    \n    Required Skills:\n    - 5+ years of experience with React and modern JavaScript/TypeScript\n    - Strong backend development experience with Node.js\n    - Database experience with PostgreSQL or similar\n    - Experience with cloud platforms (AWS preferred)\n    - Knowledge of containerization (Docker, Kubernetes)\n    \n    Preferred Skills:\n    - GraphQL experience\n    - Redis for caching\n    - CI/CD pipeline experience\n    - Microservices architecture\n    - Leadership and mentoring experience\n    \n    We offer competitive salary ($120,000 - $160,000), excellent benefits, and the opportunity to work on cutting-edge technology in a collaborative environment.",
+  "extractedSkills": [
+    {
+      "name": "React",
+      "context": "React",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "TypeScript",
+      "context": "TypeScript",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Node.js",
+      "context": "Node.js",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "PostgreSQL",
+      "context": "PostgreSQL",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "AWS",
+      "context": "AWS preferred",
+      "category": "technical",
+      "synonyms": [
+        "Amazon Web Services"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Docker",
+      "context": "Docker",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "Kubernetes",
+      "context": "Kubernetes",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.9
+    },
+    {
+      "name": "GraphQL",
+      "context": "GraphQL experience",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Redis",
+      "context": "Redis for caching",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "CI/CD",
+      "context": "CI/CD pipeline experience",
+      "category": "technical",
+      "synonyms": [
+        "Continuous Integration",
+        "Continuous Deployment"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "name": "Microservices",
+      "context": "Microservices architecture",
+      "category": "technical",
+      "synonyms": [],
+      "confidence": 0.8
+    },
+    {
+      "name": "Leadership",
+      "context": "Leadership and mentoring experience",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    },
+    {
+      "name": "Mentoring",
+      "context": "Leadership and mentoring experience",
+      "category": "soft",
+      "synonyms": [],
+      "confidence": 0.7
+    }
+  ],
+  "requiredSkills": [
+    {
+      "name": "React",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "TypeScript",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Node.js",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "PostgreSQL",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "AWS",
+      "category": "technical",
+      "required": true
+    },
+    {
+      "name": "Docker",
+      "category": "technical",
+      "required": true
+    }
+  ],
+  "preferredSkills": [
+    {
+      "name": "GraphQL",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Redis",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "CI/CD",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Microservices",
+      "category": "technical",
+      "required": false
+    },
+    {
+      "name": "Leadership",
+      "category": "soft",
+      "required": false
+    }
+  ],
+  "experienceLevel": "senior",
+  "salaryMin": 120000,
+  "salaryMax": 160000,
+  "location": "San Francisco, CA",
+  "remoteAllowed": true,
+  "employmentType": "full-time",
+  "status": "active",
+  "aiConfidenceScore": "0.90",
+  "createdAt": "2025-09-02T05:56:58.431Z",
+  "updatedAt": "2025-09-02T05:56:58.431Z"
+}
+ GET /api/test-jobs?recruiterId=21b448edfc635d367b1d9216654d74f5 200 in 2405ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 2.5s (1584 modules)
+ GET /dashboard 307 in 3690ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1784ms (1606 modules)
+ GET / 200 in 1990ms
+ ✓ Compiled /api/auth/[...all] in 443ms (1233 modules)
+ ✓ Compiled in 453ms (376 modules)
+ GET /favicon.ico 200 in 1800ms
+ GET /api/auth/get-session 200 in 3009ms
+ POST /api/auth/sign-in/social 200 in 101ms
+ GET /api/auth/callback/google?state=G6fbe8kH_M5DKM4q2qwmCApLoY1gOpI4&code=4%2F0AVMBsJhOPjPm7MSuVV5goUV09CkI9UCrmMCc7ylzH3bTZeEU7zs_wecMMvCCbx5s-jFMZQ&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&authuser=0&hd=csu.fullerton.edu&prompt=none 302 in 282ms
+ GET /dashboard 200 in 819ms
+ ○ Compiling /api/notifications/unread-count ...
+ ✓ Compiled /api/notifications/unread-count in 790ms (1625 modules)
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 1151ms
+ ○ Compiling /recruiter ...
+ ✓ Compiled /recruiter in 1027ms (1642 modules)
+[RECRUITER-PAGE] Loading recruiter dashboard page
+[RECRUITER-PAGE] Session found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs loading dashboard
+ GET /recruiter 200 in 1316ms
+ GET /favicon.ico 200 in 33ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 98ms
+ ○ Compiling /api/recruiter/jobs ...
+ ✓ Compiled /api/recruiter/jobs in 1465ms (1662 modules)
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[RECRUITER-JOBS-GET] Starting job retrieval for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] Fetching recruiter profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 1642ms
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] ERROR: Recruiter profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[2025-09-02T06:08:47.147Z] WARN: Client error in API request [requestId=req_1756793327116_g8phsrui1, operation=GET http://localhost:3000/api/recruiter/jobs?limit=5, metadata=[object Object]]
+ GET /api/recruiter/jobs?limit=5 403 in 1760ms
+[RECRUITER-JOBS-GET] Starting job retrieval for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] Fetching recruiter profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] ERROR: Recruiter profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[2025-09-02T06:08:47.203Z] WARN: Client error in API request [requestId=req_1756793327192_ecyo0wg9w, operation=GET http://localhost:3000/api/recruiter/jobs?limit=5, metadata=[object Object]]
+ GET /api/recruiter/jobs?limit=5 403 in 55ms
+ ○ Compiling /api/interviews ...
+ ✓ Compiled /api/interviews in 647ms (1666 modules)
+[INTERVIEWS-API-GET] Starting interview retrieval
+[INTERVIEWS-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/interviews?userType=recruiter&limit=5 200 in 813ms
+[INTERVIEWS-API-GET] Starting interview retrieval
+[INTERVIEWS-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/interviews?userType=recruiter&limit=5 200 in 26ms
+ ○ Compiling /api/recruiter/jobs/stats ...
+ ✓ Compiled /api/recruiter/jobs/stats in 539ms (1668 modules)
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 707ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 14ms
+ ○ Compiling /recruiter/post-job ...
+ ✓ Compiled /recruiter/post-job in 1271ms (1682 modules)
+ GET /recruiter/post-job 200 in 1484ms
+ GET /favicon.ico 200 in 25ms
+ ○ Compiling /recruiter/interviews ...
+ ✓ Compiled /recruiter/interviews in 941ms (1710 modules)
+ GET /recruiter/interviews 200 in 1142ms
+ GET /favicon.ico 200 in 22ms
+[INTERVIEWS-API-GET] Starting interview retrieval
+[INTERVIEWS-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/interviews?userType=recruiter&limit=50 200 in 39ms
+[INTERVIEWS-API-GET] Starting interview retrieval
+[INTERVIEWS-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/interviews?userType=recruiter&limit=50 200 in 13ms
+ ○ Compiling /recruiter/applications ...
+ ✓ Compiled /recruiter/applications in 722ms (1712 modules)
+ GET /recruiter/applications 200 in 895ms
+ GET /favicon.ico 200 in 24ms
+ ○ Compiling /recruiter/profile ...
+ ✓ Compiled /recruiter/profile in 761ms (1723 modules)
+ GET /recruiter/profile 200 in 932ms
+ ○ Compiling /api/recruiter/profile ...
+ ✓ Compiled /api/recruiter/profile in 1588ms (1725 modules)
+[RECRUITER-PROFILE-API-GET] Starting profile retrieval
+ GET /favicon.ico 200 in 1729ms
+[RECRUITER-PROFILE-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-API-GET] Fetching profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-API-GET] Profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/recruiter/profile 404 in 1753ms
+[RECRUITER-PROFILE-API-GET] Starting profile retrieval
+[RECRUITER-PROFILE-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-API-GET] Fetching profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-API-GET] Profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/recruiter/profile 404 in 14ms
+ ○ Compiling /api/notifications ...
+ ✓ Compiled /api/notifications in 1646ms (1727 modules)
+[NOTIFICATIONS-API-GET] Starting notifications retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 1564ms
+ GET /api/notifications?limit=10 200 in 1815ms
+ ○ Compiling /recruiter/jobs ...
+ ✓ Compiled /recruiter/jobs in 1248ms (1742 modules)
+ GET /recruiter/jobs 200 in 1413ms
+[RECRUITER-JOBS-GET] Starting job retrieval for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] Fetching recruiter profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /favicon.ico 200 in 108ms
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] ERROR: Recruiter profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[2025-09-02T06:09:18.943Z] WARN: Client error in API request [requestId=req_1756793358895_fkmc3x9g7, operation=GET http://localhost:3000/api/recruiter/jobs?page=1&limit=10, metadata=[object Object]]
+ GET /api/recruiter/jobs?page=1&limit=10 403 in 131ms
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 122ms
+[RECRUITER-JOBS-GET] Starting job retrieval for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] Fetching recruiter profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] ERROR: Recruiter profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[2025-09-02T06:09:18.987Z] WARN: Client error in API request [requestId=req_1756793358983_uenlseq8e, operation=GET http://localhost:3000/api/recruiter/jobs?page=1&limit=10, metadata=[object Object]]
+ GET /api/recruiter/jobs?page=1&limit=10 403 in 42ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 44ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 19ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 12ms
+ GET /recruiter/post-job 200 in 38ms
+ GET /recruiter/interviews 200 in 36ms
+[INTERVIEWS-API-GET] Starting interview retrieval
+[INTERVIEWS-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/interviews?userType=recruiter&limit=50 200 in 27ms
+[INTERVIEWS-API-GET] Starting interview retrieval
+[INTERVIEWS-API-GET] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+ GET /api/interviews?userType=recruiter&limit=50 200 in 15ms
+ GET /recruiter/applications 200 in 41ms
+ GET /recruiter/jobs 200 in 24ms
+[RECRUITER-JOBS-GET] Starting job retrieval for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] Fetching recruiter profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] ERROR: Recruiter profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[2025-09-02T06:09:34.452Z] WARN: Client error in API request [requestId=req_1756793374429_gfa5n8swi, operation=GET http://localhost:3000/api/recruiter/jobs?page=1&limit=10, metadata=[object Object]]
+ GET /api/recruiter/jobs?page=1&limit=10 403 in 65ms
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 68ms
+[RECRUITER-JOBS-GET] Starting job retrieval for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] Fetching recruiter profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] ERROR: Recruiter profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[2025-09-02T06:09:34.495Z] WARN: Client error in API request [requestId=req_1756793374489_ym8jbx81g, operation=GET http://localhost:3000/api/recruiter/jobs?page=1&limit=10, metadata=[object Object]]
+ GET /api/recruiter/jobs?page=1&limit=10 403 in 39ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 43ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 19ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 21ms
+[RECRUITER-JOBS-GET] Starting job retrieval for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] Fetching recruiter profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-GET] ERROR: Recruiter profile not found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[2025-09-02T06:09:35.613Z] WARN: Client error in API request [requestId=req_1756793375611_clonj9yyl, operation=GET http://localhost:3000/api/recruiter/jobs?page=1&limit=10, metadata=[object Object]]
+ GET /api/recruiter/jobs?page=1&limit=10 403 in 19ms
+[RECRUITER-JOBS-STATS-API] Starting stats retrieval
+[RECRUITER-JOBS-STATS-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] Fetching recruiter profile
+[RECRUITER-PROFILE-SERVICE] Getting profile for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-PROFILE-SERVICE] No profile found for user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found
+ GET /api/recruiter/jobs/stats 404 in 10ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 38ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 43ms
+ ✓ Compiled in 2.9s (1542 modules)
+ GET /recruiter/jobs 200 in 2701ms
+ GET /recruiter/jobs 200 in 29ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 74ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 27ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 59ms
+ ✓ Compiled in 1235ms (422 modules)
+ ✓ Compiled in 573ms (422 modules)
+ GET /recruiter/jobs 200 in 619ms
+ GET /recruiter/jobs 200 in 80ms
+ ✓ Compiled in 2.6s (1519 modules)
+ GET /recruiter/jobs 200 in 2554ms
+ GET /recruiter/jobs 200 in 30ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 64ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 29ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 47ms
+ ✓ Compiled in 1344ms (422 modules)
+ ✓ Compiled in 697ms (422 modules)
+ GET /recruiter/jobs 200 in 721ms
+ GET /recruiter/jobs 200 in 53ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 46ms
+ ✓ Compiled in 753ms (422 modules)
+ ✓ Compiled in 556ms (422 modules)
+ GET /recruiter/jobs 200 in 559ms
+ GET /recruiter/jobs 200 in 77ms
+ ✓ Compiled in 516ms (422 modules)
+ ✓ Compiled in 585ms (422 modules)
+ GET /recruiter/jobs 200 in 601ms
+ GET /recruiter/jobs 200 in 57ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 34ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 27ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 32ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 28ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 39ms
+ ✓ Compiled in 992ms (422 modules)
+ GET /recruiter/jobs 200 in 107ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 31ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 36ms
+ ✓ Compiled in 468ms (422 modules)
+ GET /recruiter/jobs 200 in 57ms
+ ✓ Compiled in 4.5s (1519 modules)
+ GET /recruiter/jobs 200 in 1206ms
+ ✓ Compiled in 443ms (422 modules)
+ GET /recruiter/jobs 200 in 83ms
+ ✓ Compiled in 2.4s (1519 modules)
+ GET /recruiter/jobs 200 in 562ms
+ ✓ Compiled in 2.3s (1519 modules)
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 1675ms
+ GET /recruiter/jobs 200 in 331ms
+ ✓ Compiled in 436ms (422 modules)
+ GET /recruiter/jobs 200 in 115ms
+ ✓ Compiled in 2.4s (1519 modules)
+ GET /recruiter/jobs 200 in 280ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1025ms (1510 modules)
+ GET /api/notifications/unread-count 404 in 1392ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 249ms
+ ✓ Compiled in 683ms (426 modules)
+ GET /recruiter/jobs 200 in 106ms
+ GET /_next/static/css/app/layout.css?v=1756793942783 404 in 74ms
+ ✓ Compiled in 3.4s (1524 modules)
+ GET /recruiter/jobs 200 in 806ms
+ GET /_next/static/css/app/layout.css?v=1756793952552 404 in 145ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 61ms
+ ✓ Compiled in 2.9s (1524 modules)
+ GET /_next/static/css/app/layout.css?v=1756793959142 404 in 73ms
+ GET /recruiter/jobs 200 in 345ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 54ms
+[NOTIFICATIONS-UNREAD-COUNT-API] Starting unread count retrieval
+[NOTIFICATIONS-UNREAD-COUNT-API] Authenticated user: otNt4OS5q2QtFh18uKvUlQLghSGMYVEs
+[NOTIFICATIONS-UNREAD-COUNT-API] Getting unread count for user
+[NOTIFICATIONS-UNREAD-COUNT-API] Unread count: 0
+ GET /api/notifications/unread-count 200 in 34ms
+ GET /recruiter/jobs 200 in 120ms
+ GET /_next/static/css/app/layout.css?v=1756794022783 404 in 72ms
+ GET /_next/static/chunks/main-app.js?v=1756794022783 404 in 162ms
+ GET /_next/static/chunks/app/recruiter/layout.js 404 in 159ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 163ms
+ GET /_next/static/chunks/app/recruiter/jobs/page.js 404 in 162ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 789ms (1100 modules)
+ GET /favicon.ico 200 in 833ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1038ms (1198 modules)
+ GET / 200 in 1212ms
+ GET /_next/static/css/app/layout.css?v=1756794029753 404 in 71ms
+ GET /_next/static/chunks/main-app.js?v=1756794029753 404 in 118ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 116ms
+ GET /_next/static/chunks/app/page.js 404 in 116ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.7s (2032 modules)
+ GET / 404 in 3152ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/meow/Desktop/kiro-devhack/.next/server/app/favicon.ico/route.js'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/meow/Desktop/kiro-devhack/.next/server/app/favicon.ico/route.js',
+  page: '/favicon.ico'
+}
+ GET /favicon.ico 500 in 72ms

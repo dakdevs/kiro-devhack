@@ -79,7 +79,17 @@ export class CandidateMatchingService {
 
         // Filter by minimum match score if specified
         const minScore = filters?.minMatchScore || 10; // Default 10% minimum (lowered to catch more candidates)
+        
+        // Debug logging
+        console.log(`🔍 Debug: Found ${matches.length} candidates before filtering`);
+        matches.forEach(match => {
+          console.log(`   - ${match.candidate.name}: ${match.match.score}% (${match.match.matchingSkills.length} matching skills)`);
+        });
+        console.log(`🔍 Debug: Applying minimum score filter: ${minScore}%`);
+        
         const filteredMatches = matches.filter(match => match.match.score >= minScore);
+        
+        console.log(`🔍 Debug: ${filteredMatches.length} candidates after filtering`);
 
         // Sort by match score (highest first)
         const sortedMatches = filteredMatches.sort((a, b) => b.match.score - a.match.score);
@@ -451,10 +461,47 @@ export class CandidateMatchingService {
         countQuery.where(sql`(${sql.join(skillConditions, sql` OR `)})`);
       }
 
-      const [results, countResult] = await Promise.all([
-        query.limit(params.limit).offset(offset),
+      // First get distinct users with pagination
+      const usersQuery = db
+        .select({
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+        })
+        .from(user)
+        .innerJoin(userSkills, eq(user.id, userSkills.userId))
+        .groupBy(user.id, user.name, user.email)
+        .limit(params.limit)
+        .offset(offset);
+
+      // Apply skill filters to user selection if specified
+      if (filters?.skills && filters.skills.length > 0) {
+        const skillConditions = filters.skills.map(skill =>
+          sql`LOWER(${userSkills.skillName}) = LOWER(${skill})`
+        );
+        usersQuery.where(sql`(${sql.join(skillConditions, sql` OR `)})`);
+      }
+
+      const [users, countResult] = await Promise.all([
+        usersQuery,
         countQuery
       ]);
+
+      // Now get all skills for these users
+      const userIds = users.map(u => u.userId);
+      const results = userIds.length > 0 ? await db
+        .select({
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+          skillName: userSkills.skillName,
+          proficiencyScore: userSkills.proficiencyScore,
+          mentionCount: userSkills.mentionCount,
+          averageConfidence: userSkills.averageConfidence,
+        })
+        .from(user)
+        .innerJoin(userSkills, eq(user.id, userSkills.userId))
+        .where(sql`${user.id} IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`) : [];
 
       const total = countResult[0]?.count || 0;
 

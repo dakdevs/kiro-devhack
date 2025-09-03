@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     if (!recruiterProfile) {
       console.log('[RECRUITER-JOBS-STATS-API] ERROR: Recruiter profile not found');
       return NextResponse.json(
-        { success: false, error: 'Recruiter profile not found' },
-        { status: 404 }
+        { success: false, error: 'Recruiter profile required. Please create a profile first.' },
+        { status: 403 }
       );
     }
     console.log('[RECRUITER-JOBS-STATS-API] Found recruiter profile:', recruiterProfile.id);

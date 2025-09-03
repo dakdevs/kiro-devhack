@@ -20,8 +20,8 @@ import { rateLimiters, rateLimit, batchUtils } from '~/lib/rate-limiter';
  * Service for analyzing job postings using AI to extract skills, requirements, and other metadata
  */
 export class JobAnalysisService {
-  private readonly aiModel = 'moonshot-v1-8k';
-  private readonly apiUrl = 'https://api.moonshot.cn/v1/chat/completions';
+  private readonly aiModel = 'gpt-3.5-turbo';
+  private readonly apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
   private readonly maxRetries = 3;
   private readonly retryDelay = 1000; // 1 second
   private readonly circuitBreaker = new CircuitBreaker(3, 30000); // 3 failures, 30s recovery
@@ -78,7 +78,7 @@ export class JobAnalysisService {
           operation: 'job-analysis.analyze',
           metadata: { fallbackMode: true },
         });
-        return this.fallbackAnalysis(jobDescription, jobTitle);
+        return await this.fallbackAnalysis(jobDescription, jobTitle);
       }
 
       try {
@@ -89,7 +89,7 @@ export class JobAnalysisService {
         const result = this.parseAIResponse(response);
         
         // Validate and enhance the result
-        const finalResult = this.validateAndEnhanceResult(result, jobDescription);
+        const finalResult = await this.validateAndEnhanceResult(result, jobDescription);
         
         // Cache the result
         await cache.set(cacheKey, finalResult, cacheTTL.long);
@@ -119,7 +119,7 @@ export class JobAnalysisService {
 
         // If it's a circuit breaker error or external service error, provide fallback
         if (error instanceof ExternalServiceError || error instanceof AIProcessingError) {
-          const fallbackResult = this.fallbackAnalysis(jobDescription, jobTitle);
+          const fallbackResult = await this.fallbackAnalysis(jobDescription, jobTitle);
           
           // Wrap in AIProcessingError with fallback data
           throw new AIProcessingError(
@@ -135,7 +135,7 @@ export class JobAnalysisService {
           operation: 'job-analysis.analyze',
         }, aiError);
         
-        const fallbackResult = this.fallbackAnalysis(jobDescription, jobTitle);
+        const fallbackResult = await this.fallbackAnalysis(jobDescription, jobTitle);
         
         // Cache fallback result with shorter TTL
         await cache.set(cacheKey, fallbackResult, cacheTTL.short);
@@ -250,25 +250,25 @@ Return ONLY the JSON object, no additional text or formatting.
               const retryAfter = response.headers.get('retry-after');
               throw new ExternalServiceError(
                 `Rate limit exceeded. ${retryAfter ? `Retry after ${retryAfter} seconds.` : ''}`,
-                'moonshot-ai',
+                'openrouter-ai',
                 true
               );
             } else if (response.status >= 500) {
               throw new ExternalServiceError(
                 `AI service temporarily unavailable: ${response.status} ${response.statusText}`,
-                'moonshot-ai',
+                'openrouter-ai',
                 true
               );
             } else if (response.status === 401) {
               throw new ExternalServiceError(
                 'AI service authentication failed. Please check API key.',
-                'moonshot-ai',
+                'openrouter-ai',
                 false
               );
             } else {
               throw new ExternalServiceError(
                 `AI API call failed: ${response.status} ${response.statusText} - ${errorText}`,
-                'moonshot-ai',
+                'openrouter-ai',
                 response.status >= 500
               );
             }
@@ -285,7 +285,7 @@ Return ONLY the JSON object, no additional text or formatting.
           }
 
           logger.debug('AI API call successful', {
-            operation: 'ai.moonshot.call',
+            operation: 'ai.openrouter.call',
             duration,
             metadata: { 
               model: this.aiModel,
@@ -391,10 +391,10 @@ Return ONLY the JSON object, no additional text or formatting.
   /**
    * Validate and enhance the AI analysis result
    */
-  private validateAndEnhanceResult(
+  private async validateAndEnhanceResult(
     aiResult: Partial<JobAnalysisResult>, 
     originalDescription: string
-  ): JobAnalysisResult {
+  ): Promise<JobAnalysisResult> {
     // Ensure all required fields exist with defaults
     const result: JobAnalysisResult = {
       extractedSkills: this.validateExtractedSkills(aiResult.extractedSkills || []),
@@ -409,7 +409,7 @@ Return ONLY the JSON object, no additional text or formatting.
 
     // Enhance with fallback analysis if AI result is sparse
     if (result.extractedSkills.length === 0 || result.confidence < 0.3) {
-      const fallback = this.fallbackAnalysis(originalDescription);
+      const fallback = await this.fallbackAnalysis(originalDescription);
       result.extractedSkills = result.extractedSkills.length > 0 ? result.extractedSkills : fallback.extractedSkills;
       result.keyTerms = result.keyTerms.length > 0 ? result.keyTerms : fallback.keyTerms;
       result.confidence = Math.max(result.confidence, fallback.confidence * 0.7); // Reduce confidence for fallback
@@ -433,7 +433,7 @@ Return ONLY the JSON object, no additional text or formatting.
         synonyms: Array.isArray(skill.synonyms) ? skill.synonyms.slice(0, 5) : [],
         context: typeof skill.context === 'string' ? skill.context.slice(0, 200) : undefined,
       }))
-      .slice(0, 50); // Limit to 50 skills
+      .slice(0, 100); // Increased limit to 100 skills to capture more comprehensive extraction
   }
 
   /**
@@ -505,7 +505,101 @@ Return ONLY the JSON object, no additional text or formatting.
   /**
    * Fallback analysis when AI is unavailable or fails
    */
-  private fallbackAnalysis(jobDescription: string, jobTitle?: string): JobAnalysisResult {
+  private async fallbackAnalysis(jobDescription: string, jobTitle?: string): Promise<JobAnalysisResult> {
+    try {
+      // Try to use the comprehensive skill extraction service for better fallback
+      const { skillExtractionService } = await import('./skill-extraction');
+      const skillResult = await skillExtractionService.extractSkills(
+        `${jobTitle || ''} ${jobDescription}`, 
+        'job_posting'
+      );
+
+      // Convert extracted skills to the expected format
+      const extractedSkills: ExtractedSkill[] = skillResult.skills.map(skill => ({
+        name: skill.name,
+        confidence: skill.confidence,
+        category: skill.category as SkillCategory,
+        synonyms: [],
+        context: skill.context,
+      }));
+
+      // Determine experience level based on keywords
+      const text = `${jobTitle || ''} ${jobDescription}`.toLowerCase();
+      let experienceLevel: ExperienceLevel | undefined;
+      if (text.includes('senior') || text.includes('lead') || text.includes('principal')) {
+        experienceLevel = 'senior';
+      } else if (text.includes('junior') || text.includes('entry') || text.includes('graduate')) {
+        experienceLevel = 'entry';
+      } else if (text.includes('mid') || text.includes('intermediate')) {
+        experienceLevel = 'mid';
+      } else if (text.includes('executive') || text.includes('director') || text.includes('vp')) {
+        experienceLevel = 'executive';
+      } else if (text.includes('intern')) {
+        experienceLevel = 'intern';
+      }
+
+      // Extract salary information using regex
+      let salaryRange: { min?: number; max?: number } | undefined;
+      const salaryPatterns = [
+        /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*-\s*\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g,
+        /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*to\s*\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g,
+        /(\d{1,3}(?:,\d{3})*)\s*-\s*(\d{1,3}(?:,\d{3})*)\s*(?:k|thousand)/gi,
+      ];
+
+      for (const pattern of salaryPatterns) {
+        const match = pattern.exec(jobDescription);
+        if (match) {
+          const min = parseInt(match[1].replace(/,/g, ''));
+          const max = parseInt(match[2].replace(/,/g, ''));
+          
+          // If the pattern includes 'k' or 'thousand', multiply by 1000
+          const multiplier = pattern.source.includes('k|thousand') ? 1000 : 1;
+          
+          salaryRange = {
+            min: min * multiplier,
+            max: max * multiplier,
+          };
+          break;
+        }
+      }
+
+      // Create key terms from skill names
+      const keyTerms = extractedSkills.map(skill => skill.name).slice(0, 20);
+
+      return {
+        extractedSkills,
+        requiredSkills: extractedSkills
+          .filter(skill => skill.confidence > 0.7)
+          .slice(0, 15)
+          .map(skill => ({
+            name: skill.name,
+            required: true,
+            category: skill.category,
+          })),
+        preferredSkills: extractedSkills
+          .filter(skill => skill.confidence <= 0.7 && skill.confidence > 0.5)
+          .slice(0, 10)
+          .map(skill => ({
+            name: skill.name,
+            required: false,
+            category: skill.category,
+          })),
+        experienceLevel,
+        salaryRange,
+        keyTerms,
+        confidence: Math.max(skillResult.confidence * 0.8, 0.5), // Slightly reduce confidence for fallback
+        summary: `Enhanced fallback analysis extracted ${extractedSkills.length} skills from the job description.`,
+      };
+    } catch (error) {
+      // If comprehensive extraction fails, use basic fallback
+      return this.basicFallbackAnalysis(jobDescription, jobTitle);
+    }
+  }
+
+  /**
+   * Basic fallback analysis as last resort
+   */
+  private basicFallbackAnalysis(jobDescription: string, jobTitle?: string): JobAnalysisResult {
     const text = `${jobTitle || ''} ${jobDescription}`.toLowerCase();
     
     // Common technical skills to look for
@@ -567,31 +661,6 @@ Return ONLY the JSON object, no additional text or formatting.
       experienceLevel = 'intern';
     }
 
-    // Extract salary information using regex
-    let salaryRange: { min?: number; max?: number } | undefined;
-    const salaryPatterns = [
-      /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*-\s*\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g,
-      /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*to\s*\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g,
-      /(\d{1,3}(?:,\d{3})*)\s*-\s*(\d{1,3}(?:,\d{3})*)\s*(?:k|thousand)/gi,
-    ];
-
-    for (const pattern of salaryPatterns) {
-      const match = pattern.exec(jobDescription);
-      if (match) {
-        const min = parseInt(match[1].replace(/,/g, ''));
-        const max = parseInt(match[2].replace(/,/g, ''));
-        
-        // If the pattern includes 'k' or 'thousand', multiply by 1000
-        const multiplier = pattern.source.includes('k|thousand') ? 1000 : 1;
-        
-        salaryRange = {
-          min: min * multiplier,
-          max: max * multiplier,
-        };
-        break;
-      }
-    }
-
     return {
       extractedSkills,
       requiredSkills: extractedSkills.slice(0, 10).map(skill => ({
@@ -601,10 +670,10 @@ Return ONLY the JSON object, no additional text or formatting.
       })),
       preferredSkills: [],
       experienceLevel,
-      salaryRange,
+      salaryRange: undefined,
       keyTerms: keyTerms.slice(0, 15),
       confidence: extractedSkills.length > 0 ? 0.4 : 0.2,
-      summary: `Fallback analysis extracted ${extractedSkills.length} skills from the job description.`,
+      summary: `Basic fallback analysis extracted ${extractedSkills.length} skills from the job description.`,
     };
   }
 
@@ -640,25 +709,25 @@ Return ONLY the JSON object, no additional text or formatting.
             }, error as Error);
             
             // Return fallback result for failed items
-            const fallbackResult = this.fallbackAnalysis(job.description, job.title);
+            const fallbackResult = await this.fallbackAnalysis(job.description, job.title);
             return { id: job.id, result: fallbackResult, error: errorMessage };
           }
         })
       );
 
-      return results.map((result, index) => {
+      return await Promise.all(results.map(async (result, index) => {
         if (result.status === 'fulfilled') {
           return result.value;
         } else {
           const job = jobs[index];
-          const fallbackResult = this.fallbackAnalysis(job.description, job.title);
+          const fallbackResult = await this.fallbackAnalysis(job.description, job.title);
           return {
             id: job.id,
             result: fallbackResult,
             error: result.reason?.message || 'Batch processing failed',
           };
         }
-      });
+      }));
     });
   }
 
@@ -690,7 +759,7 @@ Return ONLY the JSON object, no additional text or formatting.
             this.callAIWithRetry(prompt)
           );
           const result = this.parseAIResponse(response);
-          const finalResult = this.validateAndEnhanceResult(result, item.description);
+          const finalResult = await this.validateAndEnhanceResult(result, item.description);
           
           // Cache the result
           await cache.set(cacheKey, finalResult, cacheTTL.long);
@@ -698,7 +767,7 @@ Return ONLY the JSON object, no additional text or formatting.
           return finalResult;
         } catch (error) {
           // Return fallback for failed items
-          return this.fallbackAnalysis(item.description, item.title);
+          return await this.fallbackAnalysis(item.description, item.title);
         }
       })
     );

@@ -28,19 +28,10 @@ export class RecruiterProfileService {
     console.log('[RECRUITER-PROFILE-SERVICE] Validating input data');
     const validatedData = createRecruiterProfileSchema.parse(data);
     
-    // Check if user exists
-    console.log('[RECRUITER-PROFILE-SERVICE] Checking if user exists:', userId);
-    const existingUser = await db
-      .select()
-      .from(user)
-      .where(eq(user.id, userId))
-      .limit(1);
-    
-    if (existingUser.length === 0) {
-      console.log('[RECRUITER-PROFILE-SERVICE] ERROR: User not found:', userId);
-      throw new Error('User not found');
-    }
-    console.log('[RECRUITER-PROFILE-SERVICE] User found:', existingUser[0].email);
+    // Note: We trust that Better Auth has already validated the user exists
+    // since they have a valid session. The foreign key constraint on recruiterProfiles
+    // will catch any issues if the user doesn't exist.
+    console.log('[RECRUITER-PROFILE-SERVICE] Proceeding with profile creation for user:', userId);
     
     // Check if recruiter profile already exists for this user
     console.log('[RECRUITER-PROFILE-SERVICE] Checking for existing profile');
@@ -73,8 +64,21 @@ export class RecruiterProfileService {
     };
     
     console.log('[RECRUITER-PROFILE-SERVICE] Inserting new profile with ID:', profileId);
-    await db.insert(recruiterProfiles).values(newProfile);
-    console.log('[RECRUITER-PROFILE-SERVICE] Profile created successfully');
+    try {
+      await db.insert(recruiterProfiles).values(newProfile);
+      console.log('[RECRUITER-PROFILE-SERVICE] Profile created successfully');
+    } catch (dbError) {
+      console.error('[RECRUITER-PROFILE-SERVICE] Database insert failed:', dbError);
+      
+      // Check if it's a foreign key constraint error (user doesn't exist)
+      if (dbError instanceof Error && dbError.message.includes('foreign key')) {
+        console.log('[RECRUITER-PROFILE-SERVICE] Foreign key constraint failed - user does not exist');
+        throw new Error('User not found in database. Please ensure you are properly authenticated.');
+      }
+      
+      // Re-throw other database errors
+      throw dbError;
+    }
     
     return {
       ...newProfile,
