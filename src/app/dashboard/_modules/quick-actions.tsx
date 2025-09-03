@@ -14,13 +14,21 @@ const iconMap = {
 
 const actions = [
   {
+    title: 'Find Your Jobs',
+    description: 'See jobs that match your skills 90%+',
+    icon: 'Briefcase' as const,
+    color: 'bg-gradient-to-br from-apple-blue/10 to-apple-blue/20 text-apple-blue hover:from-apple-blue/20 hover:to-apple-blue/30 border-apple-blue/30',
+    href: '/dashboard/jobs/matching',
+    featured: true,
+    new: true
+  },
+  {
     title: 'Set Interview Availability',
     description: 'Add your available time slots',
     icon: 'Calendar' as const,
     color: 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 hover:from-blue-100 hover:to-blue-200 border-blue-200',
     href: '/dashboard/availability',
-    featured: true,
-    new: true
+    featured: true
   },
   {
     title: 'Create a Better Profile',

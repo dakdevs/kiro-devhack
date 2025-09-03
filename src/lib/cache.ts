@@ -179,6 +179,7 @@ export const cacheKeys = {
   jobPosting: (jobId: string) => `job:posting:${jobId}`,
   jobCandidates: (jobId: string, page: number = 1) => `job:candidates:${jobId}:page:${page}`,
   jobStats: (recruiterId: string) => `job:stats:${recruiterId}`,
+  candidateJobs: (candidateId: string) => `candidate:jobs:${candidateId}`,
   
   // AI analysis caches
   aiAnalysis: (contentHash: string) => `ai:analysis:${contentHash}`,

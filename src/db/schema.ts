@@ -258,6 +258,35 @@ export const candidateJobMatches = pgTable('candidate_job_matches', {
   overallFitIndex: index('candidate_job_matches_overall_fit_idx').on(table.overallFit),
 }));
 
+// Job listings table for candidate job matching
+export const jobListings = pgTable('job_listings', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  company: text('company').notNull(),
+  description: text('description').notNull(),
+  requiredSkills: jsonb('required_skills').notNull(),
+  preferredSkills: jsonb('preferred_skills'),
+  location: text('location').notNull(),
+  salaryMin: integer('salary_min'),
+  salaryMax: integer('salary_max'),
+  jobType: text('job_type').notNull().default('full-time'), // full-time, part-time, contract, internship
+  experienceLevel: text('experience_level').notNull(), // entry, mid, senior, lead, executive
+  remoteAllowed: boolean('remote_allowed').default(false),
+  benefits: jsonb('benefits'),
+  applicationUrl: text('application_url'),
+  contactEmail: text('contact_email'),
+  status: text('status').notNull().default('active'), // active, closed, paused
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  titleIndex: index('job_listings_title_idx').on(table.title),
+  companyIndex: index('job_listings_company_idx').on(table.company),
+  locationIndex: index('job_listings_location_idx').on(table.location),
+  experienceLevelIndex: index('job_listings_experience_level_idx').on(table.experienceLevel),
+  statusIndex: index('job_listings_status_idx').on(table.status),
+  jobTypeIndex: index('job_listings_job_type_idx').on(table.jobType),
+}));
+
 // Notifications table
 export const interviewNotifications = pgTable('interview_notifications', {
   id: text('id').primaryKey(),
