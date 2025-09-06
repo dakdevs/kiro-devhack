@@ -16,7 +16,9 @@ import {
   User,
   BookOpen,
   Target,
-  Clock
+  Clock,
+  TestTube,
+  Activity
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
@@ -35,6 +37,8 @@ const iconMap = {
   BookOpen,
   Target,
   Clock,
+  TestTube,
+  Activity,
 }
 
 interface SidebarLinkProps {

@@ -19,6 +19,10 @@ export const serverConfig = {
             clientSecret: env.GOOGLE_CLIENT_SECRET,
         },
     },
+    cal: {
+        apiKey: env.CAL_API_KEY,
+        webhookSecret: env.CAL_WEBHOOK_SECRET,
+    },
     app: {
         nodeEnv: env.NODE_ENV,
     },

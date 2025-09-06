@@ -163,11 +163,36 @@ export const recruiterProfiles = pgTable('recruiter_profiles', {
   contactEmail: text('contact_email'),
   phoneNumber: text('phone_number'),
   timezone: text('timezone').notNull().default('UTC'),
+  calComUsername: text('cal_com_username'), // Cal.com username for availability
+  calComConnected: boolean('cal_com_connected').default(false),
+  calComApiKey: text('cal_com_api_key'), // Encrypted Cal.com API key
+  calComUserId: integer('cal_com_user_id'), // Cal.com user ID
+  calComScheduleId: integer('cal_com_schedule_id'), // Default schedule ID
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
   userIndex: index('recruiter_profiles_user_idx').on(table.userId),
   organizationIndex: index('recruiter_profiles_organization_idx').on(table.organizationName),
+  calComUsernameIndex: index('recruiter_profiles_cal_com_username_idx').on(table.calComUsername),
+}));
+
+// Recruiter availability table (synced from Cal.com)
+export const recruiterAvailability = pgTable('recruiter_availability', {
+  id: text('id').primaryKey(),
+  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
+  calComEventTypeId: integer('cal_com_event_type_id').notNull(),
+  eventTypeName: text('event_type_name').notNull(),
+  eventTypeSlug: text('event_type_slug').notNull(),
+  duration: integer('duration').notNull(), // Duration in minutes
+  isActive: boolean('is_active').default(true),
+  calComData: jsonb('cal_com_data'), // Store full Cal.com event type data
+  lastSyncedAt: timestamp('last_synced_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  recruiterIndex: index('recruiter_availability_recruiter_idx').on(table.recruiterId),
+  eventTypeIndex: index('recruiter_availability_event_type_idx').on(table.calComEventTypeId),
+  activeIndex: index('recruiter_availability_active_idx').on(table.isActive),
 }));
 
 // Job postings table
@@ -218,18 +243,21 @@ export const candidateAvailability = pgTable('candidate_availability', {
 // Interview sessions for scheduling (separate from conversation sessions)
 export const interviewSessionsScheduled = pgTable('interview_sessions_scheduled', {
   id: text('id').primaryKey(),
-  jobPostingId: text('job_posting_id').notNull().references(() => jobPostings.id, { onDelete: 'cascade' }),
+  jobPostingId: text('job_posting_id').references(() => jobPostings.id, { onDelete: 'cascade' }),
   candidateId: text('candidate_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
+  calComBookingId: integer('cal_com_booking_id'), // Cal.com booking ID
+  calComEventTypeId: integer('cal_com_event_type_id').notNull(),
   scheduledStart: timestamp('scheduled_start').notNull(),
   scheduledEnd: timestamp('scheduled_end').notNull(),
   timezone: text('timezone').notNull().default('UTC'),
-  status: text('status').notNull().default('scheduled'),
+  status: text('status').notNull().default('scheduled'), // scheduled, confirmed, cancelled, completed
   interviewType: text('interview_type').default('video'),
   meetingLink: text('meeting_link'),
+  candidateName: text('candidate_name').notNull(),
+  candidateEmail: text('candidate_email').notNull(),
   notes: text('notes'),
-  candidateConfirmed: boolean('candidate_confirmed').default(false),
-  recruiterConfirmed: boolean('recruiter_confirmed').default(false),
+  calComData: jsonb('cal_com_data'), // Store full Cal.com booking data
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
@@ -238,6 +266,7 @@ export const interviewSessionsScheduled = pgTable('interview_sessions_scheduled'
   recruiterIndex: index('interview_sessions_scheduled_recruiter_idx').on(table.recruiterId),
   statusIndex: index('interview_sessions_scheduled_status_idx').on(table.status),
   scheduledTimeIndex: index('interview_sessions_scheduled_time_idx').on(table.scheduledStart),
+  calComBookingIndex: index('interview_sessions_scheduled_cal_com_booking_idx').on(table.calComBookingId),
 }));
 
 // Candidate job matches table

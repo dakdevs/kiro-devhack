@@ -20,10 +20,16 @@
     "db:drop": "dotenvx run -f .env.local -- drizzle-kit drop",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:cal-api": "tsx scripts/test-cal-com-apis.ts",
+    "test:cal-quick": "tsx scripts/quick-cal-test.ts",
+    "test:local-apis": "tsx scripts/test-local-apis.ts",
     "deploy": "bash scripts/deploy.sh",
     "monitor": "bash scripts/monitor-performance.sh",
     "monitor:continuous": "bash scripts/monitor-performance.sh continuous",
-    "health-check": "bash scripts/monitor-performance.sh health-only"
+    "health-check": "bash scripts/monitor-performance.sh health-only",
+    "cleanup:calendar": "bash scripts/cleanup-old-calendar.sh",
+    "db:setup-user": "dotenvx run -f .env.local -- tsx scripts/setup-user-data.ts",
+    "db:seed": "dotenvx run -f .env.local -- tsx scripts/create-mock-data.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.3",
@@ -63,6 +69,7 @@
     "jsdom": "^26.1.0",
     "supertest": "^7.1.4",
     "tailwindcss": "^4",
+    "tsx": "^4.20.5",
     "typescript": "^5",
     "vitest": "^3.2.4"
   },

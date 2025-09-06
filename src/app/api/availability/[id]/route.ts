@@ -18,7 +18,10 @@ interface RouteParams {
 // GET /api/availability/[id] - Get specific availability slot
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+    
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -65,7 +68,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/availability/[id] - Update availability slot
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+    
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -132,7 +138,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/availability/[id] - Delete availability slot
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+    
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },

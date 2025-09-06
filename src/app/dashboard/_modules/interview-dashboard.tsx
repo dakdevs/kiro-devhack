@@ -1,162 +1,152 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { InterviewList } from '~/components/interview-list';
-import { AvailabilityCalendar } from '~/components/availability-calendar';
-import { AvailabilitySlotForm } from '~/components/availability-slot-form';
-import { CandidateAvailability, InterviewSession, TimeSlot } from '~/types/interview-management';
-import { Calendar, Clock, Plus, Settings } from 'lucide-react';
+import { Calendar, Clock, Plus, Settings, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
+
+interface CalEventType {
+  id: string;
+  name: string;
+  duration: number;
+  isActive: boolean;
+  calComLink?: string;
+}
+
+interface CalAvailability {
+  isConnected: boolean;
+  calComUsername?: string;
+  eventTypes: CalEventType[];
+  lastSyncedAt?: Date;
+}
 
 interface InterviewDashboardProps {
   userId: string;
 }
 
 export function InterviewDashboard({ userId }: InterviewDashboardProps) {
-  const [availability, setAvailability] = useState<CandidateAvailability[]>([]);
-  const [upcomingInterviews, setUpcomingInterviews] = useState<InterviewSession[]>([]);
+  const [calData, setCalData] = useState<CalAvailability | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [editingAvailability, setEditingAvailability] = useState<CandidateAvailability | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'availability' | 'interviews'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'event-types' | 'bookings'>('overview');
+  const [showApiKeyForm, setShowApiKeyForm] = useState(false);
+  const [calUsername, setCalUsername] = useState('');
+  const [recruiterId, setRecruiterId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData();
+    fetchCalData();
   }, [userId]);
 
-  const fetchData = async () => {
+  const fetchCalData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch availability and interviews in parallel
-      const [availabilityResponse, interviewsResponse] = await Promise.all([
-        fetch('/api/availability'),
-        fetch('/api/interviews?userType=candidate&limit=10')
-      ]);
+      // First, get or create recruiter profile
+      const profileResponse = await fetch('/api/recruiter/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organizationName: 'Default Organization',
+          recruitingFor: 'Software Engineering',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        })
+      });
 
-      const availabilityData = await availabilityResponse.json();
-      const interviewsData = await interviewsResponse.json();
-
-      if (!availabilityData.success) {
-        throw new Error(availabilityData.error || 'Failed to fetch availability');
+      if (!profileResponse.ok) {
+        throw new Error('Failed to get recruiter profile');
       }
 
-      if (!interviewsData.success) {
-        throw new Error(interviewsData.error || 'Failed to fetch interviews');
-      }
-
-      setAvailability(availabilityData.data || []);
+      const profileResult = await profileResponse.json();
+      const currentRecruiterId = profileResult.data?.id;
       
-      // Filter for upcoming interviews only
-      const upcoming = (interviewsData.data || []).filter((interview: InterviewSession) => 
-        new Date(interview.scheduledStart) > new Date() && 
-        ['scheduled', 'confirmed', 'rescheduled'].includes(interview.status)
-      );
-      setUpcomingInterviews(upcoming);
+      if (!currentRecruiterId) {
+        throw new Error('Failed to create recruiter profile');
+      }
 
+      setRecruiterId(currentRecruiterId);
+
+      // Now fetch Cal.com data
+      const response = await fetch(`/api/recruiter-availability?recruiterId=${currentRecruiterId}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch Cal.com data');
+      }
+
+      setCalData(result.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      setError(err instanceof Error ? err.message : 'Failed to fetch Cal.com data');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSlotSelect = (slot: TimeSlot) => {
-    setSelectedSlot(slot);
-    setEditingAvailability(null);
-    setShowAvailabilityForm(true);
-  };
-
-  const handleAvailabilityEdit = (availability: CandidateAvailability) => {
-    setEditingAvailability(availability);
-    setSelectedSlot(null);
-    setShowAvailabilityForm(true);
-  };
-
-  const handleAvailabilitySubmit = async (data: any) => {
-    console.log('handleAvailabilitySubmit called with:', data);
-    
-    try {
-      const url = editingAvailability 
-        ? `/api/availability/${editingAvailability.id}`
-        : '/api/availability';
-      
-      const method = editingAvailability ? 'PUT' : 'POST';
-      
-      console.log('Making request to:', url, 'with method:', method);
-      
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      console.log('Response status:', response.status);
-      
-      const result = await response.json();
-      console.log('Response data:', result);
-      
-      if (!result.success) {
-        throw new Error(result.error || result.message || 'Failed to save availability');
-      }
-
-      console.log('Availability saved successfully');
-      setShowAvailabilityForm(false);
-      setSelectedSlot(null);
-      setEditingAvailability(null);
-      await fetchData(); // Refresh data
-      
-    } catch (error) {
-      console.error('Failed to save availability:', error);
-      setError(error instanceof Error ? error.message : 'Failed to save availability');
-      // Don't close the form on error so user can retry
+  const handleConnectCal = async () => {
+    if (!recruiterId) {
+      setError('Recruiter profile not found');
+      return;
     }
-  };
 
-  const handleInterviewConfirm = async (interviewId: string, confirmed: boolean, notes?: string) => {
     try {
-      const response = await fetch(`/api/interviews/${interviewId}/confirm`, {
-        method: 'PUT',
+      setLoading(true);
+      const response = await fetch('/api/recruiter-availability', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirmed, notes })
+        body: JSON.stringify({
+          action: 'connect',
+          recruiterId: recruiterId,
+          calUsername: calUsername
+        })
       });
 
       const result = await response.json();
       
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to confirm interview');
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to connect Cal.com');
       }
 
-      await fetchData(); // Refresh data
-      
-    } catch (error) {
-      console.error('Failed to confirm interview:', error);
-      throw error; // Re-throw to let InterviewList handle the error
+      setShowApiKeyForm(false);
+      setCalUsername('');
+      await fetchCalData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to connect Cal.com');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInterviewCancel = async (interviewId: string, reason?: string) => {
+  const handleSyncEventTypes = async () => {
+    if (!recruiterId) {
+      setError('Recruiter profile not found');
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/interviews/${interviewId}`, {
-        method: 'DELETE',
+      setLoading(true);
+      const response = await fetch('/api/recruiter-availability', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
+        body: JSON.stringify({
+          action: 'sync',
+          recruiterId: recruiterId
+        })
       });
 
       const result = await response.json();
       
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to cancel interview');
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to sync event types');
       }
 
-      await fetchData(); // Refresh data
-      
-    } catch (error) {
-      console.error('Failed to cancel interview:', error);
-      throw error; // Re-throw to let InterviewList handle the error
+      await fetchCalData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sync event types');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const openCalComDashboard = () => {
+    window.open('https://cal.com/event-types', '_blank');
   };
 
   if (loading) {
@@ -181,7 +171,7 @@ export function InterviewDashboard({ userId }: InterviewDashboardProps) {
         </h3>
         <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
         <button 
-          onClick={fetchData}
+          onClick={fetchCalData}
           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-150"
         >
           Try Again
@@ -199,17 +189,70 @@ export function InterviewDashboard({ userId }: InterviewDashboardProps) {
             Interview Management
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your availability and scheduled interviews
+            Manage your Cal.com integration and interview scheduling
           </p>
         </div>
         
-        <button
-          onClick={() => setShowAvailabilityForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
-        >
-          <Plus className="w-4 h-4" />
-          Add Availability
-        </button>
+        {calData?.connected ? (
+          <div className="flex gap-3">
+            <button
+              onClick={openCalComDashboard}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Cal.com Dashboard
+            </button>
+            <button
+              onClick={handleSyncEventTypes}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
+            >
+              <Settings className="w-4 h-4" />
+              Sync Event Types
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowApiKeyForm(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
+          >
+            <Plus className="w-4 h-4" />
+            Connect Cal.com
+          </button>
+        )}
+      </div>
+
+      {/* Connection Status */}
+      <div className={`p-4 rounded-lg border ${
+        calData?.connected 
+          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+          : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+      }`}>
+        <div className="flex items-center gap-3">
+          {calData?.connected ? (
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+          )}
+          <div>
+            <h3 className={`font-semibold ${
+              calData?.connected 
+                ? 'text-green-800 dark:text-green-400'
+                : 'text-yellow-800 dark:text-yellow-400'
+            }`}>
+              {calData?.connected ? 'Cal.com Connected' : 'Cal.com Not Connected'}
+            </h3>
+            <p className={`text-sm ${
+              calData?.connected 
+                ? 'text-green-700 dark:text-green-300'
+                : 'text-yellow-700 dark:text-yellow-300'
+            }`}>
+              {calData?.connected 
+                ? 'Your Cal.com account is connected and ready for interview scheduling.'
+                : 'Connect your Cal.com account to enable interview scheduling with candidates.'
+              }
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Tab Navigation */}
@@ -226,24 +269,24 @@ export function InterviewDashboard({ userId }: InterviewDashboardProps) {
             Overview
           </button>
           <button
-            onClick={() => setActiveTab('availability')}
+            onClick={() => setActiveTab('event-types')}
             className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-150 ${
-              activeTab === 'availability'
+              activeTab === 'event-types'
                 ? 'border-apple-blue text-apple-blue'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             }`}
           >
-            Availability
+            Event Types
           </button>
           <button
-            onClick={() => setActiveTab('interviews')}
+            onClick={() => setActiveTab('bookings')}
             className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-150 ${
-              activeTab === 'interviews'
+              activeTab === 'bookings'
                 ? 'border-apple-blue text-apple-blue'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             }`}
           >
-            All Interviews
+            Bookings
           </button>
         </nav>
       </div>
@@ -259,140 +302,313 @@ export function InterviewDashboard({ userId }: InterviewDashboardProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-apple-blue">
-                  {availability.filter(a => a.status === 'available').length}
+                  {calData?.eventTypes?.length || 0}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Available Slots
+                  Event Types
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-apple-green">
-                  {upcomingInterviews.length}
+                  {calData?.eventTypes?.filter(et => et.isActive)?.length || 0}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Upcoming Interviews
+                  Active Types
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Upcoming Interviews Preview */}
+          {/* Setup Guide */}
           <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-black dark:text-white">
-                Upcoming Interviews
-              </h2>
-              <button
-                onClick={() => setActiveTab('interviews')}
-                className="text-sm text-apple-blue hover:underline"
-              >
-                View All
-              </button>
+            <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
+              Setup Guide
+            </h2>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                  calData?.connected 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                }`}>
+                  1
+                </div>
+                <span className={calData?.connected ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400'}>
+                  Connect Cal.com account
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                  calData?.eventTypes?.length 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                }`}>
+                  2
+                </div>
+                <span className={calData?.eventTypes?.length ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400'}>
+                  Create interview event types
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                  3
+                </div>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Share booking links with candidates
+                </span>
+              </div>
             </div>
-            
-            {upcomingInterviews.length === 0 ? (
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  No upcoming interviews
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {upcomingInterviews.slice(0, 3).map((interview) => (
-                  <div key={interview.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                    <div>
-                      <div className="font-medium text-black dark:text-white">
-                        {interview.interviewType.charAt(0).toUpperCase() + interview.interviewType.slice(1)} Interview
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {new Intl.DateTimeFormat('en-US', {
-                          dateStyle: 'medium',
-                          timeStyle: 'short'
-                        }).format(new Date(interview.scheduledStart))}
-                      </div>
-                    </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      interview.status === 'confirmed' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                    }`}>
-                      {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* Availability Calendar Preview */}
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
+          {/* Recent Event Types */}
+          {calData?.eventTypes && calData.eventTypes.length > 0 && (
+            <div className="lg:col-span-2">
+              <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-black dark:text-white">
-                    Availability Calendar
+                    Your Event Types
                   </h2>
                   <button
-                    onClick={() => setActiveTab('availability')}
+                    onClick={() => setActiveTab('event-types')}
                     className="text-sm text-apple-blue hover:underline"
                   >
-                    Manage Availability
+                    View All
                   </button>
                 </div>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  {calData.eventTypes.slice(0, 4).map((eventType) => (
+                    <div key={eventType.id} className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-black dark:text-white">
+                            {eventType.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {eventType.duration} minutes
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          !eventType.isActive 
+                            ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        }`}>
+                          {eventType.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      {eventType.calComLink && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <a
+                            href={eventType.calComLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-apple-blue hover:underline flex items-center gap-1"
+                          >
+                            View Booking Page
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <AvailabilityCalendar
-                availability={availability}
-                onSlotSelect={handleSlotSelect}
-                onSlotEdit={handleAvailabilityEdit}
-                readonly={false}
-              />
             </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'event-types' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-black dark:text-white">
+              Event Types
+            </h2>
+            <button
+              onClick={openCalComDashboard}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Manage in Cal.com
+            </button>
+          </div>
+
+          {calData?.eventTypes && calData.eventTypes.length > 0 ? (
+            <div className="grid gap-4">
+              {calData.eventTypes.map((eventType) => (
+                <div key={eventType.id} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-black dark:text-white">
+                          {eventType.name}
+                        </h3>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          !eventType.isActive 
+                            ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        }`}>
+                          {eventType.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {eventType.duration} minutes
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          Event ID: {eventType.id}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {eventType.calComLink && (
+                    <div className="flex items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <a
+                        href={eventType.calComLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View Booking Page
+                      </a>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(eventType.calComLink)}
+                        className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150"
+                      >
+                        Copy Link
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                No Event Types Found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Create event types in Cal.com to start scheduling interviews.
+              </p>
+              <button
+                onClick={openCalComDashboard}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Create Event Types
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'bookings' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-black dark:text-white">
+              Recent Bookings
+            </h2>
+            <button
+              onClick={openCalComDashboard}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
+            >
+              <ExternalLink className="w-4 h-4" />
+              View All in Cal.com
+            </button>
+          </div>
+
+          <div className="text-center py-12">
+            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Bookings Coming Soon
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Booking management will be available in the next update. For now, manage your bookings directly in Cal.com.
+            </p>
+            <button
+              onClick={openCalComDashboard}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-apple-blue text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Go to Cal.com
+            </button>
           </div>
         </div>
       )}
 
-      {activeTab === 'availability' && (
-        <div>
-          <AvailabilityCalendar
-            availability={availability}
-            onSlotSelect={handleSlotSelect}
-            onSlotEdit={handleAvailabilityEdit}
-            readonly={false}
-          />
-        </div>
-      )}
-
-      {activeTab === 'interviews' && (
-        <div>
-          <InterviewList
-            userType="candidate"
-            onConfirm={handleInterviewConfirm}
-            onCancel={handleInterviewCancel}
-          />
-        </div>
-      )}
-
-      {/* Availability Form Modal */}
-      {showAvailabilityForm && (
+      {/* Cal.com Username Form Modal */}
+      {showApiKeyForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-black rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-white dark:bg-black rounded-xl shadow-2xl max-w-md w-full">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-black dark:text-white">
-                {editingAvailability ? 'Edit Availability' : 'Add Availability'}
+                Connect Cal.com Account
               </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Enter your Cal.com username to connect your account
+              </p>
             </div>
             
-            <div className="p-6 overflow-y-auto">
-              <AvailabilitySlotForm
-                initialData={editingAvailability || selectedSlot}
-                onSubmit={handleAvailabilitySubmit}
-                onCancel={() => {
-                  setShowAvailabilityForm(false);
-                  setSelectedSlot(null);
-                  setEditingAvailability(null);
-                }}
-              />
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Cal.com Username
+                  </label>
+                  <input
+                    type="text"
+                    value={calUsername}
+                    onChange={(e) => setCalUsername(e.target.value)}
+                    placeholder="your-username"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-apple-blue focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Your Cal.com username (e.g., "sumiran-mishra-6okorg"). Find it in your{' '}
+                    <a 
+                      href="https://cal.com/settings/my-account/profile" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-apple-blue hover:underline"
+                    >
+                      Cal.com Profile
+                    </a>
+                  </p>
+                </div>
+                
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <h4 className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-1">
+                    How to find your username:
+                  </h4>
+                  <ol className="text-xs text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                    <li>Go to cal.com and log in</li>
+                    <li>Visit your public booking page</li>
+                    <li>Your username is in the URL: cal.com/<strong>your-username</strong></li>
+                  </ol>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowApiKeyForm(false);
+                    setCalUsername('');
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConnectCal}
+                  disabled={!calUsername.trim()}
+                  className="flex-1 px-4 py-2 bg-apple-blue text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                >
+                  Connect
+                </button>
+              </div>
             </div>
           </div>
         </div>
