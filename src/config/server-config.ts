@@ -25,4 +25,7 @@ export const serverConfig = {
     ai: {
         openRouterApiKey: env.OPENROUTER_API_KEY,
     },
+    cal: {
+        apiKey: env.CAL_API_KEY,
+    },
 } as const;

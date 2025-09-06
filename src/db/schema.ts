@@ -51,23 +51,23 @@ export const verification = pgTable('verification', {
 export const interviewSessions = pgTable('interview_sessions', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  
+
   // Session metadata
   sessionType: text('session_type').notNull().default('interview'), // interview, practice, assessment
   title: text('title'), // Optional title for the session
   description: text('description'), // Optional description
-  
+
   // Session metrics
   duration: integer('duration'), // Duration in minutes
   messageCount: integer('message_count').notNull().default(0),
   averageEngagement: text('average_engagement').default('medium'), // high, medium, low
   overallScore: text('overall_score').default('0'), // 0-100 overall performance score
-  
+
   // Session analysis
   topicsExplored: jsonb('topics_explored'), // Array of topics discussed
   skillsIdentified: jsonb('skills_identified'), // Array of skills mentioned in this session
   finalAnalysis: jsonb('final_analysis'), // AI analysis summary
-  
+
   // Status and timestamps
   status: text('status').notNull().default('active'), // active, completed, abandoned
   startedAt: timestamp('started_at').notNull().defaultNow(),
@@ -85,20 +85,20 @@ export const userSkills = pgTable('user_skills', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   skillName: text('skill_name').notNull(),
-  
+
   // Frequency metrics
   mentionCount: integer('mention_count').notNull().default(0),
   lastMentioned: timestamp('last_mentioned').notNull().defaultNow(),
-  
+
   // Proficiency metrics
   proficiencyScore: text('proficiency_score').notNull().default('0'), // Calculated based on engagement and confidence
   averageConfidence: text('average_confidence').notNull().default('0'), // Average confidence of skill detection
   averageEngagement: text('average_engagement').notNull().default('medium'), // Average engagement level when mentioned
-  
+
   // Context information
   topicDepthAverage: text('topic_depth_average').notNull().default('0'), // How deep in conversations this skill appears
   firstMentioned: timestamp('first_mentioned').notNull().defaultNow(),
-  
+
   // Metadata
   synonyms: jsonb('synonyms'), // Alternative names for this skill
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -117,16 +117,16 @@ export const skillMentions = pgTable('skill_mentions', {
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   sessionId: text('session_id').references(() => interviewSessions.id, { onDelete: 'cascade' }),
   messageIndex: integer('message_index'), // Which message in the session this was mentioned
-  
+
   // Mention details
   mentionText: text('mention_text'), // The actual text where the skill was mentioned
   confidence: text('confidence'), // Confidence score of the skill detection (0-1)
   engagementLevel: text('engagement_level'), // high, medium, low
   topicDepth: text('topic_depth'), // How deep in the conversation tree this was mentioned
-  
+
   // Context
   conversationContext: text('conversation_context'), // Brief context of what was being discussed
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   userSkillIndex: index('skill_mentions_user_skill_idx').on(table.userSkillId),
@@ -163,11 +163,21 @@ export const recruiterProfiles = pgTable('recruiter_profiles', {
   contactEmail: text('contact_email'),
   phoneNumber: text('phone_number'),
   timezone: text('timezone').notNull().default('UTC'),
+
+  // Cal.com integration fields
+  calComConnected: boolean('cal_com_connected').default(false),
+  calComApiKey: text('cal_com_api_key'), // In production, this should be encrypted
+  calComUsername: text('cal_com_username'),
+  calComUserId: integer('cal_com_user_id'),
+  calComScheduleId: integer('cal_com_schedule_id'),
+  calComEventTypeId: integer('cal_com_event_type_id'),
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
   userIndex: index('recruiter_profiles_user_idx').on(table.userId),
   organizationIndex: index('recruiter_profiles_organization_idx').on(table.organizationName),
+  calComUserIndex: index('recruiter_profiles_cal_com_user_idx').on(table.calComUserId),
 }));
 
 // Job postings table
@@ -218,18 +228,26 @@ export const candidateAvailability = pgTable('candidate_availability', {
 // Interview sessions for scheduling (separate from conversation sessions)
 export const interviewSessionsScheduled = pgTable('interview_sessions_scheduled', {
   id: text('id').primaryKey(),
-  jobPostingId: text('job_posting_id').notNull().references(() => jobPostings.id, { onDelete: 'cascade' }),
+  jobPostingId: text('job_posting_id').references(() => jobPostings.id, { onDelete: 'cascade' }),
   candidateId: text('candidate_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  recruiterId: text('recruiter_id').notNull().references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
+  recruiterId: text('recruiter_id').references(() => recruiterProfiles.id, { onDelete: 'cascade' }),
   scheduledStart: timestamp('scheduled_start').notNull(),
   scheduledEnd: timestamp('scheduled_end').notNull(),
   timezone: text('timezone').notNull().default('UTC'),
-  status: text('status').notNull().default('scheduled'),
+  status: text('status').notNull().default('scheduled'), // scheduled, confirmed, completed, cancelled, rescheduled
   interviewType: text('interview_type').default('video'),
   meetingLink: text('meeting_link'),
   notes: text('notes'),
   candidateConfirmed: boolean('candidate_confirmed').default(false),
   recruiterConfirmed: boolean('recruiter_confirmed').default(false),
+
+  // Cal.com integration fields
+  calComBookingId: integer('cal_com_booking_id'),
+  calComEventTypeId: integer('cal_com_event_type_id'),
+  candidateName: text('candidate_name'),
+  candidateEmail: text('candidate_email'),
+  calComData: jsonb('cal_com_data'), // Store full Cal.com booking response
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
@@ -238,6 +256,7 @@ export const interviewSessionsScheduled = pgTable('interview_sessions_scheduled'
   recruiterIndex: index('interview_sessions_scheduled_recruiter_idx').on(table.recruiterId),
   statusIndex: index('interview_sessions_scheduled_status_idx').on(table.status),
   scheduledTimeIndex: index('interview_sessions_scheduled_time_idx').on(table.scheduledStart),
+  calComBookingIndex: index('interview_sessions_scheduled_cal_com_booking_idx').on(table.calComBookingId),
 }));
 
 // Candidate job matches table
