@@ -58,6 +58,24 @@ export function JobPostingList({
     }).format(new Date(date));
   };
 
+  const copyScheduleLink = async (jobId: string) => {
+    try {
+      const response = await fetch(`/api/jobs/${jobId}/schedule-link`);
+      const data = await response.json();
+      
+      if (data.success && data.scheduling.available && data.scheduling.scheduleUrl) {
+        await navigator.clipboard.writeText(data.scheduling.scheduleUrl);
+        // You could add a toast notification here
+        alert('Schedule link copied to clipboard!');
+      } else {
+        alert('Interview scheduling is not set up for this job. Please connect Cal.com first.');
+      }
+    } catch (error) {
+      console.error('Error copying schedule link:', error);
+      alert('Failed to copy schedule link');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -176,6 +194,16 @@ export function JobPostingList({
                 onStatusChange={(status) => onStatusChange?.(job.id, status)}
               />
               
+              <button
+                onClick={() => copyScheduleLink(job.id)}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-apple-green hover:bg-apple-green/10 rounded-lg transition-colors duration-150 ease-out"
+                title="Copy interview schedule link"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h6a2 2 0 012 2v4m-4 0V3m0 4h4m0 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h4" />
+                </svg>
+              </button>
+
               <button
                 onClick={() => onEdit?.(job)}
                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-black hover:dark:text-white hover:bg-gray-50 hover:dark:bg-gray-900 rounded-lg transition-colors duration-150 ease-out"

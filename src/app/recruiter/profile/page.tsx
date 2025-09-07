@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RecruiterProfileForm } from '../_modules/recruiter-profile-form';
 import { RecruiterProfileView } from '../_modules/recruiter-profile-view';
+import { CalComSetup } from '../_modules/cal-com-setup';
 import { useCSRFToken, secureApiRequest } from '~/hooks/use-csrf-token';
 import { 
   RecruiterProfile, 
@@ -275,54 +276,65 @@ export default function RecruiterProfilePage() {
       )}
 
       {/* Main Content */}
-      <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+          {viewMode === 'view' && profile && (
+            <RecruiterProfileView
+              profile={profile}
+              onEdit={() => setViewMode('edit')}
+              onDelete={handleDeleteProfile}
+              isLoading={isSubmitting}
+            />
+          )}
+
+          {viewMode === 'create' && (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-black dark:text-white mb-1">
+                  Create Recruiter Profile
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Fill in your information to get started with recruiting
+                </p>
+              </div>
+              
+              <RecruiterProfileForm
+                mode="create"
+                onSubmit={handleCreateProfile}
+                isLoading={isSubmitting}
+              />
+            </div>
+          )}
+
+          {viewMode === 'edit' && profile && (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-black dark:text-white mb-1">
+                  Edit Recruiter Profile
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Update your recruiting information
+                </p>
+              </div>
+              
+              <RecruiterProfileForm
+                mode="edit"
+                initialData={profile}
+                onSubmit={handleUpdateProfile}
+                onCancel={handleCancel}
+                isLoading={isSubmitting}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Cal.com Integration Section */}
         {viewMode === 'view' && profile && (
-          <RecruiterProfileView
-            profile={profile}
-            onEdit={() => setViewMode('edit')}
-            onDelete={handleDeleteProfile}
-            isLoading={isSubmitting}
+          <CalComSetup
+            isConnected={profile.calComConnected}
+            calComUsername={profile.calComUsername}
+            onSetupComplete={loadProfile}
           />
-        )}
-
-        {viewMode === 'create' && (
-          <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-black dark:text-white mb-1">
-                Create Recruiter Profile
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Fill in your information to get started with recruiting
-              </p>
-            </div>
-            
-            <RecruiterProfileForm
-              mode="create"
-              onSubmit={handleCreateProfile}
-              isLoading={isSubmitting}
-            />
-          </div>
-        )}
-
-        {viewMode === 'edit' && profile && (
-          <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-black dark:text-white mb-1">
-                Edit Recruiter Profile
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Update your recruiting information
-              </p>
-            </div>
-            
-            <RecruiterProfileForm
-              mode="edit"
-              initialData={profile}
-              onSubmit={handleUpdateProfile}
-              onCancel={handleCancel}
-              isLoading={isSubmitting}
-            />
-          </div>
         )}
       </div>
     </div>

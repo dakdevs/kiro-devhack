@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
+import { JobImportForm } from './job-import-form';
 import { 
   CreateJobPostingRequest, 
   CreateJobPostingResponse,
@@ -8,6 +9,15 @@ import {
   EmploymentType,
   ExperienceLevel
 } from '~/types/interview-management';
+
+interface JobImportData {
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  rawDescription: string;
+  url: string;
+}
 
 interface JobPostingFormProps {
   onSubmit: (data: CreateJobPostingRequest) => Promise<CreateJobPostingResponse>;
@@ -32,6 +42,7 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [analysisResult, setAnalysisResult] = useState<JobAnalysisResult | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showImportForm, setShowImportForm] = useState(false);
 
   const handleInputChange = (field: keyof CreateJobPostingRequest, value: any) => {
     console.log('[JOB-POSTING-FORM] Field changed:', field, 'value:', value);
@@ -187,12 +198,71 @@ export function JobPostingForm({ onSubmit, onCancel, isLoading = false }: JobPos
     );
   }
 
+  const handleJobImported = (jobData: JobImportData) => {
+    // Extract skills from description using simple keyword matching
+    const extractSkills = (description: string): string[] => {
+      const commonSkills = [
+        'JavaScript', 'TypeScript', 'Python', 'Java', 'C++', 'C#', 'Go', 'Rust', 'PHP', 'Ruby',
+        'React', 'Vue', 'Angular', 'Node.js', 'Express', 'Django', 'Flask', 'Spring', 'Laravel',
+        'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes',
+        'Git', 'Linux', 'REST API', 'GraphQL', 'Microservices', 'Agile', 'Scrum'
+      ];
+
+      const foundSkills: string[] = [];
+      const lowerDescription = description.toLowerCase();
+
+      commonSkills.forEach(skill => {
+        const lowerSkill = skill.toLowerCase();
+        if (lowerDescription.includes(lowerSkill)) {
+          foundSkills.push(skill);
+        }
+      });
+
+      return [...new Set(foundSkills)];
+    };
+
+    const extractedSkills = extractSkills(jobData.description);
+    const requiredSkills = extractedSkills.slice(0, Math.ceil(extractedSkills.length * 0.7));
+    const preferredSkills = extractedSkills.slice(requiredSkills.length);
+
+    setFormData({
+      title: jobData.title,
+      description: jobData.description,
+      location: jobData.location,
+      remoteAllowed: jobData.location.toLowerCase().includes('remote'),
+      employmentType: 'full-time',
+      experienceLevel: undefined,
+      salaryMin: undefined,
+      salaryMax: undefined,
+      requiredSkills,
+      preferredSkills,
+    });
+
+    setShowImportForm(false);
+  };
+
+  if (showImportForm) {
+    return (
+      <JobImportForm
+        onJobImported={handleJobImported}
+        onCancel={() => setShowImportForm(false)}
+      />
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-black dark:text-white mb-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-black dark:text-white">
           Post a New Job
         </h2>
+        <button
+          type="button"
+          onClick={() => setShowImportForm(true)}
+          className="px-4 py-2 bg-gray-50 dark:bg-gray-900 text-black dark:text-white border border-gray-200 dark:border-gray-700 rounded-lg font-system text-[15px] font-medium transition-all duration-150 ease-out hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          Import from URL
+        </button>
       </div>
 
       {/* Job Title */}
