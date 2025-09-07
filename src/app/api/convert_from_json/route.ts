@@ -157,12 +157,23 @@ export async function GET(request: Request) {
         if (!targetUrl) {
             return NextResponse.json({ error: 'Missing "url" parameter' }, { status: 400 });
         }
+
+        // Validate URL format
+        if (!targetUrl.includes('greenhouse.io')) {
+            return NextResponse.json({ error: 'Only Greenhouse.io URLs are supported' }, { status: 400 });
+        }
+
         const urlToFetch = turnUrlToJsonUrl(targetUrl);
 
-        const response = await fetch(urlToFetch);
+        const response = await fetch(urlToFetch, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; JobImporter/1.0)',
+                'Accept': 'application/json',
+            },
+        });
 
         if (!response.ok) {
-            throw Error(`Failed to fetch data from external URL: ${response.statusText}`);
+            throw Error(`Failed to fetch data from external URL: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -170,14 +181,24 @@ export async function GET(request: Request) {
         const extractedContent = extractAndClean(data);
 
         if (!extractedContent) {
-            return NextResponse.json({ error: 'Could not extract meaningful info fron JSON' }, { status: 400 });
-
+            return NextResponse.json({ error: 'Could not extract meaningful info from JSON' }, { status: 400 });
         }
-        return NextResponse.json({ text: extractedContent });
+
+        // Also return structured data for better parsing
+        return NextResponse.json({ 
+            text: extractedContent,
+            structured: {
+                title: data.title || '',
+                company: data.departments?.[0]?.name || data.offices?.[0]?.name || '',
+                location: data.location?.name || '',
+                content: data.content || '',
+                metadata: data.metadata || []
+            }
+        });
     }
     catch (error) {
-        console.error('[API/ convert_from_json] Error:', error);
-        const message = error instanceof Error ? error.message : 'An unknown error occured';
+        console.error('[API/convert_from_json] Error:', error);
+        const message = error instanceof Error ? error.message : 'An unknown error occurred';
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }

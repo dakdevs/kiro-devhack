@@ -71,18 +71,28 @@ export function InterviewScheduler({
       const startTime = `${date}T00:00:00.000Z`;
       const endTime = `${date}T23:59:59.000Z`;
       
+      console.log('[INTERVIEW_SCHEDULER] Fetching slots for:', { eventTypeId, date, startTime, endTime });
+      
       const response = await fetch(
-        `/api/cal_com_api/slots?eventTypeId=${eventTypeId}&startTime=${startTime}&endTime=${endTime}`
+        `/api/cal_com_api/slots?eventTypeId=${eventTypeId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch available time slots');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch available time slots`);
       }
 
-      const slots = await response.json();
-      setAvailableSlots(Array.isArray(slots) ? slots : []);
+      const data = await response.json();
+      console.log('[INTERVIEW_SCHEDULER] Slots response:', data);
+
+      if (data.success) {
+        setAvailableSlots(Array.isArray(data.slots) ? data.slots : []);
+      } else {
+        throw new Error(data.error || 'Failed to load available times');
+      }
 
     } catch (err) {
+      console.error('[INTERVIEW_SCHEDULER] Error fetching slots:', err);
       setError(err instanceof Error ? err.message : 'Failed to load available times');
     } finally {
       setIsLoadingSlots(false);
@@ -108,12 +118,32 @@ export function InterviewScheduler({
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(candidateInfo.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setIsScheduling(true);
     setError('');
 
     try {
       const startDateTime = new Date(`${selectedDate}T${selectedTime}`);
       const eventLengthInMinutes = 45; // Default interview length
+      
+      // Validate that the selected time is in the future
+      if (startDateTime <= new Date()) {
+        throw new Error('Selected time must be in the future');
+      }
+
+      console.log('[INTERVIEW_SCHEDULER] Scheduling interview:', {
+        eventTypeId,
+        startDateTime: startDateTime.toISOString(),
+        candidateInfo,
+        jobPostingId,
+        recruiterId
+      });
       
       const response = await fetch('/api/cal_com_api/book', {
         method: 'POST',
@@ -124,26 +154,27 @@ export function InterviewScheduler({
           recruiterId,
           eventTypeId,
           start: startDateTime.toISOString(),
-          name: candidateInfo.name,
-          email: candidateInfo.email,
+          name: candidateInfo.name.trim(),
+          email: candidateInfo.email.trim(),
           timeZone: candidateInfo.timeZone,
           eventLengthInMinutes,
           jobPostingId,
         }),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Failed to schedule interview');
-      }
-
       const result = await response.json();
+      console.log('[INTERVIEW_SCHEDULER] Booking response:', result);
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || `HTTP ${response.status}: Failed to schedule interview`);
+      }
       
       if (onScheduled) {
         onScheduled(result);
       }
 
     } catch (err) {
+      console.error('[INTERVIEW_SCHEDULER] Error scheduling interview:', err);
       setError(err instanceof Error ? err.message : 'Failed to schedule interview');
     } finally {
       setIsScheduling(false);

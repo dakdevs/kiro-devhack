@@ -10,6 +10,9 @@ interface CalendarEvent {
   type: 'interview' | 'meeting' | 'other';
   candidateName?: string;
   jobTitle?: string;
+  status?: string;
+  meetingLink?: string;
+  source?: 'local' | 'calcom';
 }
 
 export function CalendarView() {
@@ -24,11 +27,55 @@ export function CalendarView() {
   const loadCalendarEvents = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/recruiter/calendar/events?month=${currentDate.getMonth()}&year=${currentDate.getFullYear()}`);
-      if (response.ok) {
-        const data = await response.json();
-        setEvents(data.events || []);
+      // Load both local interviews and Cal.com bookings
+      const [interviewsResponse, calComResponse] = await Promise.all([
+        fetch(`/api/recruiter/interviews?filter=all`),
+        fetch(`/api/cal_com_api/bookings?month=${currentDate.getMonth()}&year=${currentDate.getFullYear()}`)
+      ]);
+
+      const combinedEvents: CalendarEvent[] = [];
+
+      // Process local interviews
+      if (interviewsResponse.ok) {
+        const interviewsData = await interviewsResponse.json();
+        if (interviewsData.success && interviewsData.interviews) {
+          const interviewEvents = interviewsData.interviews.map((interview: any) => ({
+            id: `interview-${interview.id}`,
+            title: interview.candidateName || 'Interview',
+            start: interview.scheduledStart,
+            end: interview.scheduledEnd,
+            type: 'interview' as const,
+            candidateName: interview.candidateName,
+            jobTitle: interview.jobTitle,
+            status: interview.status,
+            meetingLink: interview.meetingLink,
+            source: 'local'
+          }));
+          combinedEvents.push(...interviewEvents);
+        }
       }
+
+      // Process Cal.com bookings
+      if (calComResponse.ok) {
+        const calComData = await calComResponse.json();
+        if (calComData.success && calComData.bookings) {
+          const calComEvents = calComData.bookings.map((booking: any) => ({
+            id: `calcom-${booking.id}`,
+            title: booking.title || 'Cal.com Booking',
+            start: booking.startTime,
+            end: booking.endTime,
+            type: 'interview' as const,
+            candidateName: booking.attendees?.[0]?.name || 'Unknown',
+            jobTitle: booking.eventType?.title || 'Interview',
+            status: booking.status?.toLowerCase() || 'scheduled',
+            meetingLink: booking.location,
+            source: 'calcom'
+          }));
+          combinedEvents.push(...calComEvents);
+        }
+      }
+
+      setEvents(combinedEvents);
     } catch (error) {
       console.error('Error loading calendar events:', error);
     } finally {
@@ -95,10 +142,31 @@ export function CalendarView() {
     <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-6">
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">
-          {monthYear}
-        </h2>
+        <div>
+          <h2 className="text-xl font-semibold text-black dark:text-white">
+            {monthYear}
+          </h2>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="w-3 h-3 bg-apple-blue/20 border-l-2 border-apple-blue rounded-sm"></div>
+              <span>Local Interviews</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="w-3 h-3 bg-apple-green/20 border-l-2 border-apple-green rounded-sm"></div>
+              <span>Cal.com Bookings</span>
+            </div>
+          </div>
+        </div>
         <div className="flex gap-2">
+          <button
+            onClick={loadCalendarEvents}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-150"
+            title="Refresh calendar"
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
           <button
             onClick={() => navigateMonth('prev')}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-150"
@@ -164,16 +232,25 @@ export function CalendarView() {
                       {dayEvents.slice(0, 2).map(event => (
                         <div
                           key={event.id}
-                          className={`text-xs px-1 py-0.5 rounded truncate ${
+                          className={`text-xs px-1 py-0.5 rounded truncate relative ${
                             event.type === 'interview'
-                              ? 'bg-apple-blue/10 text-apple-blue'
+                              ? event.source === 'calcom'
+                                ? 'bg-apple-green/10 text-apple-green border-l-2 border-apple-green'
+                                : 'bg-apple-blue/10 text-apple-blue border-l-2 border-apple-blue'
                               : event.type === 'meeting'
-                              ? 'bg-apple-green/10 text-apple-green'
+                              ? 'bg-apple-orange/10 text-apple-orange'
                               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                           }`}
-                          title={`${event.title} - ${formatTime(event.start)}`}
+                          title={`${event.candidateName || event.title} - ${formatTime(event.start)} ${event.source === 'calcom' ? '(Cal.com)' : ''}`}
                         >
-                          {formatTime(event.start)} {event.title}
+                          <div className="flex items-center gap-1">
+                            {event.source === 'calcom' && (
+                              <div className="w-1 h-1 bg-apple-green rounded-full flex-shrink-0"></div>
+                            )}
+                            <span className="truncate">
+                              {formatTime(event.start)} {event.candidateName || event.title}
+                            </span>
+                          </div>
                         </div>
                       ))}
                       {dayEvents.length > 2 && (
@@ -198,12 +275,37 @@ export function CalendarView() {
         <div className="space-y-3">
           {events
             .filter(event => event.type === 'interview' && new Date(event.start) > new Date())
+            .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
             .slice(0, 5)
             .map(event => (
-              <div key={event.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <div>
-                  <div className="font-medium text-black dark:text-white">
-                    {event.candidateName} - {event.jobTitle}
+              <div key={event.id} className={`flex items-center justify-between p-3 rounded-lg border-l-4 ${
+                event.source === 'calcom' 
+                  ? 'bg-apple-green/5 border-apple-green' 
+                  : 'bg-apple-blue/5 border-apple-blue'
+              }`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="font-medium text-black dark:text-white">
+                      {event.candidateName} - {event.jobTitle}
+                    </div>
+                    <div className={`px-2 py-1 text-xs rounded-full ${
+                      event.source === 'calcom'
+                        ? 'bg-apple-green/10 text-apple-green'
+                        : 'bg-apple-blue/10 text-apple-blue'
+                    }`}>
+                      {event.source === 'calcom' ? 'Cal.com' : 'Local'}
+                    </div>
+                    {event.status && (
+                      <div className={`px-2 py-1 text-xs rounded-full capitalize ${
+                        event.status === 'confirmed' 
+                          ? 'bg-apple-green/10 text-apple-green'
+                          : event.status === 'cancelled'
+                          ? 'bg-apple-red/10 text-apple-red'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {event.status}
+                      </div>
+                    )}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     {new Date(event.start).toLocaleDateString('en-US', {
@@ -213,14 +315,32 @@ export function CalendarView() {
                     })} at {formatTime(event.start)}
                   </div>
                 </div>
-                <button className="px-3 py-1 text-sm text-apple-blue hover:bg-apple-blue/10 rounded transition-colors duration-150">
-                  View Details
-                </button>
+                <div className="flex items-center gap-2">
+                  {event.meetingLink && (
+                    <a
+                      href={event.meetingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 text-sm text-apple-blue hover:bg-apple-blue/10 rounded transition-colors duration-150"
+                    >
+                      Join Meeting
+                    </a>
+                  )}
+                  <button className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-150">
+                    Details
+                  </button>
+                </div>
               </div>
             ))}
           {events.filter(event => event.type === 'interview' && new Date(event.start) > new Date()).length === 0 && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              No upcoming interviews scheduled
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h6a2 2 0 012 2v4m-4 0V3m0 4h4m0 0v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h4" />
+                </svg>
+              </div>
+              <p className="font-medium">No upcoming interviews scheduled</p>
+              <p className="text-sm mt-1">Interviews will appear here once candidates book time slots</p>
             </div>
           )}
         </div>

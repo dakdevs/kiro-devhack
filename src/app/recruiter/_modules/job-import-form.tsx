@@ -29,8 +29,15 @@ export function JobImportForm({ onJobImported, onCancel }: JobImportFormProps) {
       return;
     }
 
-    if (!url.includes('greenhouse.io')) {
-      setError('Currently only Greenhouse.io job postings are supported');
+    // Validate URL format
+    try {
+      const urlObj = new URL(url);
+      if (!urlObj.hostname.includes('greenhouse.io')) {
+        setError('Currently only Greenhouse.io job postings are supported');
+        return;
+      }
+    } catch {
+      setError('Please enter a valid URL');
       return;
     }
 
@@ -48,61 +55,93 @@ export function JobImportForm({ onJobImported, onCancel }: JobImportFormProps) {
 
       const data = await response.json();
       
-      if (!data.text) {
+      if (!data.text && !data.structured) {
         throw new Error('No job description found');
       }
 
-      // Parse the structured text to extract job information
-      const lines = data.text.split('\n').filter(line => line.trim());
-      
-      let title = '';
-      let company = '';
-      let location = '';
-      let description = '';
-      
-      // Extract title (first line)
-      if (lines.length > 0) {
-        title = lines[0].trim();
-      }
+      let jobData: JobImportData;
 
-      // Extract company and location from header lines
-      for (let i = 1; i < Math.min(lines.length, 5); i++) {
-        const line = lines[i].trim();
-        if (line.startsWith('Company:')) {
-          company = line.replace('Company:', '').trim();
-        } else if (line.startsWith('Location:')) {
-          location = line.replace('Location:', '').trim();
+      // Use structured data if available, otherwise parse text
+      if (data.structured && data.structured.title) {
+        jobData = {
+          title: data.structured.title || 'Untitled Position',
+          company: data.structured.company || 'Unknown Company',
+          location: data.structured.location || 'Location not specified',
+          description: stripHtmlTags(data.structured.content) || data.text,
+          rawDescription: data.structured.content || data.text,
+          url,
+        };
+      } else {
+        // Fallback to text parsing
+        const lines = data.text.split('\n').filter(line => line.trim());
+        
+        let title = '';
+        let company = '';
+        let location = '';
+        let description = '';
+        
+        // Extract title (first line)
+        if (lines.length > 0) {
+          title = lines[0].trim();
         }
+
+        // Extract company and location from header lines
+        for (let i = 1; i < Math.min(lines.length, 5); i++) {
+          const line = lines[i].trim();
+          if (line.startsWith('Company:')) {
+            company = line.replace('Company:', '').trim();
+          } else if (line.startsWith('Location:')) {
+            location = line.replace('Location:', '').trim();
+          }
+        }
+
+        // The rest is the job description
+        const descriptionStartIndex = lines.findIndex((line, index) => 
+          index > 0 && 
+          !line.startsWith('Company:') && 
+          !line.startsWith('Location:') &&
+          line.length > 10
+        );
+
+        if (descriptionStartIndex > -1) {
+          description = lines.slice(descriptionStartIndex).join('\n').trim();
+        }
+
+        jobData = {
+          title: title || 'Untitled Position',
+          company: company || 'Unknown Company',
+          location: location || 'Location not specified',
+          description: description || data.text,
+          rawDescription: data.text,
+          url,
+        };
       }
-
-      // The rest is the job description
-      const descriptionStartIndex = lines.findIndex((line, index) => 
-        index > 0 && 
-        !line.startsWith('Company:') && 
-        !line.startsWith('Location:') &&
-        line.length > 10
-      );
-
-      if (descriptionStartIndex > -1) {
-        description = lines.slice(descriptionStartIndex).join('\n').trim();
-      }
-
-      const jobData: JobImportData = {
-        title: title || 'Untitled Position',
-        company: company || 'Unknown Company',
-        location: location || 'Location not specified',
-        description: description || data.text,
-        rawDescription: data.text,
-        url,
-      };
 
       setImportedJob(jobData);
 
     } catch (err) {
+      console.error('Job import error:', err);
       setError(err instanceof Error ? err.message : 'Failed to import job posting');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to strip HTML tags
+  const stripHtmlTags = (html: string): string => {
+    if (!html || typeof html !== 'string') {
+      return '';
+    }
+    return html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
   };
 
   const handleUseJob = () => {
